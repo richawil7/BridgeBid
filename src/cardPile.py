@@ -4,7 +4,7 @@ Card Pile Class
 A collection of cards
 '''
 
-from enums import Suit, Level, PileOrder, PileDisplayMode, CardPosition
+from enums import Suit, Level, PileOrder, PileDisplayMode
 from utils import *
 from frame import TableFrame
 
@@ -54,53 +54,6 @@ class CardPile:
                 return card
         return None
     
-    def findCardByPosition(self, suit, position, excludeSpade=False):
-        highestCardLevel = Level.LOW
-        highestCard = None
-        lowestCardLevel = Level.HIGH
-        lowestCard = None
-
-        # Figure out if the pile has nothing but spades left
-        numSpades = self.getNumCardsInSuit(Suit.SPADE)
-        onlySpades = (len(self.cards) == numSpades)
-        
-        for card in self.cards:
-            if suit != Suit.ALL:
-                # Skip cards which are not in the desired suit
-                if card.suit != suit:
-                    continue
-            elif excludeSpade and card.suit == Suit.SPADE:
-                continue        
-            else:
-                # In general, we want to avoid returning a
-                # low spade. But if all we have is spades left
-                # we need to choose one
-                if position == CardPosition.LOWEST and \
-                   card.suit == Suit.SPADE and \
-                   not onlySpades:
-                    continue
-                
-            if card.level.value > highestCardLevel.value:
-                highestCardLevel = card.level
-                highestCard = card
-            if card.level.value < lowestCardLevel.value:
-                lowestCardLevel = card.level
-                lowestCard = card
-        if position == CardPosition.LOWEST:
-            return lowestCard
-        if position == CardPosition.HIGHEST:
-            return highestCard
-                
-    def removeCardByPosition(self, suit, position):
-        card = self.findCardByPosition(suit, position)
-        # print("Found card {}".format(card.toStr()))
-        if card != None:
-            self.cards.remove(card)
-        else:
-            #print("removeCardByPosition: suit {} pos {} not found\n".format(suit.name, position.name))
-            pass
-        return card
-
     def removeCard(self, delCard):
         self.cards.remove(delCard)
         
@@ -190,34 +143,7 @@ class CardPile:
             card.show()
 
 
-    # GUI Methods
-    def findCardByPoint(self, x, y):
-        # Get the hand position by looking at a card
-        if len(self.cards) == 0:
-            return None
-        card = self.cards[0]
-        if not isPointInCardField(card.position, x, y):
-            print("Point is not in card field")
-            return None
-        for idx, card in enumerate(self.cards):
-            # Define the boundries in which card images can live
-            x_left = card.anchor[0]
-            x_right = card.anchor[0] + CARD_PIXEL_WIDTH
-            y_top = card.anchor[1]
-            y_bottom = card.anchor[1] + CARD_PIXEL_HEIGHT
-            # The right boundary needs to be adjusted if the next card
-            # overlaps it
-            if idx + 1 < len(self.cards):
-                nextCard = self.cards[idx + 1]
-                nextCard_x_left = nextCard.anchor[0]
-                if nextCard_x_left < x_right:
-                    x_right = nextCard_x_left
-            #print("Card boundries x_left={} x_right={} y_top={} y_bottom={}".format(x_left, x_right, y_top, y_bottom))            
-            if x >= x_left and x <= x_right and y <= y_bottom and y >= y_top:
-                return card
-        return None
-
-                
+    # GUI Methods                
     def setGuiParams(self, tableGui, tablePosition):
         anchorCenter = getAnchorPointByPosition(tablePosition)
         anchor_x = anchorCenter[0]

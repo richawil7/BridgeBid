@@ -3,7 +3,7 @@ Player Class
 A player in a card game
 '''
 
-from enums import Suit, Level, CardPosition
+from enums import Suit, Level
 from cardPile import CardPile
 
 class Player:

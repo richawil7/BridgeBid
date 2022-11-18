@@ -28,10 +28,6 @@ class Level(Enum):
     Ace_HIGH = 14
     HIGH = 15
 
-class CardPosition(Enum):
-    LOWEST = 0
-    HIGHEST = 1
-    
 class TablePosition(Enum):
     NORTH = 0
     EAST = 1

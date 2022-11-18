@@ -23,14 +23,12 @@ class CardTable():
         self.humanPlayer = humanPlaying
         self.deck = Deck()
         self.players = {}
-        self.suitDict = {}
         self.bidsList = []
         self.currentRound = 0
         self.currentPos = TablePosition.CONTROL
         self.leadPos = TablePosition.CONTROL
         self.outstandingBidReq = False
         self.guiTable = None
-        self.newHand = False
         self.handDone = True
         self.programDone = False
         self.log_fp = None
@@ -40,12 +38,6 @@ class CardTable():
         self.players[TablePosition.EAST] = BridgePlayer(self, TablePosition.EAST)
         self.players[TablePosition.SOUTH] = BridgePlayer(self, TablePosition.SOUTH, self.humanPlayer)
         self.players[TablePosition.WEST] = BridgePlayer(self, TablePosition.WEST)
-
-        # Initialize the suit dictionary
-        self.suitDict[Suit.SPADE] = {'NumCardsPlayed': 0, 'HasBeenTrumped': False}
-        self.suitDict[Suit.HEART] = {'NumCardsPlayed': 0, 'HasBeenTrumped': False}
-        self.suitDict[Suit.DIAMOND] = {'NumCardsPlayed': 0, 'HasBeenTrumped': False}
-        self.suitDict[Suit.CLUB] = {'NumCardsPlayed': 0, 'HasBeenTrumped': False}
 
     def setGuiTable(self, guiTable):
         self.guiTable = guiTable
@@ -139,15 +131,9 @@ class CardTable():
         if self.leadPos == TablePosition.CONTROL:
             # Start of the program. Computer bids first.
             self.leadPos = TablePosition.NORTH
-        elif self.leadPos == TablePosition.NORTH:
-            self.leadPos = TablePosition.EAST
-        elif self.leadPos == TablePosition.EAST:
-            self.leadPos = TablePosition.SOUTH
-        elif self.leadPos == TablePosition.SOUTH:
-            self.leadPos = TablePosition.WEST
-        elif self.leadPos == TablePosition.WEST:
-            self.leadPos = TablePosition.NORTH
-            
+        else:
+            (nextBidder, isLeader) = getNextPosition(self.leadPos, self.leadPos)
+            self.leadPos = nextBidder;
         self.currentPos = self.leadPos
 
     def bidRequest(self):
@@ -212,7 +198,6 @@ class CardTable():
             
         self.guiTable.nextHand()
         del self.bidsList[:]
-        self.newHand = True
         self.startHand()
 
     def flushLog(self):

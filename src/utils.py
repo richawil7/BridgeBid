@@ -51,7 +51,6 @@ def getNextPosition(currentPosition, leadPosition):
         return (nextPos, False)
 
 # GUI Functions
-
 def getTableSize():
     return (1200, 600)
 
