@@ -1,0 +1,30 @@
+Current State
+-------------
+Bidding sequence:	3D
+min_points		    5
+max_points		    11
+candidate_suit		D
+selected_suit		D
+num_suit_cards		6+
+forcing			    False
+game_forcing		False
+num_aces		    -1
+num_kings		    -1
+
+Bidding Rules
+-------------
+			Presed		Range		Balanced	Number		Other		Forcing		Convention
+3H                      14                      5+H         Strong      Yes
+3S                      14                      5+S         Strong      Yes
+2N                      14                      2+D                     Yes
+3N                      8   13      Yes                     Stoppers
+4D                      0   13                  4+D
+4D                      8   13                  2+D
+Pass
+
+
+Custom Conditions
+-----------------                
+Stoppers    Winners in all unbid suits
+Strong      2 of top 3 or 3 of top 5
+

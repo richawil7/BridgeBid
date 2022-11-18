@@ -1,0 +1,49 @@
+
+Project plan for bridge bidding application
+
+Overview
+This application allows a human player to partner with the computer to
+practice bidding a bridge hand.
+
+Program Milestones
+
+1. Bootstrap the code
+Start with copying the spades application without the git metadata.
+
+2. Modify the deal
+Deal cards into 4 piles. Write a function that can evaluate a bridge hand, high card plus distribution points. Evaluate all 4 hands and pick the 2 best ones. Give them to North and South.
+
+
+3. Bid Output
+Get bid box to look good
+ - put the header row on the table
+ - put borders around the cells
+ - change zeros to Pass
+Remove the hardcoded bids
+
+4. Request Bids
+Put in a stub which will just return some bid.
+Take bid from human by standard input.
+Add a check in accepting a bid for a bid level of 8 to indicate bidding is over.
+Verify that bids continue around the table until a bid of 8 is received.
+
+5. Multiple Hands
+Show that after one hand is done, another hand can be started.
+
+<<<YOU ARE HERE>>>
+
+6. Computer can make opening bid
+Implement a real opening bid. Hard code computer as first bidder.
+
+7. Bid Input from Human
+In the control panel, create a keypad where the human can submit a bid.
+Remove human bidding via stdin.
+
+8. Calculate the "correct" final bid
+And display that bid in the control frame at the end of a hand
+
+9. Computer can make second bid
+
+10. Computer can make 3rd bid
+
+

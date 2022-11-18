@@ -1,0 +1,24 @@
+Current State
+-------------
+Bidding sequence:	4S
+min_points		    5
+max_points		    11
+candidate_suit		S
+selected_suit		S
+num_suit_cards		8+
+forcing			    False
+game_forcing		False
+num_aces		    -1
+num_kings		    -1
+
+Bidding Rules
+-------------
+			Presed		Range		Balanced	Number		Other		Forcing		Convention
+4N                      14          Yes                     Stoppers    Yes
+Pass
+
+
+Custom Conditions
+-----------------                
+Stoppers    Winners in all unbid suits
+

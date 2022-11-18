@@ -1,0 +1,368 @@
+
+
+Deck Class
+-----------
+Represents a deck of cards.
+I plan to leverage the pydealer package at
+https://github.com/Trebek/pydealer.
+I need to clone and modify this code, as the suit ranks are not correct for bridge.
+https://pydealer.readthedocs.io/en/latest/
+
+I will add these functions to the class
+
+deal(use_saved_deal)
+Returns an ordered list of 4 hands.
+Hands are listed in "best" to "worst" order.
+If used_saved_deal is True, pull a hand randomly from a set of hands saved in files.
+If False, generate the hands randomly.
+
+distribute_hands(hand1, hand2, hand3, hand4, dist_method)
+Assign the 4 hands to the 4 players according to the dist_method enumeration:
+ - ns13: give first and third hands to North and South. Randomly assign between them.
+ - ns23: give second and third hands to North and South. Randomly assign between them.
+ - rand: assign hands randomly
+
+save_deal(fp, north, east, south, west)
+Save 4 hands of a deal to a file.
+
+===========================================
+
+Player Class
+------------
+Represents each of the players.
+Players have fixed enumerated identifiers, North, East, South, West.
+The human is always North.
+
+Parameters:
+name        enum       North, East, South, or West
+hand        Hand        Instance of a Hand class
+
+Methods:
+(suit, value)   bid(self, bidding_tree, bid_sequence, vulnerable)
+Returns a bid in the form of a suit and value.
+
+
+===========================================
+
+Hand Class
+----------
+Represents a dealt hand of 13 cards.
+
+boolean     two_top_three(self, suit)
+Returns True if the given suit in the hand has 2 of the top 3 cards.
+
+boolean     three_top_five(self, suit)
+Returns True if the given suit in the hand has 3 of the top 5 cards.
+
+boolean     is_strong(self, suit)
+Returns True if the hand contains two_top_three or three_top_five
+
+(suit, length)  longest_and_strongest(self)
+Returns the suit and its length which is the longest and strongest.
+
+int         suit_length(self, suit)
+Returns the length of the given suit.
+
+boolean     test_length(self, suit, length, operator)
+Returns True if the length of the given suit in the hand satisfies the comparison.
+Comparison operators:    
+    EQ      equal
+    GE      greater than or equal
+    LE      less than or equal
+
+boolean     is_balanced(self)
+Returns True if a hand is balanced, False otherwise.
+A balanced hand has no more than 1 doubleton.
+
+boolean     test_balanced(self, request)
+The request indicates whether we want the hand to be balanced or not (string 'YES' or 'NO') 
+if request == 'YES':
+    returns True if the hand is balanced, False otherwise.
+else if request == 'NO':
+    returns True if the hand not balanced, False otherwise 
+
+int         high_card_points(self)
+Returns the number of high card points for the hand
+
+int         distribution_points(self)
+Returns the number of distribution points for the hand
+
+int         total points(self)
+Returns the sum of the high card and distribution points.
+
+int         num_outside_aces_kings(self, suit)
+Returns the number of aces and kings in the hand, excluding the ones in the specified suit.
+
+boolean     hcp_range(self, min, max)
+Returns True if the number of high card points is within the inclusive range of (min, max)
+
+boolean     total_pt_range(self, min, max)
+Returns True if the number of total points (high card plus distribution) is within the inclusive range of (min, max)
+
+boolean     with_card(self, suit, min_card)
+Test if the given suit contains the specified card or a higher card.
+Returns True if the suit contains a card equal to or greater than the min_card.
+
+boolean     compare_length(self, suit1, suit2, operator)
+Use the operator to compare the length of the two given suits.
+Operator include 'EQ', 'GT',
+Returns boolean result of suit1.len operator suit2.len
+
+boolean     test_outside_support(self, suit, max_ace_king)
+Counts the number of Aces and Kings outside of the given suit.
+Compares the count to the value of max_ace_king.
+Returns True if the count <= max_ace_king
+
+==============================
+
+Enumerations
+
+enum hand_generation
+ hand_gen_random:               // default
+    all deals are randomized
+ hand_get_saved:
+    deals are taken randomly from a set of deals saved in files
+    a separate file is used for each convention that the deal exercises
+    when selecting a random number for the convention, let one value be to generate deal randomly
+
+enum hand_assignment
+ ns13:                          // default
+    The North/South team gets the first and third best hands
+ ns23
+    The North/South team gets the second and third best hands
+ ns12
+    The North/South team gets the first and second best hands
+The selection of which player in the partnership gets which hand is random with equal probability.
+
+
+========================
+
+
+Bridge Program
+
+Program configuration parameters
+hand_generation_mode
+hand_assignment_algorithm
+
+Statics
+vulnerability_array[row_index][dealer]
+A 2 dimensional array. One dimension is the dealer. The other dimension is a round of 4 deals.
+An entry in the array indicates which team(s) are vulnerable for this deal.
+B=both O=none N=NS E=EW
+See https://tedmuller.What is a bridge playerus/Bridge/Esoterica/BoardVulnerability.htm
+        N       E       S       W
+1       O       N       E       B
+2       N       E       B       O
+3       E       B       O       N
+4       B       O       N       E
+
+
+Globals
+deck            deck of cards
+players[]       array of players
+teams[]         array of teams
+There are 2 teams, "NS", and "EW". A team has these parameters
+ - boolean vulnerable - indicates if the team is vulnerable for this deal
+ - bidding_tree - the root of the bidding tree being used by this team for this deal
+ - bidding_sequence - the sequence of bids
+dealer          index into the players array, who is the current dealer
+bidder          index into the players array, who is the current bidder
+rowIndex        increments with each deal, mod 4. Used as an index into vulnerability_array
+
+
+Functions
+get_vulnerability(dealer, deal_count)
+Returns enum of which team(s) are vulnerable.
+
+get_next_player(current_player)
+Returns the player after the current player
+
+#Main Program
+main()
+
+    # Initialization
+    # Create the deck of cards
+    deck = Deck()
+
+    # Create 4 players
+    player[North.value] = Player("North")
+    player[East.value] = Player("East")
+    player[South.value] = Player("South")
+    player[West.value] = Player("West")
+
+    # Initialize teams
+    teams[TEAMS.NS.value].bidding_tree = "/home/richawil/Documents/Personal/Bridge/bidding_trees/opener_tree"
+    teams[TEAM.NS.value].vulnerable = False
+
+    teams[TEAMS.EW.value].bidding_tree = "/home/richawil/Documents/Personal/Bridge/bidding_trees/opener_tree"
+    teams[TEAM.EW.value].vulnerable = False
+
+    # Select dealer and first bidder
+    dealer = player[0]
+    bidder = get_next_player(dealer)
+    deal_count = 0
+
+    # Program loop
+    while True:
+        # Shuffle and deal the cards
+        deck.shuffle()
+        (hand1, hand2, hand3, hand4) = deck.deal()
+    
+        # Assign the hands to players
+        (player[North.value].hand, player[East.value].hand, player[South.value].hand, player[West.value].hand) = deck.distribute(hand1, hand2, hand3, hand4)
+        
+        # Initialize bidding information
+        teams[TEAM.NS.value].bidding_sequence = []
+        teams[TEAM.EW.value].bidding_sequence = []
+        bid_sequence = []
+        pass_count = 0
+        bid = None
+        opener_found = False
+        opening_team = None
+
+        # Bidding Loop
+        while pass_count < 4:
+            # For which team does the current bidder play for?
+            if bidder == player[PLAYER.North.value] or bidder == player[PLAYER.South.value]:
+                current_team = team[TEAM.NS.value]
+            elif bidder == player[PLAYER.East.value] or bidder == player[PLAYER.West.value]:
+                current_team = team[TEAM.EW.value]
+
+            # Ask the current bidder to bid
+            bid = bidder.bid(current_team.bidding_tree, current_team.bid_sequence, bid, current_team.vulnerable)
+            if bidder == player[North.value]:
+                # Ask the human for the bid too
+                human_bid = input("Please enter a bid")
+            if bid != human_bid:
+                print("That's not what I would bid")
+                response = input("Would you like to use my bid of %s instead" % bid)
+                if response == No:
+                    bid = human_bid
+
+            # Add the latest bid to the bidding sequences
+            bid_sequence.add(bid)
+            current_team.bid_sequence.add(bid)
+
+            # Was the bid a Pass or not
+            if bid == 'Pass':
+                pass_count++
+            else:
+                pass_count = 0
+                # Look for an overcall bid
+                if not opener_found:
+                    opener_found = True
+                    if current_team == team[TEAM.NS.value]:
+                        team[TEAM.NS.value].opener = True
+                        team[TEAM.EW.value].opener = False
+                        team[TEAM.EW.value].bidding_tree = "/home/richawil/Documents/Personal/Bridge/bidding_trees/overcall_tree"
+                    elif current_team == team[TEAM.EW.value]:
+                        team[TEAM.EW.value].opener = True
+                        team[TEAM.NS.value].opener = False
+                        team[TEAM.NS.value].bidding_tree = "/home/richawil/Documents/Personal/Bridge/bidding_trees/overcall_tree"
+                else:
+                    if current_team.opener == False:
+                        # Just got an overcall
+                        # Swap current team back to opener tree
+                        current_tree.bidding_tree = "/home/richawil/Documents/Personal/Bridge/bidding_trees/opener_tree"
+
+            # Advance the bidder
+            bidder = get_next_player(bidder)
+
+        response = input("Do you want to play another deal?")
+        if response == 'No':
+            sys.exit(0)
+
+        # Advance the dealer
+        dealer = get_next_player(dealer)
+
+        # Advance the vulnerability
+        deal_count = (deal_count + 1) % 4
+        vulnerable_team = get_vulnerability(dealer, deal_count)
+        if vulnerable_team == VulEnum.Both:
+            team[TEAM.NS.value].vulnerable = True
+            team[TEAM.EW.value].vulnerable = True
+        elif vulnerable_team == VulEnum.None:
+            team[TEAM.NS.value].vulnerable = False
+            team[TEAM.EW.value].vulnerable = False
+        elif vulnerable_team == VulEnum.NS:
+            team[TEAM.NS.value].vulnerable = True
+            team[TEAM.EW.value].vulnerable = False
+        elif vulnerable_team == VulEnum.EW:
+            team[TEAM.NS.value].vulnerable = False
+            team[TEAM.EW.value].vulnerable = True        
+
+
+================================
+
+Description File
+
+The description file for a node in the bidding tree contains two sections:
+ 1. Current state
+    Shows the characteristics of the partner's combined hands
+ 2. An ordered list of bidding rules
+
+A bidding rule consists of zero or more conditions.
+A condition is a test of some aspect of the held hand.
+For a rule to pass, all the conditions must be true.  There is a bid associated with each rule.
+In general, a rule looks like this:
+    bid
+    condition1, condition2 ...          // zero or more conditions
+    forcing flag
+    convention
+
+Conditions are identified using a string name.
+The condition also contains a list of 0 or more parameters, all of which are strings.
+A condition is tested by calling a function which returns a boolean after being given the list of input parameters.
+The name of the condition is equivalent to the name of the function to be called.
+In general, a condition looks like this:
+    conditionName, param1, param2 ...   
+
+{
+    "currentState": {
+        "biddingSequence: [],
+        "role": "Opener",
+        "min_points": 0,
+        "max_points": 40,
+        "candidateSuit": null,
+        "selectedSuit": null,
+        "numSuitCards":	0,
+        "forcing": false,
+        "gameForcing": false,
+        "numAces": -1,
+        "numKings": -1
+    },
+    rulesList: [
+        {
+            "bid": "2S",
+            "forcing": false,
+            "convention": "Weak Twos",
+            "conditionList": [
+                {
+                    "functionName": "<nameOfHandClassFunctionToCall>",
+                    "parameterList": [
+                        "<firstParameterName>": <firstParameterValue>,
+                        "<secondParameterName>": <secondParameterValue>,
+                        ...
+                    ]
+                },                {
+                    "functionName": "total_pt_range",
+                    "parameterList": [
+                        "min": 13,
+                        "max": 21
+                    ]
+                },
+                {
+                    condition3
+                },
+
+            ]
+        },
+        {
+            <rule 2>
+        },
+    ]
+}
+
+
+
+

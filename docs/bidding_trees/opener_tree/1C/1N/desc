@@ -1,0 +1,36 @@
+Current State
+-------------
+Bidding sequence:	1C 1N
+min_points		    19
+max_points		    33
+candidate_suit		C
+selected_suit		None
+num_suit_cards		3+
+forcing			    False
+game_forcing		False
+num_aces		    -1
+num_kings		    -1
+
+Bidding Rules
+-------------
+			Presed		Range		Balanced	Number		Other		Forcing		Convention
+3N                      19  21      Yes
+3H                      19  21                  4
+3S                      19  21                  4
+3D                      19  21                  5
+4C                      19  21                  4+
+2N                      17  18      Yes
+2H                      17  18                  4
+2S                      17  18                  4
+2D                      17  18                  5
+2C                      13  16                  5
+Pass
+
+                
+
+
+Notes
+-----
+
+
+

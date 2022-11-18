@@ -1,0 +1,28 @@
+Current State
+-------------
+Bidding sequence:	2N
+min_points		    20
+max_points		    22
+candidate_suit		N
+selected_suit		None
+num_suit_cards		0
+forcing			    False
+game_forcing		False
+num_aces		    -1
+num_kings		    -1
+
+Bidding Rules
+-------------
+			Presed		Range		Balanced	Number		Other		Forcing		Convention
+3H			1			X			X			5+S					    Yes			Jacoby Transfer
+3D			2			X			X			5+H					    Yes			Jacoby Transfer
+4N          3           11          Yes                                 Yes         Blackwood/RKCB
+3N          3           6   10      Yes
+3C			3			4   5		X			4S or 4H				Yes 		Stayman
+Pass		3			0	3		X
+
+Notes
+-----
+Opener has 20-22 HCP and a balanced hand. 
+Need 26 HCP for game. Need 33 HCP for small slam, 37 for grand slam.
+Jacoby and Stayman conventions are enabled.

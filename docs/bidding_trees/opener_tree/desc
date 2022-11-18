@@ -1,0 +1,61 @@
+Overview
+--------
+Normally open five-card majors in all seats.
+Open the higher of long suits of equal length: 5-5 or 6-6.
+Normally open 1D with 4-4 in the minors.
+Normally open 1C with 3-3 in the minors.
+Notrump openings show a balanced hand and can be made with a five-card major suit or a five-card minor suit.
+1NT = 15-17
+2NT = 20-21
+3NT = 25-27
+Strong conventional 2C opening.
+Weak two-bids in diamonds, hearts and spades. 
+
+
+Current State
+-------------
+Bidding sequence:	None
+Role                Opener
+min_points		    0
+max_points		    40
+candidate_suit		None
+selected_suit		None
+num_suit_cards		0
+forcing			    False
+game_forcing		False
+num_aces		    -1
+num_kings		    -1
+
+Bidding Rules
+-------------
+Bid		Range		Balanced	Length		Other		Forcing		Convention
+3N		25	27		Yes			X
+2N		20	22		Yes
+2C		22	27		X			X						True		Strong Two
+1N		15	17		Yes			X           Custom 5
+1S		13	21		X			5=			S=H
+1S		13	21		X			5+
+1H		13	21		X			5+
+1D		13	21		X			5+			C=D
+1C		13	21		X			3+			C>=D
+1D		13	21		X			3+
+1W                                          Custom 1
+1W      11  12      X           5           Custom 6
+3SHDC	7	11		No			7+			Custom 3                Preempt
+2SHD	5	11		No			6+			Custom 2				Weak Two
+
+Pass	0	12		X			X
+
+Custom Conditions
+1   Rule of 20. If HCP + length of 2 longest suits >= 20. Open 1 of longest/strongest suit
+2	No more than 1 Ace or king outside of selected suit.
+3	Needs to be a strong suit. No Ace or King in any other suit. No 4 card major.
+    6+ not vulerable, 7+ vulnerable.
+4	2 of 3 highest cards. Can have Ace or King outside.
+5   With a 5 card major, consider opening 1Ma if the other major has 2 cards
+    With a 5 card minor, consider opening 1Mi if no 4 card major
+6   Third seat opening with 5 quality cards
+
+
+
+

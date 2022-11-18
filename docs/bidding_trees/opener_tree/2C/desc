@@ -1,0 +1,26 @@
+Current State
+-------------
+Bidding sequence:	2C
+min_points		    22
+max_points		    27
+candidate_suit		N
+selected_suit		None
+num_suit_cards		0
+forcing			    True
+game_forcing		False
+num_aces		    -1
+num_kings		    -1
+
+Bidding Rules
+-------------
+			Presed		Range		Balanced	Number		Other		Forcing		Convention
+2N			1			8	10		Yes			X			
+2SH		    2			8			No			6+
+2SH         3           8           No          5=SH        w/Q					
+3DC		    3			7			No			6+SH	
+3DC		    3			7			No			5=CD        w/Q		
+2D			4			0   7	    X               								Waiting bid
+
+Notes
+-----
+Opener has >21 HCP unbalanced or 23-27 HCP balanced. Forcing to 3 level.
