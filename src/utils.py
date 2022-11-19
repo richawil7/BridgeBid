@@ -35,7 +35,21 @@ def getHandStr(hand):
         handStr += cardStr + '-'
     return handStr[:-1]
 
+def getBidStr(bidLevel, bidSuit):
+    bidStr = "%d" % bidLevel
+    if bidSuit == Suit.CLUB:
+        bidStr += "C"
+    elif bidSuit == Suit.DIAMOND:
+        bidStr += "D"
+    elif bidSuit == Suit.HEART:
+        bidStr += "H"
+    elif bidSuit == Suit.SPADE:
+        bidStr += "S"
+    elif bidSuit == Suit.NOTRUMP:
+        bidStr += "NT"
+    return bidStr
 
+    
 def getNextPosition(currentPosition, leadPosition):
     if TablePosition.NORTH == currentPosition:
         nextPos = TablePosition.EAST

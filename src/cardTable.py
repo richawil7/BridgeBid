@@ -25,6 +25,8 @@ class CardTable():
         self.players = {}
         self.bidsList = []
         self.currentRound = 0
+        self.hasOpener = False
+        self.competition = False
         self.currentPos = TablePosition.CONTROL
         self.leadPos = TablePosition.CONTROL
         self.outstandingBidReq = False
@@ -45,7 +47,15 @@ class CardTable():
     def startHand(self):
         self.handDone = False
         self.dealCards()
+        self.hasOpener = False
+        self.competition = False
         self.findNextBidder()
+        for pos in TablePosition:
+            if pos == TablePosition.CONTROL or pos == TablePosition.CENTER:
+                continue
+            player = self.players[pos]
+            player.startHand(self.leadPos)
+            
         if self.guiEnabled:
             self.guiTable.startHand(self.leadPos)
         self.bidRequest()
@@ -57,7 +67,7 @@ class CardTable():
             writeLog(self, "Start of a new hand\n")
         
         self.deck.shuffle()
-        # writeLog(self, "Deck contains {} cards\n".format(len(self.deck.cards)))
+        
         # Create 4 empty card piles
         cardPiles = []
         for index in range(0, 4):
@@ -135,16 +145,24 @@ class CardTable():
             (nextBidder, isLeader) = getNextPosition(self.leadPos, self.leadPos)
             self.leadPos = nextBidder;
         self.currentPos = self.leadPos
+        writeLog(self, "cardTable: findNextBidder: position %s\n" % self.leadPos.name)
 
     def bidRequest(self):
         player = self.players[self.currentPos]
-        print("cardTable: bidReq: position %s" % player.pos.name)
+        writeLog(self, "cardTable: lead position is %s\n" % player.pos.name)
         self.outstandingBidReq = True
         player.bidRequest(self.bidsList)
 
     def bidResponse(self, pos, bidLevel, bidSuit):
         print("cardTable: bidResponse from %s: %d%s" % (pos.name, bidLevel, bidSuit.name))
         self.outstandingBidReq = False
+        if self.hasOpener:
+            if bidLevel > 0:
+                # Was this bid received from the opener's competitor?
+                # RW HACK
+                self.competition = False
+        elif bidLevel > 0:
+            self.hasOpener = True
         self.bidsList.append((bidLevel, bidSuit))
         
         # Update the GUI bid board with this player's bid
@@ -188,7 +206,6 @@ class CardTable():
     This function is called when the user asks to play another hand
     '''       
     def nextHand(self):
-        print("cardTable: nextHand entry")
         # Prepare for next hand
         for pos in TablePosition:
             if pos == TablePosition.CONTROL or pos == TablePosition.CENTER:

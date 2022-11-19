@@ -39,7 +39,16 @@ class TablePosition(Enum):
 class DistMethod(Enum):
     LONG = 0
     SHORT = 1
-    
+
+class TeamRole(Enum):
+    UNKNOWN = 0,
+    OFFENSE = 1,
+    DEFENSE = 2
+   
+class PlayerRole(Enum):
+    UNKNOWN = 0,
+    OPENER = 1,
+    RESPONDER = 2
     
 # GUI Classes
 class PileOrder(Enum):

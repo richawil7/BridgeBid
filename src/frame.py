@@ -32,7 +32,7 @@ class TableFrame():
         self.canvas = None
         #self.cardPile = None
         #self.cardDescList = []
-        self.createSubFrames(app.cardTable.cardSelectHandler)
+        self.createSubFrames()
         self.createLabels()
 
     def clear(self):
@@ -49,17 +49,15 @@ class TableFrame():
         self.displayCards()
 
     
-    def createSubFrames(self, cardHandler):
+    def createSubFrames(self):
         if self.pos == TablePosition.WEST or self.pos == TablePosition.EAST:
             botFrame = tk.Frame(self.tkFrame, width=200, height=150)
             botFrame.pack(side=tk.BOTTOM)
             self.canvas = tk.Canvas(self.tkFrame, width=200, height=380, highlightbackground='black', highlightthickness=2)
             self.canvas.pack(side=tk.BOTTOM)
-            self.canvas.bind('<Button-1>', cardHandler)
         elif self.pos == TablePosition.NORTH or self.pos == TablePosition.SOUTH:
             self.canvas = tk.Canvas(self.tkFrame, width=400, height=150, highlightbackground='black', highlightthickness=2)
             self.canvas.pack(side=tk.BOTTOM)
-            self.canvas.bind('<Button-1>', cardHandler)
         elif self.pos == TablePosition.CENTER:
             self.canvas = tk.Canvas(self.tkFrame, width=400, height=250)
             self.canvas.pack()
