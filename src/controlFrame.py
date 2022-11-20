@@ -61,7 +61,7 @@ class ControlFrame(TableFrame):
 
 
     def updateBids(self, table, position, bidLevel, bidSuit):
-        print("updateBids: lead=%s pos=%s lvl=%d suit=%s" % (table.leadPos, position, bidLevel, bidSuit))
+        #writeLog(table, "updateBids: lead=%s pos=%s lvl=%d suit=%s" % (table.leadPos, position, bidLevel, bidSuit))
         if position == table.leadPos:
             self.bidRowIdx += 1
             self.bidColIdx = 0

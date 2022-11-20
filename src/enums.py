@@ -50,6 +50,16 @@ class PlayerRole(Enum):
     OPENER = 1,
     RESPONDER = 2
     
+class SuitCategory(Enum):
+    xxx = 0
+    xxQ = 1
+    xKx = 2
+    Axx = 3
+    xKQ = 4
+    AxQ = 5
+    AKx = 6
+    AKQ = 7
+    
 # GUI Classes
 class PileOrder(Enum):
     FIFO = 1

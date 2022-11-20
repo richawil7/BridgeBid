@@ -50,6 +50,7 @@ class CardTable():
         self.hasOpener = False
         self.competition = False
         self.findNextBidder()
+        self.currentRound = 1
         for pos in TablePosition:
             if pos == TablePosition.CONTROL or pos == TablePosition.CENTER:
                 continue
@@ -134,8 +135,6 @@ class CardTable():
             if self.guiEnabled:
                 self.guiTable.cardDealt(pos, hand)
 
-            # Calculate the bid for each hand
-            writeLog(self, "PLAYER: {} ****************\n".format(player.pos.name))
 
     def findNextBidder(self):
         if self.leadPos == TablePosition.CONTROL:
@@ -149,30 +148,48 @@ class CardTable():
 
     def bidRequest(self):
         player = self.players[self.currentPos]
-        writeLog(self, "cardTable: lead position is %s\n" % player.pos.name)
+        writeLog(self, "cardTable: bidRequest for %s in round %d\n" % (player.pos.name, self.currentRound))
         self.outstandingBidReq = True
         player.bidRequest(self.bidsList)
 
     def bidResponse(self, pos, bidLevel, bidSuit):
-        print("cardTable: bidResponse from %s: %d%s" % (pos.name, bidLevel, bidSuit.name))
+        bidStr = getBidStr(bidLevel, bidSuit)
+        writeLog(self, "cardTable: bidResponse from %s: %s\n" % (pos.name, bidStr))
         self.outstandingBidReq = False
         if self.hasOpener:
             if bidLevel > 0:
                 # Was this bid received from the opener's competitor?
-                # RW HACK
-                self.competition = False
+                if self.competition == False:
+                    # Check the last bid on the bid list
+                    if self.bidsList[-1][0] > 0:
+                        self.competition = True
+                        writeLog(self, "cardTable: bidResponse: table in competition\n")
+                    else:
+                        if len(self.bidsList) >= 3 and self.bidsList[-3][0] > 0:
+                            self.competition = True
+                            writeLog(self, "cardTable: bidResponse: table in competition\n")
         elif bidLevel > 0:
             self.hasOpener = True
+            writeLog(self, "cardTable: bidRes: table has opener\n")
         self.bidsList.append((bidLevel, bidSuit))
         
         # Update the GUI bid board with this player's bid
         if self.guiEnabled:
             self.guiTable.updateBids(self.currentPos, bidLevel, bidSuit)
 
+        # Provide a development hook to bail out of bidding loop
         if bidLevel > 7:
             self.processHandDone()
             return
         
+        # Check if bidding is complete
+        if len(self.bidsList) >= 4:
+            if self.bidsList[-1][0] == 0 and \
+               self.bidsList[-2][0] == 0 and \
+               self.bidsList[-3][0] == 0:
+                self.processHandDone()
+                return
+            
         (nextPos, newRound) = getNextPosition(self.currentPos, self.leadPos)
         self.currentPos = nextPos
         if newRound:
