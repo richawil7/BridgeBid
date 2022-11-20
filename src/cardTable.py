@@ -85,7 +85,7 @@ class CardTable():
         maxPoints = 0
         indexOfBestPile = 9
         for index in range(0, 4):
-            numPoints = cardPiles[index].evalHand(DistMethod.LONG)
+            (numPoints, distPoints) = cardPiles[index].evalHand(DistMethod.LONG)
             if numPoints > maxPoints:
                 maxPoints = numPoints
                 indexOfBestPile = index
@@ -95,7 +95,7 @@ class CardTable():
         for index in range(0, 4):
             if index == indexOfBestPile:
                 continue
-            numPoints = cardPiles[index].evalHand(DistMethod.LONG)
+            (numPoints, distPoints) = cardPiles[index].evalHand(DistMethod.LONG)
             if numPoints > maxPoints:
                 maxPoints = numPoints
                 indexOfSecondBestPile = index
