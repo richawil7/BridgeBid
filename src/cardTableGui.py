@@ -51,7 +51,6 @@ class CardTableGui():
         return
 
     def nextHand(self):
-        print("cardTableGui: nextHand")
         # Clear all the frames
         for pos in TablePosition:
             frame = self.tableFrames[pos]

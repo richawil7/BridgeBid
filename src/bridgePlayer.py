@@ -8,7 +8,9 @@ from utils import *
 from cardPile import CardPile
 from player import Player
 from bridgeHand import BridgeHand
-from bid import *
+from bidUtils import *
+from openBid import *
+from openRsp import *
 
 class BridgePlayer(Player):
 
@@ -69,28 +71,45 @@ class BridgePlayer(Player):
     def computerBidRequest(self, table, hasOpener, competition, roundNum, bidsList, hand):
         # writeLog(table, "bridgePlayer:compBidReq: pos={} hasOpener={} compet={} roundNum={}\n".format(self.pos, hasOpener, competition, roundNum))
 
+        if roundNum == 1:
+            (bidLevel, bidSuit) = self.bidRound1(table, hasOpener, competition, roundNum, bidsList, hand)
+
+        elif roundNum == 2:
+            (bidLevel, bidSuit) = self.bidRound2(table, hasOpener, competition, roundNum, bidsList, hand)
+
+        elif roundNum == 3:
+            (bidLevel, bidSuit) = self.bidRound3(table, hasOpener, competition, roundNum, bidsList, hand)
+
+        else:
+            bidLevel = 0
+            bidSuit = Suit.ALL
+        
+        # bidStr = getBidStr(bidLevel, bidSuit)
+        # writeLog(self.table, "bridgePlayer: compBidReq: bid %s\n" % bidStr)
+        self.table.bidResponse(self.pos, bidLevel, bidSuit)
+        
+    def bidRound1(self, table, hasOpener, competition, roundNum, bidsList, hand):
         bidLevel = 0
         bidSuit = Suit.ALL
         # Determine this player's bidding state
         if not hasOpener and not competition:
-            # writeLog(self.table, "bridgePlayer: compBidReq: no opener yet\n")
             # No one has opened yet
             iCanOpen = canIOpen(self.hand, competition, self.seat) 
             if iCanOpen:
                 self.teamRole = TeamRole.OFFENSE
                 self.playerRole = PlayerRole.OPENER
                 (bidLevel, bidSuit) = calcOpenBid(self.hand)
-            else:
-                bidLevel = 0
 
         elif not hasOpener and competition:
             print("bridgePlayer: computerBidReq: Error-invalid state ")
 
         elif hasOpener:
-            # writeLog(self.table, "bridgePlayer: compBidReq: table has opener\n")
             # Check if my partner was the opener
             if len(bidsList) >= 2:
-                partnerBidIdx = self.seat - 2 - 1
+                if self.seat >= 3:
+                    partnerBidIdx = self.seat - 2 - 1
+                else:
+                    partnerBidIdx = 4 + self.seat - 2 - 1
                 partnerBid = bidsList[partnerBidIdx][0]
                 if partnerBid > 0:
                     # My partner opened
@@ -98,12 +117,11 @@ class BridgePlayer(Player):
                         writeLog(self.table, "bridgePlayer: compBidReq: partner opened\n")
                     self.teamRole = TeamRole.OFFENSE
                     self.playerRole = PlayerRole.RESPONDER
-                    # RW: temporary hack
-                    (bidLevel, bidSuit) = stubBid(self.table, bidsList)
-            else:
-                # My partner passed
-                if roundNum == 1:
+                    (bidLevel, bidSuit) = openResponse(self.table, self.hand, bidsList)
+                else:
+                    # My partner passed
                     writeLog(self.table, "bridgePlayer: compBidReq: partner passed\n")
+            else:
                 iCanOpen = canIOpen(self.hand, competition, self.seat) 
                 if iCanOpen:
                     self.teamRole = TeamRole.OFFENSE
@@ -111,12 +129,35 @@ class BridgePlayer(Player):
                     (bidLevel, bidSuit) = calcOpenBid(self.hand)
                 else:
                     bidLevel = 0
+        return (bidLevel, bidSuit)
 
-        # bidStr = getBidStr(bidLevel, bidSuit)
-        # writeLog(self.table, "bridgePlayer: compBidReq: bid %s\n" % bidStr)
-        self.table.bidResponse(self.pos, bidLevel, bidSuit)
+    def bidRound2(self, table, hasOpener, competition, roundNum, bidsList, hand):
+        bidLevel = 0
+        bidSuit = Suit.ALL
+        if self.playerRole == PlayerRole.UNKNOWN:
+            if self.seat <= 2:
+                # Need to check if my partner bid in round 1
+                partnerBidIdx = self.seat + 2 - 1
+                partnerBid = bidsList[partnerBidIdx][0]
+                if partnerBid > 0:
+                    # My partner opened
+                    self.playerRole == PlayerRole.RESPONDER
+                    (bidLevel, bidSuit) = openResponse(self.table, self.hand, bidsList)
+                    self.teamRole == TeamRole.OFFENSE
+                else:
+                    self.teamRole == TeamRole.DEFENSE
+        elif self.playerRole == PlayerRole.OPENER:
+            #(bidLevel, bidSuit) = openerRebid(self.table, self.hand, bidsList)
+            (bidLevel, bidSuit) = stubBid(table, bidsList)
+        elif self.playerRole == PlayerRole.RESPONDER:
+            #(bidLevel, bidSuit) = responderRebid(self.table, self.hand, bidsList)
+            (bidLevel, bidSuit) = stubBid(table, bidsList)
+        return (bidLevel, bidSuit)
 
-        
+    def bidRound3(self, table, hasOpener, competition, roundNum, bidsList, hand):
+        (bidLevel, bidSuit) = stubBid(table, bidsList)
+        return (bidLevel, bidSuit)
+    
     '''
     This function is called by the card table at the end of a hand
     '''

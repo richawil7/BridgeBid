@@ -96,7 +96,6 @@ class ControlFrame(TableFrame):
         pass
 
     def nextHand(self):
-        print("controlFrame: nextHand entry")
         self.bidRowIdx = 0
         self.bidColIdx = 0
         # remove bid labels from the frame

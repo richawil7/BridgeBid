@@ -66,7 +66,7 @@ def thread_function(name, table):
             curPos = table.currentPos
             player = table.players[curPos]
             if not player.isHuman and table.outstandingBidReq:
-                player.computerBidRequest(table, table.hasOpener, table.competition, table.currentRound, table.bidsList, player.hand)
+                player.computerBidRequest(table, table.hasOpener, table.competition, table.roundNum, table.bidsList, player.hand)
             sleep(1)
     sys.exit(0)
 

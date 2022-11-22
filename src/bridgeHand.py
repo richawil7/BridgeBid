@@ -116,53 +116,53 @@ class BridgeHand(CardPile):
                     return False
         return True
 
-def evalSuitCategory(table, hand, suit):
-    numCardsInSuit = hand.getNumCardsInSuit(suit)
-    foundHole = False
-    prevCardWasHigh = True
-    highCardCount = 0
-    
-    # Examine the top 3 cards, Ace, King, and Queen
-    hasAce = False
-    hasKing = False
-    hasQueen = False
-    for i, value in enumerate(range(Level.Ace_HIGH.value, Level.Jack.value, -1)):
-        level = Level(value)
-        foundCard = hand.hasCard(suit, level)
-        if foundCard:
-            highCardCount += 1
-            if i == 0:
-                hasAce = True
-            elif i == 1:
-                hasKing = True
-            elif i == 2:
-                hasQueen = True
-            if not prevCardWasHigh:
-                foundHole = True
-            prevCardWasHigh = True
-        else:
-            prevCardWasHigh = False
-            
-    if hasAce:
-        if hasKing:
-            category = SuitCategory.AKQ if hasQueen else SuitCategory.AKx
-        else:
-            category = SuitCategory.AxQ if hasQueen else SuitCategory.Axx
-    else:
-        if hasKing:
-            category = SuitCategory.xKQ if hasQueen else SuitCategory.xKx
-        else:
-            category = SuitCategory.xxQ if hasQueen else SuitCategory.xxx
+    def evalSuitCategory(hand, suit):
+        numCardsInSuit = hand.getNumCardsInSuit(suit)
+        foundHole = False
+        prevCardWasHigh = True
+        highCardCount = 0
 
-    writeLog(table, "Suit {} has {} cards, {} high cards, category {}\n".format(suit.name, numCardsInSuit, highCardCount, category.name))
-    return (category, numCardsInSuit, highCardCount)
-    
+        # Examine the top 3 cards, Ace, King, and Queen
+        hasAce = False
+        hasKing = False
+        hasQueen = False
+        for i, value in enumerate(range(Level.Ace_HIGH.value, Level.Jack.value, -1)):
+            level = Level(value)
+            foundCard = hand.hasCard(suit, level)
+            if foundCard:
+                highCardCount += 1
+                if i == 0:
+                    hasAce = True
+                elif i == 1:
+                    hasKing = True
+                elif i == 2:
+                    hasQueen = True
+                if not prevCardWasHigh:
+                    foundHole = True
+                prevCardWasHigh = True
+            else:
+                prevCardWasHigh = False
+
+        if hasAce:
+            if hasKing:
+                category = SuitCategory.AKQ if hasQueen else SuitCategory.AKx
+            else:
+                category = SuitCategory.AxQ if hasQueen else SuitCategory.Axx
+        else:
+            if hasKing:
+                category = SuitCategory.xKQ if hasQueen else SuitCategory.xKx
+            else:
+                category = SuitCategory.xxQ if hasQueen else SuitCategory.xxx
+
+        #print("Suit {} has {} cards, {} high cards, category {}".format(suit.name, numCardsInSuit, highCardCount, category.name))
+        return (category, numCardsInSuit, highCardCount)
+
     # Return True if all 4 suits have stoppers
     def hasStoppers(self):
         for suit in Suit:
             if suit == Suit.ALL or suit == Suit.NOTRUMP:
                 continue
-            (category, numCardsInSuit, highCardCount) = evalSuitCategory(table, hand, suit)
+            (category, numCardsInSuit, highCardCount) = self.evalSuitCategory(hand, suit)
             if category == SuitCategory.xxx:
                 return False
             elif category == SuitCategory.xxQ:
@@ -176,5 +176,5 @@ def evalSuitCategory(table, hand, suit):
                     return False
             # All other categories have stoppers
 
-        writeLog(table, "bridgeHand: hasStoppers in all suits")
+        #print("bridgeHand: hasStoppers in all suits")
         return True

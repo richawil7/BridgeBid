@@ -24,7 +24,7 @@ class CardTable():
         self.deck = Deck()
         self.players = {}
         self.bidsList = []
-        self.currentRound = 0
+        self.roundNum = 0
         self.hasOpener = False
         self.competition = False
         self.currentPos = TablePosition.CONTROL
@@ -50,7 +50,7 @@ class CardTable():
         self.hasOpener = False
         self.competition = False
         self.findNextBidder()
-        self.currentRound = 1
+        self.roundNum = 1
         for pos in TablePosition:
             if pos == TablePosition.CONTROL or pos == TablePosition.CENTER:
                 continue
@@ -148,7 +148,7 @@ class CardTable():
 
     def bidRequest(self):
         player = self.players[self.currentPos]
-        writeLog(self, "cardTable: bidRequest for %s in round %d\n" % (player.pos.name, self.currentRound))
+        writeLog(self, "cardTable: bidRequest for %s in round %d\n" % (player.pos.name, self.roundNum))
         self.outstandingBidReq = True
         player.bidRequest(self.bidsList)
 
@@ -170,7 +170,7 @@ class CardTable():
                             writeLog(self, "cardTable: bidResponse: table in competition\n")
         elif bidLevel > 0:
             self.hasOpener = True
-            writeLog(self, "cardTable: bidRes: table has opener\n")
+            writeLog(self, "cardTable: bidResponse: table has opener\n")
         self.bidsList.append((bidLevel, bidSuit))
         
         # Update the GUI bid board with this player's bid
@@ -193,7 +193,7 @@ class CardTable():
         (nextPos, newRound) = getNextPosition(self.currentPos, self.leadPos)
         self.currentPos = nextPos
         if newRound:
-            self.currentRound += 1
+            self.roundNum += 1
             
         self.bidRequest()
 
