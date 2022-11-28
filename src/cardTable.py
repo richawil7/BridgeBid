@@ -218,7 +218,6 @@ class CardTable():
         # Rename the logging file
         os.rename("../logs/info.log", "../logs/save.log")
 
-
     '''
     This function is called when the user asks to play another hand
     '''       

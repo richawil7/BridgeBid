@@ -16,6 +16,7 @@ class BridgeHand(CardPile):
             cardsFaceUp = True
         super(BridgeHand, self).__init__(faceUp=cardsFaceUp)
 
+    # Returns high card and distribution points
     def evalHand(self, distMethod):
         # Calculate high card points
         highCardPoints = 0
@@ -26,8 +27,8 @@ class BridgeHand(CardPile):
         # Calculate distribution points
         distPoints = 0
         for suit in Suit:
+            numCardsInSuit = self.getNumCardsInSuit(suit)
             if distMethod == DistMethod.LONG:
-                numCardsInSuit = self.getNumCardsInSuit(suit)
                 if numCardsInSuit > 4:
                     distPoints += numCardsInSuit - 4
             elif distMethod == DistMethod.SHORT:
@@ -54,7 +55,8 @@ class BridgeHand(CardPile):
                 maxVal = dist[suit]
                 maxSuit = suit
         return (maxVal, maxSuit)
-        
+
+    # Return the 2 longest suits with their length
     def numCardsInTwoLongestSuits(self):
         # Get the number of cards in each suit
         dist = {}
@@ -81,8 +83,9 @@ class BridgeHand(CardPile):
                 maxVal2 = dist[suit]
                 maxSuit2 = suit
 
-        return (maxVal1, maxVal2)
-        
+        return (maxSuit1, maxVal1, maxSuit2, maxVal2)
+
+    # Returns the number of cards in the suit and number of high cards (top 4)
     def evalSuitStrength(self, suit):
         numCardsInSuit = self.getNumCardsInSuit(suit)
         highCardCount = 0
@@ -116,19 +119,20 @@ class BridgeHand(CardPile):
                     return False
         return True
 
-    def evalSuitCategory(hand, suit):
-        numCardsInSuit = hand.getNumCardsInSuit(suit)
+    # Ace, King, Queen, and Jack are considered high cards
+    def evalSuitCategory(self, suit):
+        numCardsInSuit = self.getNumCardsInSuit(suit)
         foundHole = False
         prevCardWasHigh = True
         highCardCount = 0
 
-        # Examine the top 3 cards, Ace, King, and Queen
+        # Examine the top 4 cards, Ace, King, Queen, and Jack
         hasAce = False
         hasKing = False
         hasQueen = False
-        for i, value in enumerate(range(Level.Ace_HIGH.value, Level.Jack.value, -1)):
+        for i, value in enumerate(range(Level.Ace_HIGH.value, Level.Ten.value, -1)):
             level = Level(value)
-            foundCard = hand.hasCard(suit, level)
+            foundCard = self.hasCard(suit, level)
             if foundCard:
                 highCardCount += 1
                 if i == 0:
@@ -162,7 +166,7 @@ class BridgeHand(CardPile):
         for suit in Suit:
             if suit == Suit.ALL or suit == Suit.NOTRUMP:
                 continue
-            (category, numCardsInSuit, highCardCount) = self.evalSuitCategory(hand, suit)
+            (category, numCardsInSuit, highCardCount) = self.evalSuitCategory(suit)
             if category == SuitCategory.xxx:
                 return False
             elif category == SuitCategory.xxQ:
@@ -178,3 +182,14 @@ class BridgeHand(CardPile):
 
         #print("bridgeHand: hasStoppers in all suits")
         return True
+
+    # Return True if hand has a singleton or void in a suit other than the
+    # one specified
+    def hasSingletonOrVoid(self, bidSuit):
+        for suit in Suits:
+            if suit == Suit.ALL or suit == Suit.NOTRUMP or suit == bidSuit:
+                continue
+            numCardsInSuit = hand.getNumCardsInSuit(suit)
+            if numCardsInSuit <= 1:
+                return True
+        return False
