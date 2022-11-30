@@ -4,6 +4,7 @@ Functions used for generating bids
 
 from enums import Suit, Level, DistMethod, SuitCategory
 from utils import *
+from bidUtils import *
 from card import Card
 from cardPile import CardPile
     
@@ -52,7 +53,7 @@ def calcOpenBid(hand):
 
                     # Weak bid
                     if longSuit != Suit.CLUB:
-                        bidLevel = numCards - 4
+                        bidLevel = numCardsLong - 4
                         return (bidLevel, longSuit)
             return (0, Suit.ALL)
         
@@ -63,7 +64,7 @@ def calcOpenBid(hand):
         # Does hand have stoppers in all 4 suits
         if hand.hasStoppers():
             if hcPts >= 18 and hcPts <= 19:
-                return (1, Suit.longSuit)
+                return (1, longSuit)
             if hcPts >= 20 and hcPts <= 21:
                 return (2, Suit.NOTRUMP)
             if hcPts >= 25 and hcPts <= 27:

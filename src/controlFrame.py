@@ -12,6 +12,10 @@ from frame import TableFrame
 from bidUtils import *
 from utils import *
 
+
+BidLevels = [0, 1, 2, 3, 4, 5, 6, 7]
+BidSuits = ['Club', 'Diamond', 'Heart', 'Spade', 'NoTrump']
+
 class ControlFrame(TableFrame):
 
     def __init__(self, app, rootFrame, frameSide):
@@ -19,26 +23,8 @@ class ControlFrame(TableFrame):
 
         # Create a table control frame in the parent control frame
         self.tableCtlFrame = tk.Frame(self.tkFrame)
-        self.tableCtlFrame.pack(padx=0, pady=20, side=tk.BOTTOM)
+        self.tableCtlFrame.pack(padx=0, pady=5, side=tk.BOTTOM)
         
-        # Create a bid frame in the parent control frame
-        self.bidRowIdx = 0
-        self.bidColIdx = 0
-        self.bidFrame = tk.Frame(self.tkFrame)
-        self.bidFrame.pack(padx=0, pady=50, side=tk.TOP)
-
-        # Create labels for the bids table
-        self.bidLabel = []
-        
-        # Create a text box for displaying bid hints
-        self.hintBox = tk.Text(self.tableCtlFrame, height=25, width=40)
-        self.hintBox.pack(pady=20)
-        
-        self.bidRowIdx = 0
-        self.bidColIdx = 0
-        self.bidFrame = tk.Frame(self.tkFrame)
-        self.bidFrame.pack(padx=0, pady=50, side=tk.TOP)
-
         # Create a button to request a bidding hint
         tk.Button(self.tableCtlFrame, text='Hint', command=self.showHint).pack(side="left", padx=5)
         
@@ -48,6 +34,63 @@ class ControlFrame(TableFrame):
         # Create a button to flush the log file
         tk.Button(self.tableCtlFrame, text='Flush Log', command=self.app.table.flushLog).pack(side="left", padx=5)
 
+        
+        # Create a frame for holding a text box 
+        self.bidHintFrame = tk.Frame(self.tkFrame)
+        self.bidHintFrame.pack(padx=0, pady=5, side=tk.BOTTOM)
+        
+        # Create a text box for displaying bid hints
+        self.hintBox = tk.Text(self.bidHintFrame, height=25, width=40)
+        self.hintBox.pack(pady=0)
+
+        # Create a frame for holding buttons for entering a bid 
+        self.bidEntryFrame = tk.Frame(self.tkFrame, highlightbackground='green', highlightthickness=2)
+        self.bidEntryFrame.pack(padx=0, pady=5, side=tk.BOTTOM)
+
+        self.bidLevel = tk.IntVar()
+        self.bidLevel.set(BidLevels[0])  # default value
+        levelSelect = tk.OptionMenu(self.bidEntryFrame, self.bidLevel, *BidLevels)
+        levelSelect.pack(side=tk.LEFT, expand=True)
+
+        self.bidSuit = tk.StringVar()
+        self.bidSuit.set(BidSuits[0])  # default value
+        suitSelect = tk.OptionMenu(self.bidEntryFrame, self.bidSuit, *BidSuits)
+        suitSelect.pack(side=tk.LEFT, expand=True)
+
+
+        # Button to enter the bid
+        self.bidEnter = tk.Button(self.bidEntryFrame, text="Enter", fg="brown",
+                                    command=self.bidSelectHandler)
+
+        self.bidEnter.pack(side=tk.LEFT)
+        
+                
+        # Create a frame to show the bids which have been made
+        self.bidShowFrame = tk.Frame(self.tkFrame)
+        self.bidShowFrame.pack(padx=0, pady=5, side=tk.TOP)
+        self.bidRowIdx = 0
+        self.bidColIdx = 0
+
+        # Create labels for the bids table
+        self.bidLabel = []
+
+    def bidSelectHandler(self):
+        level = self.bidLevel.get()
+        suitStr = self.bidSuit.get()
+        if suitStr == 'Club':
+            suit = Suit.CLUB
+        elif suitStr == 'Diamond':
+            suit = Suit.DIAMOND
+        elif suitStr == 'Heart':
+            suit = Suit.HEART
+        elif suitStr == 'Spade':
+            suit = Suit.SPADE
+        elif suitStr == 'NoTrump':
+            suit = Suit.NOTRUMP
+            
+        # Tell the table the bid
+        self.app.table.bidResponse(TablePosition.SOUTH, level, suit)
+        
     '''
     This function displays a bidding hint when requested
     '''
@@ -90,22 +133,22 @@ class ControlFrame(TableFrame):
         pos = leadPos
         
         # Labels for header row
-        label = tk.Label(self.bidFrame, text=pos.name, bg="green", fg="white")
+        label = tk.Label(self.bidShowFrame, text=pos.name, bg="green", fg="white")
         self.bidLabel.append(label)
         label.grid(row=0, column=0, sticky='w', padx=5, pady=5)
         
         (pos, dummy) = getNextPosition(pos, leadPos)
-        label = tk.Label(self.bidFrame, text=pos.name, bg="green", fg="white")
+        label = tk.Label(self.bidShowFrame, text=pos.name, bg="green", fg="white")
         self.bidLabel.append(label)
         label.grid(row=0, column=1, sticky='w', padx=5, pady=5)
         
         (pos, dummy) = getNextPosition(pos, leadPos)
-        label = tk.Label(self.bidFrame, text=pos.name, bg="green", fg="white")
+        label = tk.Label(self.bidShowFrame, text=pos.name, bg="green", fg="white")
         self.bidLabel.append(label)
         label.grid(row=0, column=2, sticky='w', padx=5, pady=5)
 
         (pos, dummy) = getNextPosition(pos, leadPos)
-        label = tk.Label(self.bidFrame, text=pos.name, bg="green", fg="white")
+        label = tk.Label(self.bidShowFrame, text=pos.name, bg="green", fg="white")
         self.bidLabel.append(label)
         label.grid(row=0, column=3, sticky='w', padx=5, pady=5)
 
@@ -137,7 +180,7 @@ class ControlFrame(TableFrame):
             elif bidSuit == Suit.NOTRUMP:
                 bidStr += "NT"
 
-        bidLabel = tk.Label(self.bidFrame, text=bidStr, bg="yellow", fg="black")
+        bidLabel = tk.Label(self.bidShowFrame, text=bidStr, bg="yellow", fg="black")
         bidLabel.grid(row=self.bidRowIdx, column=self.bidColIdx, sticky='w', padx=5, pady=5)
         
     def processHandDone(self):
@@ -149,7 +192,7 @@ class ControlFrame(TableFrame):
         self.bidRowIdx = 0
         self.bidColIdx = 0
         # remove bid labels from the frame
-        for label in self.bidFrame.grid_slaves():
+        for label in self.bidShowFrame.grid_slaves():
             label.grid_forget()
             
         

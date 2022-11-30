@@ -33,27 +33,9 @@ class BridgePlayer(Player):
         
     def bidRequest(self, listOfBids):
         if self.isHuman:
-            # if self.table.guiEnabled:
-            # RW HACK - only support bids via stdin for now
-            if True:
-                #print("Pick a card to play by clicking on it")
-                bidLevel = int(input("Enter the bid level"))
-                suitStr = input("Enter the suit")
-                if suitStr == "C":
-                    bidSuit = Suit.CLUB
-                elif suitStr == "D":
-                    bidSuit = Suit.DIAMOND
-                elif suitStr == "H":
-                    bidSuit = Suit.HEART
-                elif suitStr == "S":
-                    bidSuit = Suit.SPADE
-                elif suitStr == "N":
-                    bidSuit = Suit.NOTRUMP
-                else:
-                    bidSuit = Suit.NOTRUMP
-                self.table.bidResponse(self.pos, bidLevel, bidSuit)
+            print("Use the dropdown boxes to enter a bid")
 
-            # Thread will respond with a card played by computer
+        # Thread will respond with a card played by computer
             
 
     '''
