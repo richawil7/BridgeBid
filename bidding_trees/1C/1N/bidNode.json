@@ -1,0 +1,23 @@
+{
+    "teamRole": "OFFENSE",
+    "fitSuit": "ALL",
+    "candidateSuit": "NOTRUMP",
+    "convention": "TWO_OVER_ONE",
+    "openerInfo": {
+	    "minPts": 13,
+	    "maxPts": 21,
+	    "evalMethod": "hcp-long" },
+    "responderInfo": {
+	    "minPts": 6,
+	    "maxPts": 12,
+	    "evalMethod": "hcp-short" },
+    "force": "NONE",
+    "nextBidder": "OPENER",
+    "handler": "openRebid_1Mi_1NT",
+	"interpretation": "Opener:\t has 13-21 points and 3+ clubs.\n\tDenies 5 card major\n\tDenies balanced hand\nResponder:\tHas 6-9 points\n\tDenies support for clubs\n\tDenies a 4 card major\n\tDenies 4+ diamonds",
+	"hints": {
+		"hint0": "Need 5 clubs to bid them again",
+		"hint1": "Small=13-15, Medium=16-18, Large=19-21\nLook for balanced hand or 5+ in opening suit",
+		"hint2": "13-15\tBalanced\t Pass\n\tUnbal\t5+C: 2C\n\t\tDefault: Pass\n16-18\tBalanced:\t2NT\n\tUnbal\tW: 2W\n\t\t5+C: 3C\n\t\tDefault: 2NT\n19-21\tBalanced: \t3NT\n\tUnbal\t5+C: 4C\n\t\tW: JS\n\t\tDefault: 3NT"
+	}		
+}

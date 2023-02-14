@@ -66,7 +66,7 @@ def thread_function(name, table):
             curPos = table.currentPos
             player = table.players[curPos]
             if not player.isHuman and table.outstandingBidReq:
-                player.computerBidRequest(table, table.hasOpener, table.competition, table.roundNum, table.bidsList, player.hand)
+                player.computerBidRequest(table, table.hasOpener, table.competition, table.roundNum, table.bidsList, player.isHuman, player.hand)
             sleep(1)
     sys.exit(0)
 
@@ -98,8 +98,8 @@ def main(argv):
 if __name__ == '__main__':
     if len(sys.argv) != 3:
         print("Usage:")
-        print("\tpython spades.py <enableGui> <humanPlaying>")
+        print("\tpython bridgeBid.py <enableGui> <humanPlaying>")
         print("\tExample")
-        print("\tpython spades.py True True")
+        print("\tpython bridgeBid.py True True")
         exit(1)
     main(sys.argv)

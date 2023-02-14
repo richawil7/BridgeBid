@@ -15,6 +15,9 @@ from cardPile import CardPile
 from deck import Deck
 from bridgePlayer import BridgePlayer
 from bridgeHand import BridgeHand
+from openBid import OpenerRegistry
+from responderBid import ResponderRegistry
+from openerRebid import OpenerRebidRegistry
 
 class CardTable():
 
@@ -23,6 +26,8 @@ class CardTable():
         self.humanPlayer = humanPlaying
         self.deck = Deck()
         self.players = {}
+        self.openerRegistry = OpenerRegistry()
+        self.responderRegistry = ResponderRegistry()
         self.bidsList = []
         self.roundNum = 0
         self.hasOpener = False
@@ -86,7 +91,7 @@ class CardTable():
         maxPoints = 0
         indexOfBestPile = 9
         for index in range(0, 4):
-            (numPoints, distPoints) = cardPiles[index].evalHand(DistMethod.LONG)
+            (numPoints, distPoints) = cardPiles[index].evalHand(DistMethod.HCP_LONG)
             if numPoints > maxPoints:
                 maxPoints = numPoints
                 indexOfBestPile = index
@@ -96,7 +101,7 @@ class CardTable():
         for index in range(0, 4):
             if index == indexOfBestPile:
                 continue
-            (numPoints, distPoints) = cardPiles[index].evalHand(DistMethod.LONG)
+            (numPoints, distPoints) = cardPiles[index].evalHand(DistMethod.HCP_LONG)
             if numPoints > maxPoints:
                 maxPoints = numPoints
                 indexOfSecondBestPile = index
@@ -150,7 +155,7 @@ class CardTable():
         player = self.players[self.currentPos]
         writeLog(self, "cardTable: bidRequest for %s in round %d\n" % (player.pos.name, self.roundNum))
         self.outstandingBidReq = True
-        player.bidRequest(self.bidsList)
+        player.bidRequest(self, self.bidsList)
 
     def bidResponse(self, pos, bidLevel, bidSuit):
         bidStr = getBidStr(bidLevel, bidSuit)
@@ -177,6 +182,13 @@ class CardTable():
         if self.guiEnabled:
             self.guiTable.updateBids(self.currentPos, bidLevel, bidSuit)
 
+        # Notify each player that a bid has been received
+        for pos in TablePosition:
+            if pos == TablePosition.CONTROL or pos == TablePosition.CENTER:
+                continue
+            player = self.players[pos]
+            player.bidNotification(pos, bidLevel, bidSuit)
+            
         # Provide a development hook to bail out of bidding loop
         if bidLevel > 7:
             self.processHandDone()

@@ -37,8 +37,9 @@ class TablePosition(Enum):
     CENTER = 5
 
 class DistMethod(Enum):
-    LONG = 0
-    SHORT = 1
+    HCP_ONLY = 0
+    HCP_LONG = 1
+    HCP_SHORT = 2
 
 class TeamRole(Enum):
     UNKNOWN = 0,
@@ -59,6 +60,27 @@ class SuitCategory(Enum):
     AxQ = 5
     AKx = 6
     AKQ = 7
+
+class Force(Enum):
+    NONE = 0
+    ONE_ROUND = 1
+    GAME = 2
+    SLAM = 3
+
+class Conv(Enum):
+    NATURAL = 0
+    OPENING = 1
+    STAYMAN = 2
+    JACOBY_XFER = 3
+    JACOBY_2NT = 4
+    TWO_OVER_ONE = 5
+    STRONG_2 = 6
+    WEAK_2 = 7
+    INVERT_MINOR = 8
+    MAJOR_LIMIT = 9
+    BLACKWOOD = 10
+    GERBER = 11
+    
     
 # GUI Classes
 class PileOrder(Enum):

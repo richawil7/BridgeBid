@@ -36,6 +36,9 @@ def getHandStr(hand):
     return handStr[:-1]
 
 def getBidStr(bidLevel, bidSuit):
+    if bidLevel == 0:
+        return "Pass"
+
     bidStr = "%d" % bidLevel
     if bidSuit == Suit.CLUB:
         bidStr += "C"
@@ -46,9 +49,14 @@ def getBidStr(bidLevel, bidSuit):
     elif bidSuit == Suit.SPADE:
         bidStr += "S"
     elif bidSuit == Suit.NOTRUMP:
-        bidStr += "NT"
+        bidStr += "N"
     return bidStr
 
+def isMinor(suit):
+    return suit == Suit.CLUB or suit == Suit.DIAMOND
+
+def isMajor(suit):
+    return suit == Suit.HEART or suit == Suit.SPADE
     
 def getNextPosition(currentPosition, leadPosition):
     if TablePosition.NORTH == currentPosition:

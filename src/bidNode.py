@@ -1,0 +1,111 @@
+'''
+A class to describe the state of the collective hand of a partnership.
+Instances of this class are created by reading a json file from the 
+bidding tree.
+This class is similar to the teamState class.
+Think of the bidNode as the static view of the partnership and is the same 
+for both players. In contrast, each player has its own instance of the
+teamState, and is that player's view.
+'''
+
+import json
+from enums import *
+from bidUtils import *
+
+bidTreeBaseDir = "/home/richawil/Documents/Programming/Apps/BridgeBid/bidding_trees"
+
+# Return a bidNode instance from the bidding tree
+def fetchBidTreeNode(bidSeq):
+    # Build a pathname to the bid
+    path = bidTreeBaseDir
+    for bid in bidSeq:
+        bidStr = getBidStr(bid[0], bid[1])
+        path = path + '/' + bidStr
+    path = path + '/' + 'bidNode.json'
+    print("Path to bid is %s" % (path))
+    # Open the file
+    fh = open(path, 'r')
+    bidDescriptor = json.load(fh)
+
+    # Create an empty bid node
+    bidNode = BidNode()
+    for key in bidDescriptor.keys():
+        #print("Key={} Value={}".format(key, bidDescriptor[key]))
+        if key == "teamRole":
+            bidNode.teamRole = TeamRole[bidDescriptor[key]]
+        elif key == "fitSuit":
+            bidNode.fitSuit = Suit[bidDescriptor[key]]
+        elif key == "candidateSuit":
+            bidNode.candidateSuit = Suit[bidDescriptor[key]]
+        elif key == "convention":
+            bidNode.convention = Conv[bidDescriptor[key]]
+        elif key == "force":
+            bidNode.force = Force[bidDescriptor[key]]
+        elif key == "bidSeq":
+            bidNode.bidSeq = bidDescriptor[key]
+        elif key == "handler":
+            bidNode.handler = bidDescriptor[key]
+        elif key == "openerInfo":
+            if bidDescriptor[key] == "minPts":
+                bidNode.openerMinPoints = bidDescriptor[key]["minPts"]
+            elif bidDescriptor[key] == "maxPts":
+                bidNode.openerMaxPoints = bidDescriptor[key]["maxPts"]
+            if bidDescriptor[key] == "evalMethod":
+                bidNode.openerEvalMethod = DistMethod[bidDescriptor[key]["evalMethod"]]
+        elif key == "responderInfo":
+            if bidDescriptor[key] == "minPts":
+                bidNode.responderMinPoints = bidDescriptor[key]["minPts"]
+            elif bidDescriptor[key] == "maxPts":
+                bidNode.responderMaxPoints = bidDescriptor[key]["maxPts"]
+            if bidDescriptor[key] == "evalMethod":
+                bidNode.responderEvalMethod = DistMethod[bidDescriptor[key]["evalMethod"]]
+        elif key == "interpretation":
+            bidNode.interpret = bidDescriptor[key]
+        elif key == "hints":
+            bidNode.bidHints.append(bidDescriptor['hints']['hint0'])
+            bidNode.bidHints.append(bidDescriptor['hints']['hint1'])
+            bidNode.bidHints.append(bidDescriptor['hints']['hint2'])
+                
+        
+    return bidNode
+        
+        
+class BidNode:
+
+    def __init__(self):
+        # Static parameters derived from bidding tree node
+        self.teamRole = TeamRole.UNKNOWN
+        self.fitSuit = Suit.ALL
+        self.candidateSuit = Suit.ALL
+        self.convention = Conv.NATURAL
+        self.openerMinPoints = 0
+        self.openerMaxPoints = 0
+        self.force = Force.NONE
+        self.openerEvalMethod = DistMethod.HCP_ONLY
+        self.responderMinPoints = 0
+        self.responderMaxPoints = 0
+        self.responderEvalMethod = DistMethod.HCP_ONLY
+        self.force = Force.NONE
+        self.nextBidder = PlayerRole.UNKNOWN
+        self.handler = ""
+        self.interpret = ""
+        self.bidHints = []
+        
+    def show(self):
+        print("Team role = %s" % self.teamRole.name)
+        print("Fit suit = %s" % self.fitSuit.name)
+        print("Candidate suit = %s" % self.candidateSuit.name)
+        print("Convention = %s" % self.convention.name)
+        print("Force = %s" % self.force.name)
+        print("Next Bidder = %s" % self.nextBidder.name)
+        print("Handler name = %s" % self.handler)
+        print("Opener min points = %d" % self.openerMinPoints)
+        print("Opener max points = %d" % self.openerMaxPoints)
+        print("Opener eval method = %s" % self.openerEvalMethod.name)
+        print("Responder min points = %d" % self.responderMinPoints)
+        print("Responder max points = %d" % self.responderMaxPoints)
+        print("Responder eval method = %s" % self.responderEvalMethod.name)
+        print("Interpretation = %s" % self.interpret)
+        print("Hint 1 = %s" % self.bidHints[0])
+        print("Hint 2 = %s" % self.bidHints[1])
+        print("Hint 3 = %s" % self.bidHints[2])

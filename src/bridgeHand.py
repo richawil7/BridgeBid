@@ -28,10 +28,10 @@ class BridgeHand(CardPile):
         distPoints = 0
         for suit in Suit:
             numCardsInSuit = self.getNumCardsInSuit(suit)
-            if distMethod == DistMethod.LONG:
+            if distMethod == DistMethod.HCP_LONG:
                 if numCardsInSuit > 4:
                     distPoints += numCardsInSuit - 4
-            elif distMethod == DistMethod.SHORT:
+            elif distMethod == DistMethod.HCP_SHORT:
                 if numCardsInSuit < 3:
                     distPoints += 3 - numCardsInSuit
 
@@ -191,5 +191,5 @@ class BridgeHand(CardPile):
                 continue
             numCardsInSuit = hand.getNumCardsInSuit(suit)
             if numCardsInSuit <= 1:
-                return True
-        return False
+                return suit
+        return Suit.ALL

@@ -1,0 +1,23 @@
+{
+    "teamRole": "OFFENSE",
+    "fitSuit": "NOTRUMP",
+    "candidateSuit": "ALL",
+    "convention": "WEAK_2",
+    "openerInfo": {
+	    "minPts": 5,
+	    "maxPts": 11,
+	    "evalMethod": "hcp-only" },
+    "responderInfo": {
+	    "minPts": 0,
+	    "maxPts": 13,
+	    "evalMethod": "hcp-short" },
+    "force": "NONE",
+    "nextBidder": "OPENER",
+    "handler": "openRebid_weak_3NT",
+	"interpretation": "Opener\tHas 5-11 points\n\tHas 6 cards in bid suit\nResponder\tHas <=13 points\n\tDenies support for opening suit\n\tHas stoppers in other suits",
+	"hints": {
+		"hint0": "Shut up bid",
+		"hint1": "Play in NT",
+		"hint2": "Pass"
+	}	
+}

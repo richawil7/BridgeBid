@@ -1,0 +1,25 @@
+{
+    "teamRole": "OFFENSE",
+    "fitSuit": "SPADE",
+    "candidateSuit": "ALL",
+    "convention": "JACOBY_2NT",
+    "openerInfo": {
+	    "minPts": 13,
+	    "maxPts": 21,
+	    "evalMethod": "hcp-long" },
+    "responderInfo": {
+	    "minPts": 13,
+	    "maxPts": 27,
+	    "evalMethod": "hcp-short" },
+    "force": "GAME",
+    "nextBidder": "OPENER",
+    "handler": "openRebid_1Ma_2NT",
+	"interpretation": "Opener:\t has 13-21 points and 5+ spades\n\tMay have 5 hearts\nResponder:\tHas 13-15 points\n\tHas 4 card support for spades\nGame forcing",
+	"hints": {
+		"hint0": "Jacoby 2NT\nLook for singleton or void",
+		"hint1": "Small=13-14, Medium=15-17, Large=18-21",
+		"hint2": "Singleton or void: 3Short\n13-14: 4H\n15-17: 3NT\n18-21\tSecond suit: 4W\n\tDefault: 3H"
+	}		
+}
+
+

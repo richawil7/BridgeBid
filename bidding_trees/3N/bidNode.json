@@ -1,0 +1,23 @@
+{
+    "teamRole": "OFFENSE",
+    "fitSuit": "ALL",
+    "candidateSuit": "NOTRUMP",
+    "convention": "NATURAL",
+	"openerInfo": {
+	    "minPts": 25,
+	    "maxPts": 27,
+		"evalMethod": "hcp-only" },
+	"responderInfo": {
+	    "minPts": 0,
+	    "maxPts": 0,
+		"evalMethod": "hcp-short" },
+    "force": "NONE",
+    "nextBidder": "RESPONDER",
+	"handler": "rsp_3NT",
+	"interpretation": "Opener has 25-27 points and a balanced hand\nOpener may have a 5 card suit",
+	"hints": {
+		"hint0": "Try to find an 8 card fit\nCan use Stayman and Jacoby Transfers",
+		"hint1": "Jacoby requires 5 of suit. Asks opener to bid next higher suit\nStayman asks opener to bid best 4 card major",
+		"hint2": "0-7: Pass\n7, no 5+ suit: 4NT\n8-9: 6NT\n10-11: 5NT\n12+: 7NT"
+	}
+}

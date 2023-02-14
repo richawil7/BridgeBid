@@ -1,0 +1,23 @@
+{
+    "teamRole": "OFFENSE",
+    "fitSuit": "ALL",
+    "candidateSuit": "NOTRUMP",
+    "convention": "NATURAL",
+    "openerInfo": {
+	    "minPts": 15,
+	    "maxPts": 17,
+	    "evalMethod": "hcp" },
+    "responderInfo": {
+	    "minPts": 10,
+	    "maxPts": 25,
+	    "evalMethod": "hcp" },
+    "force": "ONE_ROUND",
+    "nextBidder": "OPENER",
+    "handler": "openRebid_1NT_3Ma",
+	"interpretation": "Opener:\tHas 15-17 points and a balanced hand\n\tMay have a 5 card suit\nResponder:\tHas 10+ points and a 5+ card major\nForcing for 1 round",
+	"hints": {
+		"hint0": "Natural bid",
+		"hint1": "Support with 3+ cards",
+		"hint2": "3+S: 4S\nDefault: 3NT"
+	}
+}

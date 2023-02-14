@@ -1,0 +1,23 @@
+{
+    "teamRole": "OFFENSE",
+    "fitSuit": "SPADE",
+    "candidateSuit": "ALL",
+    "convention": "NATURAL",
+    "openerInfo": {
+	    "minPts": 15,
+	    "maxPts": 17,
+	    "evalMethod": "hcp" },
+    "responderInfo": {
+	    "minPts": 10,
+	    "maxPts": 15,
+	    "evalMethod": "hcp" },
+    "force": "NONE",
+    "nextBidder": "OPENER",
+    "handler": "openRebid_1NT_4Ma",
+	"interpretation": "Opener:\tHas 15-17 points and a balanced hand\n\tMay have a 5 card suit\nResponder:\tHas 10-15 points\n\tHas 6+ card major",
+	"hints": {
+		"hint0", "Not enough for slam"
+		"hint1": "Shut up bid",
+		"hint2": "Pass"
+	}
+}

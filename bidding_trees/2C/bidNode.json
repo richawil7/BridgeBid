@@ -1,0 +1,23 @@
+{
+    "teamRole": "OFFENSE",
+    "fitSuit": "ALL",
+    "candidateSuit": "ALL",
+    "convention": "STRONG_2",
+	"openerInfo": {
+	    "minPts": 22,
+	    "maxPts": 40,
+		"evalMethod": "hcp-long" },
+	"responderInfo": {
+	    "minPts": 0,
+	    "maxPts": 0,
+		"evalMethod": "hcp-short" },
+    "force": "ONE_ROUND",
+    "nextBidder": "RESPONDER",
+	"handler": "rsp_2C",
+	"interpretation": "Opener has 22+ points or 8.5 playing tricks\nDon't know hand shape or length of any suit",
+	"hints": {
+		"hint0": "Forcing bid",
+		"hint1": "Can show suit with 5+ cards",
+		"hint2": "<0-7: 2D\n8+\tBalanced: 2NT\n\t5+Ma with Q: 2Ma\n\t5+Mi with Q: 3Mi\n\tUnbalanced: 2D"
+	}
+}

@@ -1,0 +1,23 @@
+{
+    "teamRole": "OFFENSE",
+    "fitSuit": "NOTRUMP",
+    "candidateSuit": "ALL",
+    "convention": "NATURAL",
+    "openerInfo": {
+	    "minPts": 20,
+	    "maxPts": 21,
+	    "evalMethod": "hcp-only" },
+    "responderInfo": {
+	    "minPts": 13,
+	    "maxPts": 15,
+	    "evalMethod": "hcp-only" },
+    "force": "NONE",
+    "nextBidder": "OPENER",
+    "handler": "openRebid_2NT_nNT",
+	"interpretation": "Opener:\tHas 20-21 points and a balanced hand\n\tMay have a 5 card suit\nResponder:\tHas 13-16 points and a balanced hand",
+	"hints": {
+		"hint0": "Enough points for slam",
+		"hint1": "Shut up bid",
+		"hint2": "Pass"
+	}
+}

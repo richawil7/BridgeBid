@@ -1,0 +1,23 @@
+{
+    "teamRole": "OFFENSE",
+    "fitSuit": "ALL",
+    "candidateSuit": "CLUB",
+    "convention": "WEAK_2",
+    "openerInfo": {
+	    "minPts": 5,
+	    "maxPts": 11,
+	    "evalMethod": "hcp-only" },
+    "responderInfo": {
+	    "minPts": 0,
+	    "maxPts": 13,
+	    "evalMethod": "hcp-short" },
+    "force": "NONE",
+    "nextBidder": "OPENER",
+    "handler": "openRebid_2weak_3W",
+	"interpretation": "Opener\tHas 5-11 points\n\tHas 6 cards in bid suit\nResponder\tHas <13 points\n\tDenies support for opening suit\n\tHas 6+ cards in bid suit",
+	"hints": {
+		"hint0": "2 cards for support of responder's suit",
+		"hint1": "Can't get to game",
+		"hint2": "Support: Pass\nNo support: 3D"
+	}	
+}

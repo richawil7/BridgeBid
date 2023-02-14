@@ -1,0 +1,23 @@
+{
+    "teamRole": "OFFENSE",
+    "fitSuit": "CLUB",
+    "candidateSuit": "ALL",
+    "convention": "INVERTED_MINORS",
+    "openerInfo": {
+	    "minPts": 13,
+	    "maxPts": 21,
+	    "evalMethod": "hcp-long" },
+    "responderInfo": {
+	    "minPts": 11,
+	    "maxPts": 12,
+	    "evalMethod": "hcp-short" },
+    "force": "NONE",
+    "nextBidder": "OPENER",
+    "handler": "openRebid_1Mi_nMi",
+	"interpretation": "Opener:\t has 13-21 points and 3+ clubs.\n\tDenies 5 card major\n\tDenies balanced hand\nResponder:\tHas 11-12 points\n\tHas support for clubs\n\tDenies a 4 card major\n\tDenies 6+ with singleton/void\nInverted Minors",
+	"hints": {
+		"hint0": "Inverted minors\nWith >=26 points, bid 3NT with stoppers",
+		"hint1": "Small=13-15, Medium=16-18, Large=19-21",
+		"hint2": "13-15: Pass\n16-18: 3C\n19-21, stoppers: 3NT\n19-20: 3C\n21: 4C"
+	}		
+}

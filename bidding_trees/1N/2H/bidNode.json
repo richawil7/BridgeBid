@@ -1,0 +1,23 @@
+{
+    "teamRole": "OFFENSE",
+    "fitSuit": "ALL",
+    "candidateSuit": "SPADE",
+    "convention": "JACOBY_XFER",
+    "openerInfo": {
+	    "minPts": 15,
+	    "maxPts": 17,
+	    "evalMethod": "hcp" },
+    "responderInfo": {
+	    "minPts": 0,
+	    "maxPts": 25,
+	    "evalMethod": "hcp" },
+    "force": "ONE_ROUND",
+    "nextBidder": "OPENER",
+    "handler": "openRebid_1NT_2W",
+	"interpretation": "Opener:\tHas 15-17 points and a balanced hand\n\tMay have a 5 card suit\nResponder:\tHas 0+ points and a 5 card suit",
+	"hints": {
+		"hint0": "Jacoby Transfer",
+		"hint1": "Bid the next suit up from responder's suit",
+		"hint2": "17 pts and 4+ cards: 3S\nDefault: 2S"
+	}
+}

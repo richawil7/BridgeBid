@@ -25,9 +25,6 @@ class ControlFrame(TableFrame):
         self.tableCtlFrame = tk.Frame(self.tkFrame)
         self.tableCtlFrame.pack(padx=0, pady=5, side=tk.BOTTOM)
         
-        # Create a button to request a bidding hint
-        tk.Button(self.tableCtlFrame, text='Hint', command=self.showHint).pack(side="left", padx=5)
-        
         # Create a button to request another hand
         tk.Button(self.tableCtlFrame, text='Next Hand', command=self.app.table.nextHand).pack(side="left", padx=5)
         
@@ -43,6 +40,16 @@ class ControlFrame(TableFrame):
         self.hintBox = tk.Text(self.bidHintFrame, height=25, width=40)
         self.hintBox.pack(pady=0)
 
+        # Create a frame for holding buttons for requesting hints
+        self.bidHintFrame = tk.Frame(self.tkFrame, highlightbackground='red', highlightthickness=2)
+        self.bidHintFrame.pack(padx=0, pady=5, side=tk.BOTTOM)
+        
+        # Create buttons to request a bidding hints
+        tk.Button(self.bidHintFrame, text='Means', command=self.showHint0).pack(side="left", padx=5)        
+        tk.Button(self.bidHintFrame, text='Hint1', command=self.showHint1).pack(side="left", padx=5)
+        tk.Button(self.bidHintFrame, text='Hint2', command=self.showHint2).pack(side="left", padx=5)
+        tk.Button(self.bidHintFrame, text='Hint3', command=self.showHint3).pack(side="left", padx=5)
+        
         # Create a frame for holding buttons for entering a bid 
         self.bidEntryFrame = tk.Frame(self.tkFrame, highlightbackground='green', highlightthickness=2)
         self.bidEntryFrame.pack(padx=0, pady=5, side=tk.BOTTOM)
@@ -94,39 +101,30 @@ class ControlFrame(TableFrame):
     '''
     This function displays a bidding hint when requested
     '''
-    def showHint(self):
+    def getBidNode(self):
         table = self.app.table
-        roundNum = table.roundNum
         humanPlayer = table.players[TablePosition.SOUTH]
-        seat = humanPlayer.seat
-        # Get the last bid by North
-        northBid = table.bidsList[-2]
-        if roundNum == 1:
-            if seat <= 2:
-                hintText = getHintForOpener()
-            else:
-                # Need to check if my partner bid
-                bidIndex = seat - 3
-                if table.bidsList[bidIndex][0] == 0:
-                    # Partner passed
-                    hintText = getHintForOpener()
-                else:
-                    hintText = getHintForResponder(northBid[0], northBid[1])
-        elif roundNum == 2:
-            if seat <= 2:
-                hintText = getHintForOpenerRebid()
-            else:
-                # Need to check if my partner bid
-                bidIndex = seat - 3
-                if table.bidsList[bidIndex][0] == 0:
-                    # Partner passed
-                    hintText = getHintForOpenerRebid()
-                else:
-                    hintText = getHintForResponderRebid()
-        else:
-            hintText = "No hint available yet"
+        return humanPlayer.bidNode
 
-        self.hintBox.replace('1.0', '30.0', hintText)
+    def showHint0(self):
+        bidNode = self.getBidNode()
+        hintText = bidNode.interpret
+        self.hintBox.replace('1.0', '30.0', hintText.expandtabs(2))
+        
+    def showHint1(self):
+        bidNode = self.getBidNode()
+        hintText = bidNode.bidHints[0]
+        self.hintBox.replace('1.0', '30.0', hintText.expandtabs(2))
+        
+    def showHint2(self):
+        bidNode = self.getBidNode()
+        hintText = bidNode.bidHints[1]
+        self.hintBox.replace('1.0', '30.0', hintText.expandtabs(2))
+        
+    def showHint3(self):
+        bidNode =self. getBidNode()
+        hintText = bidNode.bidHints[2]
+        self.hintBox.replace('1.0', '30.0', hintText.expandtabs(2))
         
 
     def createBidBoard(self, leadPos):

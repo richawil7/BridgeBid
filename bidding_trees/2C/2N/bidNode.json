@@ -1,0 +1,23 @@
+{
+    "teamRole": "OFFENSE",
+    "fitSuit": "ALL",
+    "candidateSuit": "ALL",
+    "convention": "STRONG_2",
+    "openerInfo": {
+	    "minPts": 22,
+	    "maxPts": 40,
+	    "evalMethod": "hcp-long" },
+    "responderInfo": {
+	    "minPts": 8,
+	    "maxPts": 18,
+	    "evalMethod": "hcp" },
+    "force": "GAME",
+    "nextBidder": "OPENER",
+    "handler": "openRebid_2C_2NT"
+	"interpretation": "Opener:\tHas 22+ points\n\tDoes not say anything about suit preference\nResponder:\tHas 8+ points\n\tDenies 5+ card suit\nGame forcing",
+	"hints": {
+		"hint0": "Game forcing bid",
+		"hint1": "Bid best suit",
+		"hint2": "Best suit at 3 level"
+	}	
+}

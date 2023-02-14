@@ -1,0 +1,23 @@
+{
+    "teamRole": "OFFENSE",
+    "fitSuit": "ALL",
+    "candidateSuit": "DIAMOND",
+    "convention": "WEAK_2",
+	"openerInfo": {
+	    "minPts": 5,
+	    "maxPts": 11,
+		"evalMethod": "hcp-only" },
+	"responderInfo": {
+	    "minPts": 0,
+	    "maxPts": 0,
+		"evalMethod": "hcp-short" },
+    "force": "NONE",
+    "nextBidder": "RESPONDER",
+	"handler": "rsp_2Weak",
+	"interpretation": "Opener has 5-11 high card points\nHas 6 cards in bid suit\nHas at least the queen",
+	"hints": {
+		"hint0": "2 cards for support",
+		"hint1": "Need 6+ cards to show new suit",
+		"hint2": "0-13\tNo support, 6+Ma: 2Ma\n\t\t6+C: 3C\n\t\tStoppers: 3NT\n\tSupport: Pass\n\t\t\3: 3O\n\t\t4: 4O\n8-13\tSupport: 4O\n14+\tSupport: 2NT #Forcing"
+	}
+}

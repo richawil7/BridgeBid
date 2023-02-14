@@ -1,0 +1,23 @@
+{
+    "teamRole": "OFFENSE",
+    "fitSuit": "HEART",
+    "candidateSuit": "ALL",
+    "convention": "SPLINTER",
+    "openerInfo": {
+	    "minPts": 13,
+	    "maxPts": 21,
+	    "evalMethod": "hcp-long" },
+    "responderInfo": {
+	    "minPts": 13,
+	    "maxPts": 16,
+	    "evalMethod": "hcp-short" },
+    "force": "ONE_ROUND",
+    "nextBidder": "OPENER",
+    "handler": "openRebid_1Ma_4W"
+	"interpretation": "Opener:\t has 13-21 points and 5+ hearts\n\tDenies 5 spades\nResponder:\tHas 13-16 points\n\tHas support for hearts\n\tSingleton or void in responder suit\nSplinter",
+	"hints": {
+		"hint0": "Splinter",
+		"hint1": "Small=13-16, Large=17+",
+		"hint2": "13-16: 5H\n\tDefault: 4H\n17+: 4NT (Blackwood)"
+	}
+}

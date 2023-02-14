@@ -1,0 +1,23 @@
+{
+    "teamRole": "OFFENSE",
+    "fitSuit": "ALL",
+    "candidateSuit": "SPADE",
+    "convention": "NATURAL",
+	"openerInfo": {
+	    "minPts": 13,
+	    "maxPts": 21,
+		"evalMethod": "hcp-long" },
+	"responderInfo": {
+	    "minPts": 0,
+	    "maxPts": 0,
+		"evalMethod": "hcp-short" },
+    "force": "NONE",
+    "nextBidder": "RESPONDER",
+	"handler": "rsp_1Ma",
+	"interpretation": "Opener has 13-21 points and 5+ spades.\nDenies 1NT opening.",
+	"hints": {
+		"hint0": "3 spades for support\nOpener may have 5 hearts\nSmall=6-9, Medium=10-12, Large=12+",
+		"hint1": "Two support bids that look for a singleton/void\n2 over 1 suit must be lower than opening suit",
+		"hint2": "Support\n\t0-5: Pass\n\t6-10: 2S\n\t0-9, single/void, 5+: 4S\n\t11-12: 3S (Major Limit Raise)\n\t13+, single/void, 4+: DJS (Splinter)\n\t13+: 2Minor (2 over 1)\nNo Support\n\t0-5:Pass\n\t10+, 4+H: 2H\n\t6-12: 1NT\n\t15-17, 2S, balanced: 3NT\n\t13+: 2 Minor (2 over 1)\n\t12+, 4S, balanced: 2NT (Jacoby 1NT)"
+	}
+}

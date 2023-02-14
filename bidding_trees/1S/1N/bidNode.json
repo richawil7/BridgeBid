@@ -1,0 +1,23 @@
+{
+    "teamRole": "OFFENSE",
+    "fitSuit": "ALL",
+    "candidateSuit": "ALL",
+    "convention": "NATURAL",
+    "openerInfo": {
+	    "minPts": 13,
+	    "maxPts": 21,
+	    "evalMethod": "hcp-long" },
+    "responderInfo": {
+	    "minPts": 6,
+	    "maxPts": 12,
+	    "evalMethod": "hcp-short" },
+    "force": "ONE_ROUND",
+    "nextBidder": "OPENER",
+    "handler": "openRebid_1Ma_1NT",
+	"interpretation": "Opener:\t has 13-21 points and 5+ spades\n\tMay have 5 hearts\nResponder:\tHas 6-12 points\n\tDenies support for spades\nForcing for 1 round",
+	"hints": {
+		"hint0": "Artificial bid, forcing for 1 round",
+		"hint1": "Small=13-15, Medium=16-18, Large=19-21\nLook for another suit or 6+ in opening suit",
+		"hint2": "13-15\t6+S: 2S\n\t4+D: 2D\n\t3+C: 2C\n\t4H: 2H\n16-18\t6+S: 3S\n\t4+D: 3D\n\t3+C: 3C\n\t4H: 3H\n\t19-21\tW: JS\n\t6+S, stoppers: 3NT\n\t18-19 HCP, Bal: 3NT\n\t7+H: 4S\n\t6S: 3H\n\tDefault: 3S or 3NT"
+	}	
+}

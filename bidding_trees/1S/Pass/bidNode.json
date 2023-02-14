@@ -1,0 +1,23 @@
+{
+    "teamRole": "OFFENSE",
+    "fitSuit": "ALL",
+    "candidateSuit": "SPADE",
+    "convention": "NATURAL",
+    "openerInfo": {
+	    "minPts": 13,
+	    "maxPts": 21,
+	    "evalMethod": "hcp-long" },
+    "responderInfo": {
+	    "minPts": 0,
+	    "maxPts": 5,
+	    "evalMethod": "hcp-short" },
+    "force": "NONE",
+    "nextBidder": "OPENER",
+    "handler": "openRebid_1_Pass",
+	"interpretation": "Opener has 13-21 points and 5+ spades.\nMay have 5 hearts\nResponder has 0-5 points\nMay have support for opener's suit",
+	"hints": {
+		"hint0": "To show new major requires 4 cards, 5 for minor",
+		"hint1": "Small=13-15, Medium=16-18, Large=19-21\nLook for new suit or 6+ in opening suit",
+		"hint2": "13-15\tW: 1W\n\t6+S: 2S\n\tCompetition: Pass\n\tDefault: 1NT\n16-18\t6+S: 3S\n\tW: 1W\n\tDefault: 1NT\n19-21\tW: JS\n\t6+S: 3NT\n\tBalanced, 2S+ HCP: 3NT\n\tBalanced, 18-19 HCP: 2NT\n\t7+H: 4S\n\t6+H: 3S\n\tDefault: 2NT"
+	}
+}

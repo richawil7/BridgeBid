@@ -1,0 +1,23 @@
+{
+    "teamRole": "OFFENSE",
+    "fitSuit": "NOTRUMP",
+    "candidateSuit": "ALL",
+    "convention": "NATURAL",
+    "openerInfo": {
+	    "minPts": 25,
+	    "maxPts": 27,
+	    "evalMethod": "hcp-only" },
+    "responderInfo": {
+	    "minPts": 7,
+	    "maxPts": 7,
+	    "evalMethod": "hcp-only" },
+    "force": "ONE_ROUND",
+    "nextBidder": "OPENER",
+    "handler": "openRebid_3NT_nNT",
+	"interpretation": "Opener\tHas 25-27 high card points\n\tBalanced hand\nResponder\tHas 7 points",
+	"hints": {
+		"hint0": "Invitational",
+		"hint1": "Gerber",
+		"hint2": "5C"
+	}	
+}

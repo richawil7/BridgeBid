@@ -1,0 +1,23 @@
+{
+    "teamRole": "OFFENSE",
+    "fitSuit": "ALL",
+    "candidateSuit": "CLUB",
+    "convention": "NATURAL",
+    "openerInfo": {
+	    "minPts": 22,
+	    "maxPts": 40,
+	    "evalMethod": "hcp-long" },
+    "responderInfo": {
+	    "minPts": 8,
+	    "maxPts": 18,
+	    "evalMethod": "hcp-short" },
+    "force": "GAME",
+    "nextBidder": "OPENER",
+    "handler": "openRebid_2C_3Mi",
+	"interpretation": "Opener:\tHas 22+ points\n\tDoes not say anything about suit preference\nResponder:\tHas 8+ points\n\tHas 5+ cards with at least Q\n\tWill show clubs before diamonds\nGame forcing",
+	"hints": {
+		"hint0": "Game forcing bid",
+		"hint1": "Do you have 3 card support for bid minor",
+		"hint2": "Support: 4C\nNo support: best suit at lowest level"
+	}	
+}

@@ -1,0 +1,23 @@
+{
+    "teamRole": "OFFENSE",
+    "fitSuit": "ALL",
+    "candidateSuit": "ALL",
+    "convention": "STAYMAN",
+    "openerInfo": {
+	    "minPts": 20,
+	    "maxPts": 21,
+	    "evalMethod": "hcp-only" },
+    "responderInfo": {
+	    "minPts": 5,
+	    "maxPts": 20,
+	    "evalMethod": "hcp-only" },
+    "force": "ONE_ROUND",
+    "nextBidder": "OPENER",
+    "handler": "openRebid_2N_3C",
+	"interpretation": "Opener:\tHas 20-21 points and a balanced hand\n\tMay have a 5 card suit\nResponder:\tHas 5+ points and a 4 card major",
+	"hints": {
+		"hint0": "Stayman",
+		"hint1": "Bid best major",
+		"hint2": "4+4: 3H\n5+5: 3S\nNo 4 card major: 3NT"
+	}	
+}

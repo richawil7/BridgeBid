@@ -1,0 +1,23 @@
+{
+    "teamRole": "OFFENSE",
+    "fitSuit": "ALL",
+    "candidateSuit": "DIAMOND",
+    "convention": "NATURAL",
+    "openerInfo": {
+	    "minPts": 13,
+	    "maxPts": 21,
+	    "evalMethod": "hcp-long" },
+    "responderInfo": {
+	    "minPts": 6,
+	    "maxPts": 12,
+	    "evalMethod": "hcp-short" },
+    "force": "ONE_ROUND",
+    "nextBidder": "OPENER",
+    "handler": "openRebid_1Mi_1Ma",
+	"interpretation": "Opener:\t has 13-21 points and 4+ diamonds.\n\tDenies 5 card major\n\tDenies balanced hand\nResponder:\tHas 6+ points\n\tMay have support for opener's suit\n\tHas 4+ hearts\n\tMay have 4 spades",
+	"hints": {
+		"hint0": "Look for 4 hearts to support responder\nForcing for one round \nNot forcing in face of competition",
+		"hint1": "Small=13-15, Medium=16-18, Large=19-21\nLook for 4H card support or 6+ in opening suit",
+		"hint2": "13-15\t4H: 2H\n\t4S: 1S\n\t6+D: 2D\n\tCompetition: Pass\n\tDefault: 1NT\n16-18\t4H: 3H\n\tBalanced, 18+: 2NT\n\t6+D: 3D\n\t4S: 2S\n\tDefault: 2NT\n18: 2NT\n\tDefault: 1NT\n19-21\t4H: 4H\n\tBalanced: 3NT\n\t6+D: 2NT\n\t4S: 3S\n\tDefault: 3NT"
+	}	
+}

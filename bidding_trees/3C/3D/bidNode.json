@@ -1,0 +1,23 @@
+{
+    "teamRole": "OFFENSE",
+    "fitSuit": "ALL",
+    "candidateSuit": "DIAMOND",
+    "convention": "WEAK_2",
+    "openerInfo": {
+	    "minPts": 5,
+	    "maxPts": 11,
+	    "evalMethod": "hcp-only" },
+    "responderInfo": {
+	    "minPts": 0,
+	    "maxPts": 7,
+	    "evalMethod": "hcp-only" },
+    "force": "NONE",
+    "nextBidder": "OPENER",
+    "handler": "openRebid_3weak_3W",
+	"interpretation": "Opener\tHas 5-11 points\n\tHas 7 cards in bid suit\nResponder\tDenies support for opening suit",
+	"hints": {
+		"hint1": "Can opener support responder's suit",
+		"hint1": "2 cards for support of responder's suit",
+		"hint2": "<Support: Pass\nNo support: 4C"
+	}	
+}
