@@ -7,24 +7,47 @@ from utils import *
 from card import Card
 from cardPile import CardPile
 
+def findLargestBid(table):
+    bidsList = table.bidsList
+    # Find the largest bid in the list
+    maxLevel = 0
+    maxSuit = Suit.CLUB
+    for bid in bidsList:
+        if bid[0] > maxLevel:
+            maxLevel = bid[0]
+            maxSuit = bid[1]            
+        elif bid[0] == maxLevel:
+            if bid[1].value > maxSuit.value:
+                maxSuit = bid[1]
+    bidStr = getBidStr(maxLevel, maxSuit)
+    print("Largest bid is %s" % bidStr)
+    return (maxLevel, maxSuit)
+
 def stubBid(table, bidsList):
-    if len(bidsList) > 0:
-        bidTuple = bidsList[-1]
-        lastBidLevel = bidTuple[0]
-        nextBidLevel = lastBidLevel + 1
-        lastBidSuit = bidTuple[1]
-        if lastBidSuit == Suit.NOTRUMP:
-            nextBidSuit = Suit.CLUB
-        elif lastBidSuit == Suit.HEART:
-            nextBidSuit = Suit.SPADE
-        else:
-            nextBidSuit = Suit.HEART
-    else:
-        # First bid
+    # Get the largest bid
+    largestBid = findLargestBid(table)
+    lastBidLevel = largestBid[0]
+    lastBidSuit = largestBid[1]
+    
+    if lastBidLevel == 0:
+        # Pass
         nextBidLevel = 1
         nextBidSuit = Suit.CLUB
-
-    writeLog(table, "stubBid: in round %d by %s\n" % (table.roundNum, table.currentPos.name))
+    else:
+        nextBidLevel = lastBidLevel
+        if lastBidSuit == Suit.NOTRUMP:
+            nextBidLevel = lastBidLevel + 1
+            nextBidSuit = Suit.CLUB
+        elif lastBidSuit == Suit.SPADE:
+            nextBidSuit = Suit.NOTRUMP
+        elif lastBidSuit == Suit.HEART:
+            nextBidSuit = Suit.SPADE
+        elif lastBidSuit == Suit.DIAMOND:
+            nextBidSuit = Suit.HEART
+        elif lastBidSuit == Suit.CLUB:
+            nextBidSuit = Suit.DIAMOND
+    bidStr = getBidStr(nextBidLevel, nextBidSuit)
+    writeLog(table, "stubBid: %s in round %d by %s\n" % (bidStr, table.roundNum, table.currentPos.name))
     return (nextBidLevel, nextBidSuit)
 
 

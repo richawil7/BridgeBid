@@ -17,8 +17,12 @@ bidTreeBaseDir = "/home/richawil/Documents/Programming/Apps/BridgeBid/bidding_tr
 # Return a bidNode instance from the bidding tree
 def fetchBidTreeNode(bidSeq):
     # Build a pathname to the bid
+    # If the first bid is a Pass, we need to strip it
     path = bidTreeBaseDir
-    for bid in bidSeq:
+    for i, bid in enumerate(bidSeq):
+        if i == 0 and bid[0] == 0:
+            # print("First bid was a Pass - ignoring")
+            continue
         bidStr = getBidStr(bid[0], bid[1])
         path = path + '/' + bidStr
     path = path + '/' + 'bidNode.json'

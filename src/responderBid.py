@@ -270,7 +270,7 @@ class ResponderRegistry:
 
     @ResponderFunctions.register(command="rsp_1NT")    
     def open1NoTrumpRsp(self, table, player):
-        writeLog(table, "responderBid: open1NoTrumpRsp by %s" % player.pos.name)
+        writeLog(table, "responderBid: open1NoTrumpRsp by %s\n" % player.pos.name)
         (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
 
@@ -343,7 +343,7 @@ class ResponderRegistry:
 
     @ResponderFunctions.register(command="rsp_2C")
     def open2ClubRsp(self, table, player):
-        writeLog(table, "responderBid: open2ClubRsp by %s" % player.pos.name)
+        writeLog(table, "responderBid: open2ClubRsp by %s\n" % player.pos.name)
         (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
         if hcPts < 8:
@@ -365,7 +365,7 @@ class ResponderRegistry:
 
     @ResponderFunctions.register(command="rsp_2Weak") 
     def openWeakRsp(self, table, player):
-        writeLog(table, "responderBid: openWeakRsp by %s" % player.pos.name)
+        writeLog(table, "responderBid: openWeakRsp by %s\n" % player.pos.name)
         # Get the bid from my partner
         level = player.teamState.bidSeq[-1][0]
         suit = player.teamState.bidSeq[-1][1]
@@ -436,7 +436,7 @@ class ResponderRegistry:
 
     @ResponderFunctions.register(command="rsp_2NT")    
     def open2NoTrumpRsp(self, table, player):
-        writeLog(table, "responderBid: open2NoTrumpRsp by %s" % player.pos.name)
+        writeLog(table, "responderBid: open2NoTrumpRsp by %s\n" % player.pos.name)
         (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
         (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
@@ -475,7 +475,7 @@ class ResponderRegistry:
 
     @ResponderFunctions.register(command="rsp_3NT")    
     def open3NoTrumpRsp(self, table, player):
-        writeLog(table, "responderBid: open3NoTrumpRsp by %s" % player.pos.name)
+        writeLog(table, "responderBid: open3NoTrumpRsp by %s\n" % player.pos.name)
         (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         if hcPts == 7:
             return (4, Suit.NOTRUMP)

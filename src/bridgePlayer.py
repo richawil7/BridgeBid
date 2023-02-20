@@ -115,18 +115,23 @@ class BridgePlayer(Player):
 
 
     def bidRound2(self, table):
+        # Get the sequence of bids made by this partnership
+        bidSeq = getTeamBidSequence(table, self.pos)
+        numBids = len(bidSeq)
+        # Check if the first bid was a pass
+        if bidSeq[0][0] == 0:
+            # print("First bid was a pass")
+            numBids -= 1
+            
         # Figure out this player's bidding role
         if self.playerRole == PlayerRole.UNKNOWN:
             self.playerRole = getMyPlayerRole(table, self)
 
         if self.playerRole == PlayerRole.UNKNOWN:
-            print("bridgePlayer: bidRound2: Player %s STILL has unknown role %s" % (self.pos.name, self.playerRole.name))
+            # print("bridgePlayer: bidRound2: Player %s STILL has unknown role %s" % (self.pos.name, self.playerRole.name))
             return (0, Suit.ALL)
             
         elif self.playerRole == PlayerRole.OPENER:
-            # Get the sequence of bids made by this partnership
-            bidSeq = getTeamBidSequence(table, self.pos)
-
             # Fetch the bid node from the bidding tree for this bid sequence
             self.bidNode = fetchBidTreeNode(bidSeq)
         
@@ -137,8 +142,12 @@ class BridgePlayer(Player):
             (bidLevel, bidSuit) = table.openerRebidRegistry.jump_table[self.bidNode.handler](table, self)
 
         elif self.playerRole == PlayerRole.RESPONDER:
-            # Can't use bidding trees for responder rebid
-            (bidLevel, bidSuit) = stubBid(table, table.bidsList)            
+            if numBids >= 3:
+                # Can't use bidding trees for responder rebid
+                (bidLevel, bidSuit) = stubBid(table, table.bidsList)
+            else:
+                # Call the handler function for the current team state
+                (bidLevel, bidSuit) = table.responderRegistry.jump_table[self.bidNode.handler](table, self)
 
         else:
             print("bridgePlayer: bidRound2: Player %s has invalid role %d" % (self.pos.name, self.playerRole.value))
@@ -173,7 +182,11 @@ class BridgePlayer(Player):
             bidSeq = getTeamBidSequence(table, self.pos)
 
             # We only have bid node for 2 levels of bids
-            if len(bidSeq) <= 2:
+            numBids = len(bidSeq)
+            # check if the first bid was a pass
+            if bidSeq[0][0] == 0:
+                numBids -= 1
+            if len(bidSeq) <= 2: 
                 # Fetch the bid node from the bidding tree for this bid sequence
                 self.bidNode = fetchBidTreeNode(bidSeq)
 
