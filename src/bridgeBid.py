@@ -3,6 +3,8 @@
 import os
 import sys
 import threading
+import argparse
+
 from time import sleep
 from enums import Suit, Level, PileOrder, TablePosition
 from card import Card
@@ -72,11 +74,22 @@ def thread_function(name, table):
 
 
 def main(argv):
-    enableGui = argv[1] == 'True'
-    humanPlaying = argv[2] == 'True'
+    # Initialize environment variables
+    enableGui = True
+    humanPlaying = True
+    replayHand = False
+    
+    parser = argparse.ArgumentParser(description='Practice bridge bidding')
+    parser.add_argument('-g', '--gui', action='store_true', help='Enable GUI. Default=True', required=False)
+    parser.add_argument('-r', '--replay', action='store_true',  help='Replay last hand', required=False)
+    args = vars(parser.parse_args())
+    if args['gui']:
+        enableGui = True
+    if args['replay']:
+        replayHand = True
 
     # Create a card table. This is the top level logic for a card game.
-    table = CardTable(enableGui, humanPlaying)
+    table = CardTable(enableGui, humanPlaying, replayHand)
     
     if enableGui:
         # Create the root widget, which is the application window
@@ -94,12 +107,15 @@ def main(argv):
         table.bidRequest()
         
     print("Program Done")
+
+def showUsage():
+    print("Usage:")
+    print("\t./bridgeBid.py <options>")
+    print("\t\t-g --gui\tEnable GUI. Default True")
+    print("\t\t-r --replay\tReplay last hand. Default False")
+    print("\t\t-h --help\tShow this help")
+    print("\tExample")
+    print("\t\t./bridgeBid.py -r True")
     
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print("Usage:")
-        print("\tpython bridgeBid.py <enableGui> <humanPlaying>")
-        print("\tExample")
-        print("\tpython bridgeBid.py True True")
-        exit(1)
     main(sys.argv)

@@ -9,12 +9,12 @@
 		"evalMethod": "hcp-long" },
 	"responderInfo": {
 	    "minPts": 0,
-	    "maxPts": 0,
+	    "maxPts": 5,
 		"evalMethod": "hcp-short" },
     "force": "NONE",
-	"nextBidder": "RESPONDER",
-	"handler": "rsp_Pass",
-	"interpretation": "Opener:\tcannot open\n\tDenies long suit and weak points",
+	"nextBidder": "OPENER",
+	"handler": "openerRebid_Pass_Pass",
+	"interpretation": "Opener:\tcannot open\n\tDenies long suit and weak points\nResponder:\t cannot open",
 	"hints": {
 		"hint0": "0-5: Pass\n5-11, 6+: len-4 (Weak)\nRule of 20: Suit\n13-21: Suit\n15-17: 1NT\n22+: 2C (Strong)",
 		"hint1": "4+4: Diamond\n5+5: Spade\n20-21: 2NT\n25-27: 3NT\n28+: 4NT",

@@ -15,7 +15,9 @@
     "nextBidder": "RESPONDER",
 	"handler": "rsp_1Mi",
 	"interpretation": "Opener has 13-21 points and 3+ clubs.\nDenies 5 card major. Denies balanced hand",
+	"hints": {
+		"hint0": "Look for a major fit",	
 		"hint1": "Support: 5+ Clubs\nBid higher of 2 5 card suits\nBid lower of 2 4 card suits\n2 over 1 suit must be lower than opening suit\nInverted Minor:\t6-10: 3\n\t\t11-12: 2",
-		"hint2": "<6 pts: Pass\n4 card major:\n\tMajor 5+5: 1S\n\tMajors 4+4: 1H\n4 card support\n\t6-9 pts: raise\n\t10-11 pts: jump\n\t12+: new suit\n10+ pts\n\tUnbid stoppers\n\t\t16-18 pts: 3NT\n\t\t13-15 pts: 2NT\n\t5+5: higher\n\t4+4: lower\n\tLongest\n4+D over 1C: 1D\n1NT"
+		"hint2": "Support\n\t0-5: Pass\n\t6-10\t4+major: 1Ma\n\t\tDefault: 3D (Inverted minor)\n\t11-12\tMajor 5+5: 1S\n\t\tMajors 4+4: 1H\n\t\tDefault: 2D (Inverted minor)\n\t13+\t4+C: 2C (2 over 1)\n\t\tBalanced: 2NT\n\t\tDefault: 2C\nNo Support\n\t0-5: Pass\n\t6-10\t4+D: 1D\n\n\t\tMajor 5+5: 1S\n\t\tMajors 4+4: 1H\n\t\tDefault: 1NT\n\t11-12\tMajor 5+5: 1S\n\t\tMajors 4+4: 1H\n\t\t4+D: 1D\n\t\tDefault: 1NT\n\t13-15, Balanced: 2NT\n\t16-18, Balanced: 3NT\n\t13+: 1W"
 	}
 }

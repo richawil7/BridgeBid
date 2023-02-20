@@ -27,6 +27,8 @@ class BridgeHand(CardPile):
         # Calculate distribution points
         distPoints = 0
         for suit in Suit:
+            if suit == Suit.ALL or suit == Suit.NOTRUMP:
+                continue
             numCardsInSuit = self.getNumCardsInSuit(suit)
             if distMethod == DistMethod.HCP_LONG:
                 if numCardsInSuit > 4:
@@ -186,10 +188,10 @@ class BridgeHand(CardPile):
     # Return True if hand has a singleton or void in a suit other than the
     # one specified
     def hasSingletonOrVoid(self, bidSuit):
-        for suit in Suits:
+        for suit in Suit:
             if suit == Suit.ALL or suit == Suit.NOTRUMP or suit == bidSuit:
                 continue
-            numCardsInSuit = hand.getNumCardsInSuit(suit)
+            numCardsInSuit = self.getNumCardsInSuit(suit)
             if numCardsInSuit <= 1:
                 return suit
         return Suit.ALL

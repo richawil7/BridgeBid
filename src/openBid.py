@@ -21,7 +21,6 @@ class OpenerRegistry:
 
     def checkCompetition(self, table, bidLevel, bidSuit):
         myBidStr = getBidStr(bidLevel, bidSuit)
-        print("checkCompetition: for bid %s" % myBidStr)
         # Check if there is competition
         if not table.competition:
             return (bidLevel, bidSuit)
@@ -33,14 +32,13 @@ class OpenerRegistry:
             minBid = table.bidsList[-3]
 
         bidStr = getBidStr(minBid[0], minBid[1])
-        print("checkCompetition: competition bid" % bidStr)
             
         if minBid[0] > bidLevel:
             # Competitors already bid higher than my bid. Return pass
-            print("checkCompetition: my bid of %s was squashed" % myBidStr)
+            writeLog(table, "checkCompetition: my bid of %s was squashed" % myBidStr)
             return (0, Suit.ALL)
         if minBid[1].level >= bidSuit.level:
-            print("checkCompetition: my bid of %s was squashed" % myBidStr)
+            writeLog(table, "checkCompetition: my bid of %s was squashed" % myBidStr)
             return (0, Suit.ALL)
 
         return (bidLevel, bidSuit)
@@ -49,16 +47,15 @@ class OpenerRegistry:
     # Define functions
     @OpenerFunctions.register(command="open")    
     def calcOpenBid(self, table, player):
-        print("openBid: calcOpenBid: entry")
+        writeLog(table, "calcOpenBid\n")
         hand = player.hand
         (hcPts, lenPts) = hand.evalHand(DistMethod.HCP_LONG)
         totalPts = hcPts + lenPts
-
         # Find the longest suit
         (numCardsLong, longSuit) = hand.findLongestSuit()
-
         # Check if we should open weak with a long suit
         if totalPts < 14:
+            
             # Evaluate spades
             (spadeCat, numSpades, numSpadeHc) = hand.evalSuitCategory(Suit.SPADE)
             # Do we have 2 quick tricks?
@@ -84,7 +81,7 @@ class OpenerRegistry:
             goodHearts = numHearts >= 4 and quick2Hearts
 
             goodMajor = goodSpades or goodHearts
-            if totalPts != 13 or (not goodMajor):
+            if totalPts != 13 and (not goodMajor):
                 # Get the two longest suits
                 (suitA, numCardsA, suitB, numCardsB) = hand.numCardsInTwoLongestSuits()
                 # Check for weak bid
@@ -97,38 +94,52 @@ class OpenerRegistry:
                         # Weak bid
                         if longSuit != Suit.CLUB:
                             bidLevel = numCardsLong - 4
+                            player.playerRole = PlayerRole.OPENER
                             return self.checkCompetition(table, bidLevel, longSuit)
+                    else:
+                        return (0, Suit.ALL)
                 else:
                     # Check for rule of 20
                     if totalPts + numCardsA + numCardsB >= 20:
+                        player.playerRole = PlayerRole.OPENER
                         return self.checkCompetition(table, 1, suitA)
+                    else:
+                        return (0, Suit.ALL)
 
         # Check for balanced hand
         if hand.isHandBalanced():
             if hcPts >= 15 and hcPts <= 17:
+                player.playerRole = PlayerRole.OPENER
                 return self.checkCompetition(table, 1, Suit.NOTRUMP)
             # Does hand have stoppers in all 4 suits
             if hand.hasStoppers():
                 if hcPts >= 18 and hcPts <= 19:
+                    player.playerRole = PlayerRole.OPENER
                     return self.checkCompetition(table, 1, longSuit)
                 if hcPts >= 20 and hcPts <= 21:
+                    player.playerRole = PlayerRole.OPENER
                     return self.checkCompetition(table, 2, Suit.NOTRUMP)
                 if hcPts >= 25 and hcPts <= 27:
+                    player.playerRole = PlayerRole.OPENER
                     return self.checkCompetition(table, 3, Suit.NOTRUMP)
                 if hcPts >= 28 and hcPts <= 29:
+                    player.playerRole = PlayerRole.OPENER
                     return self.checkCompetition(table, 4, Suit.NOTRUMP)
 
         # If you get here, the hand is unbalanced or is balanced with 22-24 points
         # Check for a big hand
         if totalPts >= 22:
+            player.playerRole = PlayerRole.OPENER
             return self.checkCompetition(table, 2, Suit.CLUB)
 
         # Check for a long suit
         if numCardsLong >= 5:
+            player.playerRole = PlayerRole.OPENER
             return self.checkCompetition(table, 1, longSuit)
 
         # Bid the longer minor
         longSuit = findLongerMinor(hand)
+        player.playerRole = PlayerRole.OPENER
         return self.checkCompetition(table, 1, longSuit)
 
         print("bid: calcOpenBid: ERROR - did not find bid")        

@@ -22,7 +22,7 @@ def fetchBidTreeNode(bidSeq):
         bidStr = getBidStr(bid[0], bid[1])
         path = path + '/' + bidStr
     path = path + '/' + 'bidNode.json'
-    print("Path to bid is %s" % (path))
+
     # Open the file
     fh = open(path, 'r')
     bidDescriptor = json.load(fh)
@@ -46,19 +46,23 @@ def fetchBidTreeNode(bidSeq):
         elif key == "handler":
             bidNode.handler = bidDescriptor[key]
         elif key == "openerInfo":
-            if bidDescriptor[key] == "minPts":
-                bidNode.openerMinPoints = bidDescriptor[key]["minPts"]
-            elif bidDescriptor[key] == "maxPts":
-                bidNode.openerMaxPoints = bidDescriptor[key]["maxPts"]
-            if bidDescriptor[key] == "evalMethod":
-                bidNode.openerEvalMethod = DistMethod[bidDescriptor[key]["evalMethod"]]
+            bidNode.openerMinPoints = bidDescriptor[key]["minPts"]
+            bidNode.openerMaxPoints = bidDescriptor[key]["maxPts"]
+            if bidDescriptor[key]["evalMethod"] == 'hcp-only':
+                bidNode.openerEvalMethod = DistMethod.HCP_ONLY
+            elif bidDescriptor[key]["evalMethod"] == 'hcp-short':
+                bidNode.openerEvalMethod = DistMethod.HCP_SHORT
+            elif bidDescriptor[key]["evalMethod"] == 'hcp-long':
+                bidNode.openerEvalMethod = DistMethod.HCP_LONG
         elif key == "responderInfo":
-            if bidDescriptor[key] == "minPts":
-                bidNode.responderMinPoints = bidDescriptor[key]["minPts"]
-            elif bidDescriptor[key] == "maxPts":
-                bidNode.responderMaxPoints = bidDescriptor[key]["maxPts"]
-            if bidDescriptor[key] == "evalMethod":
-                bidNode.responderEvalMethod = DistMethod[bidDescriptor[key]["evalMethod"]]
+            bidNode.responderMinPoints = bidDescriptor[key]["minPts"]
+            bidNode.responderMaxPoints = bidDescriptor[key]["maxPts"]
+            if bidDescriptor[key]["evalMethod"] == 'hcp-only':
+                bidNode.responderEvalMethod = DistMethod.HCP_ONLY
+            elif bidDescriptor[key]["evalMethod"] == 'hcp-short':
+                bidNode.responderEvalMethod = DistMethod.HCP_SHORT
+            elif bidDescriptor[key]["evalMethod"] == 'hcp-long':
+                bidNode.responderEvalMethod = DistMethod.HCP_LONG
         elif key == "interpretation":
             bidNode.interpret = bidDescriptor[key]
         elif key == "hints":

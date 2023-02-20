@@ -24,8 +24,11 @@ class TeamState:
         print("Partner max points = %d" % self.partnerMaxPoints)
         print("Team min points = %d" % self.teamMinPoints)
         print("Team max points = %d" % self.teamMaxPoints)
+        bidSeqStr = ''        
         for bid in self.bidSeq:
-            print("Bid level %d suit %s" % (bid.level, bid.suit.name))
+            bidStr = getBidStr(bid[0], bid[1])
+            bidSeqStr += bidStr + "-"
+        print("Team bid sequence: %s", bidSeqStr)
 
     # Merge the information from a bidding tree node into the team state
     def mergeTreeNode(self, player, bidTreeNode, playerRole):
@@ -49,73 +52,3 @@ class TeamState:
     def addTeamBid(self, level, suit):
         self.bidSeq.append((level, suit))
 
-        
-    # Returns the callable nextState and hint function for the current hand state
-    def analyzeHandState(self, table, player, roundNum):
-        if roundNum == 1:
-            (calcBidFx, hintFx) = analyzeRound1(table, player)
-            return (calcBidFx, hintFx)
-        elif roundNum == 2:
-            (calcBidFx, hintFx) = analyzeRound2(table, player)
-            return (calcBidFx, hintFx)
-        else:
-            (calcBidFx, hintFx) = analyzeRound3Plus(table, player)
-            return (calcBidFx, hintFx)
-
-    def analyzeRound1(self, table, hasOpener, competition, roundNum, bidsList, hand):
-        # Get state of the table
-        hasOpener = table.hasOpener
-        competition = table.competition
-        roundNum = table.roundNum
-        bidsList = table.bidsList
-
-        # Check if I can open
-        iCanOpen = canIOpen(self.hand, competition, player.seat) 
-        if iCanOpen:
-            hintFx = getHintForOpener
-            caclBidFx = calcOpenBid
-        else:
-            hintFx = getHintForOpener
-            caclBidFx = caclPassBid
-        
-        # Determine this player's bidding state
-        if not hasOpener and not competition:
-            # No one has opened yet
-            if iCanOpen:
-                player.teamRole = TeamRole.OFFENSE
-                player.playerRole = PlayerRole.OPENER
-                return (calcOpenBid, getHintForOpener)
-
-        elif not hasOpener and competition:
-            print("bridgePlayer: computerBidReq: Error-invalid state ")
-
-        elif hasOpener:
-            # Check if my partner was the opener
-            if len(bidsList) >= 2:
-                if self.seat >= 3:
-                    partnerBidIdx = self.seat - 2 - 1
-                else:
-                    partnerBidIdx = 4 + self.seat - 2 - 1
-                partnerBid = bidsList[partnerBidIdx][0]
-                if partnerBid > 0:
-                    # My partner opened
-                    if roundNum == 1:
-                        writeLog(table, "handState: analyzeR1: partner opened\n")
-                    self.teamRole = TeamRole.OFFENSE
-                    self.playerRole = PlayerRole.RESPONDER
-                    (calcBidFx, hintFx) = analyzeResponder(table)
-                    return (calcBidFx, hintFx)
-                else:
-                    # My partner passed
-                    writeLog(self.table, "bridgePlayer: compBidReq: partner passed\n")
-                    if iCanOpen:
-                        self.teamRole = TeamRole.OFFENSE
-                        self.playerRole = PlayerRole.OPENER
-                        return (calcOpenBid, getHintForOpener)
-            else:
-                if iCanOpen:
-                    self.teamRole = TeamRole.OFFENSE
-                    self.playerRole = PlayerRole.OPENER
-                    return (calcOpenBid, getHintForOpener)
-
-        return (calcBidFx, hintFx)

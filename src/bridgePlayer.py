@@ -66,7 +66,7 @@ class BridgePlayer(Player):
         bid - the actual bid; a tuple of level and suit
     '''    
     def computerBidRequest(self, table, hasOpener, competition, roundNum, bidsList, isHuman, hand):
-        # writeLog(table, "bridgePlayer:compBidReq: pos={} hasOpener={} compet={} roundNum={}\n".format(self.pos, hasOpener, competition, roundNum))
+        writeLog(table, "BidReq: pos={} hasOpener={} compet={} roundNum={}\n".format(self.pos.name, hasOpener, competition, roundNum))
 
         if roundNum == 1:
             (bidLevel, bidSuit) = self.bidRound1(table)
@@ -81,8 +81,8 @@ class BridgePlayer(Player):
             bidLevel = 0
             bidSuit = Suit.ALL
         
-        # bidStr = getBidStr(bidLevel, bidSuit)
-        # writeLog(self.table, "bridgePlayer: compBidReq: bid %s\n" % bidStr)
+        bidStr = getBidStr(bidLevel, bidSuit)
+        writeLog(self.table, "BidRsp: %s as %s bids %s\n" % (self.pos.name, self.playerRole.name, bidStr))
         
         # Only submit the bid if the computer is this player
         if not isHuman:
@@ -91,7 +91,6 @@ class BridgePlayer(Player):
     def bidRound1(self, table):
         # Figure out this player's bidding role
         self.playerRole = getMyPlayerRole(table, self)
-        print("Player %s role is %s" % (self.pos.name, self.playerRole.name))
         
         # Get the sequence of bids made by this partnership
         bidSeq = getTeamBidSequence(table, self.pos)
@@ -110,8 +109,6 @@ class BridgePlayer(Player):
             (bidLevel, bidSuit) = table.openerRegistry.jump_table[self.bidNode.handler](table, self)
 
         # Save the most recent bid
-        bidStr = getBidStr(bidLevel, bidSuit)
-        print("Player %s bids %s" % (self.pos.name, bidStr))
         self.lastBid = (bidLevel, bidSuit)
 
         return (bidLevel, bidSuit)
@@ -120,21 +117,12 @@ class BridgePlayer(Player):
     def bidRound2(self, table):
         # Figure out this player's bidding role
         if self.playerRole == PlayerRole.UNKNOWN:
-            print("bidRound2: Player %s is unknown" % self.pos.name)
             self.playerRole = getMyPlayerRole(table, self)
-        print("bidRound2: Player %s role is %s" % (self.pos.name, self.playerRole.name))
 
         if self.playerRole == PlayerRole.UNKNOWN:
-            print("bridgePlayer: bidRound2: Player %s has unknown role %d" % (self.pos.name, self.playerRole.value))
-            if self.seat <= 2:
-                # Need to check if my partner bid in round 1
-                partnerBidIdx = self.seat + 2 - 1
-                partnerBid = bidsList[partnerBidIdx][0]
-                if partnerBid > 0:
-                    # My partner opened
-                    self.playerRole == PlayerRole.RESPONDER
-                    (bidLevel, bidSuit) = table.responderRegistry.jump_table[teamState.handler](table, self)
-
+            print("bridgePlayer: bidRound2: Player %s STILL has unknown role %s" % (self.pos.name, self.playerRole.name))
+            return (0, Suit.ALL)
+            
         elif self.playerRole == PlayerRole.OPENER:
             # Get the sequence of bids made by this partnership
             bidSeq = getTeamBidSequence(table, self.pos)
@@ -146,7 +134,7 @@ class BridgePlayer(Player):
             self.teamState.mergeTreeNode(self, self.bidNode, self.playerRole)
             
             # Call the handler function for the current team state
-            (bidLevel, bidSuit) = table.openerRebidRegistry.jump_table[bidTreeNode.handler](table, self)
+            (bidLevel, bidSuit) = table.openerRebidRegistry.jump_table[self.bidNode.handler](table, self)
 
         elif self.playerRole == PlayerRole.RESPONDER:
             # Can't use bidding trees for responder rebid
@@ -154,18 +142,24 @@ class BridgePlayer(Player):
 
         else:
             print("bridgePlayer: bidRound2: Player %s has invalid role %d" % (self.pos.name, self.playerRole.value))
-        
-        print("bridgePlayer: bidRound2: Player %s bids %d%s" % (bidLevel, bidSuit))
+
+        bidStr = getBidStr(bidLevel, bidSuit)
+        self.lastBid = (bidLevel, bidSuit)
         return (bidLevel, bidSuit)
 
     
     def bidRound3(self, table):
+        if self.playerRole == PlayerRole.UNKNOWN:
+            return (0, Suit.ALL)
+        
         (bidLevel, bidSuit) = stubBid(table, table.bidsList)
-        print("bridgePlayer: bidRound3: Player %s bids %d%s" % (bidLevel, bidSuit))
+        bidStr = getBidStr(bidLevel, bidSuit)
         return (bidLevel, bidSuit)
 
     
-    def bidNotification(self, bidder, bidLevel, bidSuit):
+    def bidNotification(self, table, bidder, bidLevel, bidSuit):
+        bidStr = getBidStr(bidLevel, bidSuit)
+        # writeLog(table, "bidNotif: bidder={} bid={} me={}\n".format(bidder.name, bidStr, self.pos.name))
         # Need to figure out who the bidder is?
         myPartner = whosMyPartner(self.pos)
 
@@ -178,19 +172,25 @@ class BridgePlayer(Player):
             # Get the sequence of bids made by this partnership
             bidSeq = getTeamBidSequence(table, self.pos)
 
-            # Fetch the bid node from the bidding tree for this bid sequence
-            self.bidNode = fetchBidTreeNode(bidSeq)
+            # We only have bid node for 2 levels of bids
+            if len(bidSeq) <= 2:
+                # Fetch the bid node from the bidding tree for this bid sequence
+                self.bidNode = fetchBidTreeNode(bidSeq)
 
-            # Merge the bid tree node info into the team state
-            self.teamState.mergeTreeNode(self, self.bidNode, self.playerRole)
-
-
-        if self.pos == TablePosition.NORTH and bidder == TablePosition.SOUTH:
-            print("bidNotif: show NORTH state after SOUTH bid of %d%s" % (bidLevel, bidSuit))
-            self.teamState.show()
+                # Merge the bid tree node info into the team state
+                self.teamState.mergeTreeNode(self, self.bidNode, self.playerRole)
+            else:
+                writeLog(table, "bridgePlayer: bidNotif: Skipping bid node\n")
+                
+        # FIX ME. Debug that can be removed
+        #if self.pos == TablePosition.NORTH and bidder == TablePosition.SOUTH:
+        #    bidStr = getBidStr(bidLevel, bidSuit)
+        #    print("bidNotif: show NORTH state after SOUTH bid of %s" % bidStr)
+        #    self.teamState.show()
 
             
     def bidRound1Old(self, table, hasOpener, competition, roundNum, bidsList, hand):
+        # FIX ME: dead code
         bidLevel = 0
         bidSuit = Suit.ALL
         # Determine this player's bidding state

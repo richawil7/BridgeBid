@@ -2,7 +2,7 @@
     "teamRole": "OFFENSE",
     "fitSuit": "SPADE",
     "candidateSuit": "ALL",
-    "convention": "LIMIT_MAJOR_RAISE",
+    "convention": "MAJOR_LIMIT",
     "openerInfo": {
 	    "minPts": 13,
 	    "maxPts": 21,

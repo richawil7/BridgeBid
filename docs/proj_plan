@@ -30,8 +30,6 @@ Verify that bids continue around the table until a bid of 8 is received.
 5. Multiple Hands
 Show that after one hand is done, another hand can be started.
 
-<<<YOU ARE HERE>>>
-
 6. Computer can make opening bid
 Implement a real opening bid. Hard code computer as first bidder.
 
@@ -39,11 +37,42 @@ Implement a real opening bid. Hard code computer as first bidder.
 In the control panel, create a keypad where the human can submit a bid.
 Remove human bidding via stdin.
 
-8. Calculate the "correct" final bid
+<<<YOU ARE HERE>>>
+
+Make a git commit
+
+We have 2 bidding problems in competitive situations
+1. Opponents are not bidding above the opener's bid
+For example, North opens 1S and East bids 1D.
+2. Responder is bidding a suit opened by opponents
+For example, North opens 1S and East bids 1D.
+South then bids 2D.
+
+
+8. Test state variable architecture
+Write some pseudocode for the analyzeState function.
+Show it is possible to resolve a current state into 2 functions: a hint handler and a nextState handler.
+
+
+9. Table functions
+Make sure the cardTable has support for keeping and getting these global state variables:
+ - Lead position
+ - Table bidding sequence
+ - Current bidding position
+ - Last bid (non-pass bid)
+
+10. HandState Class
+Create a new file handState.py with the HandState class.
+When it comes time for a human to bid, the computer will make the bid calculation and store the result, but not submit the bid. The hand state for the human will be updated.  The computer asks the human to bid and awaits a response.
+If the computer's bid and the human bid are the same, processing of the next bidder commences. However if the bids are different, a message is displayed saying the bid was wrong. It allows the human to look at hints and bid again. Processing of the next bidder only continues after the human enters the matching bid. 
+
+11. Write the analyzeState function
+
+N. Calculate the "correct" final bid
 And display that bid in the control frame at the end of a hand
 
-9. Computer can make second bid
-
-10. Computer can make 3rd bid
 
 
+
+References:
+https://sites.oxy.edu/whitney/misc/bridge/bridge_bids_flowcharts.htm

@@ -17,7 +17,7 @@ class OpenerRebidRegistry:
 
     def __init__(self):
         # Bind methods to instance
-        self.jump_table = OpenerRegistry.OpenerFunctions.get_bound_jump_table(self)
+        self.jump_table = OpenerRebidRegistry.OpenerFunctions.get_bound_jump_table(self)
 
 
     # Define functions
@@ -30,7 +30,6 @@ class OpenerRebidRegistry:
     
     @OpenerFunctions.register(command="openRebid")
     def openRebid(table, hand, bidsList):
-        print("openRebid: openRebid: entry")
         writeLog(table, "openRebid: bidsList={}\n".format(bidsList))
         # Extract responding bid from partner
         (rspLevel, rspSuit) = bidsList[-2]
@@ -64,19 +63,24 @@ class OpenerRebidRegistry:
                 (bidLevel, bidSuit) = rspWeakRsp(hand, rspSuit, 4)
 
         return (bidLevel, bidSuit)
-        
+
+    @OpenerFunctions.register(command="openRebid_Pass_Pass")
+    def openRebid_Pass_Pass(self, table, player):
+        writeLog(table, "openRebid_Pass_Pass by %s" % player.pos.name)
+        return (0, Suit.ALL)
+    
     @OpenerFunctions.register(command="openRebid_1_Pass")
     def openRebid_1_Pass(self, table, player):
         writeLog(table, "openRebid_1_Pass by %s" % player.pos.name)
         # How many points do I have?
         openingSuit = player.teamState.candidateSuit
-        (hcPts, distPts) = hand.evalHand(DistMethod.HCP_SHORT)
+        (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
 
         (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
         # Sanity check
         if suitA != openingSuit:
-            print("openerRebid_1_Pass: openSuit=%s longSuit=%d" % (openingSuit.name, suitA.name))
+            print("ERROR: openerRebid_1_Pass: openSuit=%s longSuit=%d" % (openingSuit.name, suitA.name))
 
         # Do I have a second suit
         secondSuit = Suit.ALL
@@ -132,7 +136,7 @@ class OpenerRebidRegistry:
     def openRebid_1C_1D(self, table, player):
         writeLog(table, "openRebid_1C_1D by %s" % player.pos.name)
         # How many points do I have?
-        (hcPts, distPts) = hand.evalHand(DistMethod.HCP_SHORT)
+        (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
 
         # How many cards do I have in partner's suit
@@ -165,20 +169,20 @@ class OpenerRebidRegistry:
     @OpenerFunctions.register(command="openRebid_1Mi_1Ma")
     def openRebid_1Mi_1Ma(self, table, player):
         writeLog(table, "openRebid_1Mi_1Ma by %s" % player.pos.name)
-
+        print("openRebid_1Mi_1Ma by %s" % player.pos.name)
         # How many points do I have?
-        (hcPts, distPts) = hand.evalHand(DistMethod.HCP_SHORT)
+        (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
-
+        print("hcPts=%d shortPts=%d totalPts=%d" % (hcPts, distPts, totalPts))
         openingSuit = player.teamState.candidateSuit
-        numCardsInSuit = player.hand.numCardsInSuit(openingSuit)
+        numCardsInSuit = player.hand.getNumCardsInSuit(openingSuit)
         
         # How many cards do I have in partner's suit
         partnerSuit = player.teamState.bidSeq[-1][1]
         (numCardsIHave, numHighCards) = player.hand.evalSuitStrength(partnerSuit)
         numSpades = 0
         if partnerSuit == Suit.HEART:
-            numSpades = player.hand.numCardsInSuit(Suit.SPADES)
+            numSpades = player.hand.getNumCardsInSuit(Suit.SPADES)
 
         if totalPts >= 13 and totalPts <= 15:
             if numCardsIHave >= 4:
@@ -202,7 +206,7 @@ class OpenerRebidRegistry:
             if numSpades >= 4:
                 return (2, Suit.SPADES)
             if openingSuit == Suit.DIAMOND:
-                numCardsInSuit = player.hand.numCardsInSuit(Suit.CLUB)
+                numCardsInSuit = player.hand.getNumCardsInSuit(Suit.CLUB)
                 if numCardsInSuit >= 4:
                     return (2, Suit.CLUB)
             return (2, Suit.NOTRUMP)
@@ -224,7 +228,7 @@ class OpenerRebidRegistry:
         writeLog(table, "openRebid_1H_1S by %s" % player.pos.name)
 
         # How many points do I have?
-        (hcPts, distPts) = hand.evalHand(DistMethod.HCP_SHORT)
+        (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
 
         # How many cards do I have in partner's suit
@@ -238,7 +242,7 @@ class OpenerRebidRegistry:
                 return (1, Suit.NOTRUMP)
             
             openingSuit = player.teamState.candidateSuit
-            numCardsInSuit = player.hand.numCardsInSuit(openingSuit)
+            numCardsInSuit = player.hand.getNumCardsInSuit(openingSuit)
             if numCardsInSuit >= 6:
                 return (2, openingSuit)
 
@@ -249,7 +253,7 @@ class OpenerRebidRegistry:
                 return (3, partnerSuit)
 
             openingSuit = player.teamState.candidateSuit
-            numCardsInSuit = player.hand.numCardsInSuit(openingSuit)
+            numCardsInSuit = player.hand.getNumCardsInSuit(openingSuit)
             if numCardsInSuit >= 6:
                 return (3, openingSuit)
             
@@ -263,7 +267,7 @@ class OpenerRebidRegistry:
                 return (4, partnerSuit)
             
             openingSuit = player.teamState.candidateSuit
-            numCardsInSuit = player.hand.numCardsInSuit(openingSuit)
+            numCardsInSuit = player.hand.getNumCardsInSuit(openingSuit)
             if numCardsInSuit >= 6:
                 return (4, openingSuit)
 
@@ -278,21 +282,21 @@ class OpenerRebidRegistry:
 
         # How many points do I have?
         openingSuit = player.teamState.candidateSuit
-        (hcPts, distPts) = hand.evalHand(DistMethod.HCP_SHORT)
+        (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
 
         if totalPts >= 13 and totalPts <= 15:
             if player.hand.isHandBalanced():
                 return (0, Suit.ALL)
             if openingSuit == Suit.DIAMOND:
-                numCardsInSuit = player.hand.numCardsInSuit(Suit.CLUB)
+                numCardsInSuit = player.hand.getNumCardsInSuit(Suit.CLUB)
                 if numCardsInSuit >= 4:
                     return (2, Suit.CLUB)
-                numCardsInSuit = player.hand.numCardsInSuit(Suit.DIAMOND)
+                numCardsInSuit = player.hand.getNumCardsInSuit(Suit.DIAMOND)
                 if numCardsInSuit >= 6:
                     return (2, Suit.DIAMOND)
             elif openingSuit == Suit.CLUB:
-                numCardsInSuit = player.hand.numCardsInSuit(Suit.CLUB)
+                numCardsInSuit = player.hand.getNumCardsInSuit(Suit.CLUB)
                 if numCardsInSuit >= 5:
                     return (2, Suit.CLUB)
             return (0, Suit.ALL)
@@ -300,7 +304,7 @@ class OpenerRebidRegistry:
         elif totalPts >= 16 and totalPts <= 18:
             if player.hand.isHandBalanced():
                 return (2, Suit.NOTRUMP)
-            (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
+            (suitA, numCardsA, suitB, numCardsB) = player.hand.getNumCardsInTwoLongestSuits()
             if suitA != openingSuit and isMajor(suitA) and numCardsA >= 4:
                 return (2, suitA)
             if suitA != openingSuit and isMinor(suitA) and numCardsA >= 5:
@@ -311,11 +315,11 @@ class OpenerRebidRegistry:
                 return (2, suitB)
             
             if openingSuit == Suit.DIAMOND:
-                numCardsInSuit = player.hand.numCardsInSuit(Suit.DIAMOND)
+                numCardsInSuit = player.hand.getNumCardsInSuit(Suit.DIAMOND)
                 if numCardsInSuit >= 6:
                     return (3, Suit.DIAMOND)
             elif openingSuit == Suit.CLUB:
-                numCardsInSuit = player.hand.numCardsInSuit(Suit.CLUB)
+                numCardsInSuit = player.hand.getNumCardsInSuit(Suit.CLUB)
                 if numCardsInSuit >= 5:
                     return (3, Suit.CLUB)
             return (2, Suit.NOTRUMP)
@@ -324,15 +328,15 @@ class OpenerRebidRegistry:
             if player.hand.isHandBalanced():
                 return (3, Suit.NOTRUMP)
             if openingSuit == Suit.DIAMOND:
-                numCardsInSuit = player.hand.numCardsInSuit(Suit.DIAMOND)
+                numCardsInSuit = player.hand.getNumCardsInSuit(Suit.DIAMOND)
                 if numCardsInSuit >= 6:
                     return (4, Suit.DIAMOND)
             elif openingSuit == Suit.CLUB:
-                numCardsInSuit = player.hand.numCardsInSuit(Suit.CLUB)
+                numCardsInSuit = player.hand.getNumCardsInSuit(Suit.CLUB)
                 if numCardsInSuit >= 5:
                     return (4, Suit.CLUB)
 
-            (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
+            (suitA, numCardsA, suitB, numCardsB) = player.hand.getNumCardsInTwoLongestSuits()
             if suitA != openingSuit and isMajor(suitA) and numCardsA >= 4:
                 return (3, suitA)
             if suitA != openingSuit and isMinor(suitA) and numCardsA >= 5:
@@ -354,7 +358,7 @@ class OpenerRebidRegistry:
             print("openRebid: 1Mi_nMi: ERROR-partner level %d" % partnerLevel)    
         # How many points do I have?
         openingSuit = player.teamState.candidateSuit
-        (hcPts, distPts) = hand.evalHand(DistMethod.HCP_SHORT)
+        (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
 
         if totalPts >= 13 and totalPts <= 15:
@@ -389,10 +393,11 @@ class OpenerRebidRegistry:
         # What level did my partner bid?
         partnerLevel = player.teamState.bidSeq[-1][0]
         if partnerLevel < 2 or partnerLevel > 4:
-            print("openRebid: 1Ma_nMa: ERROR-partner level %d" % partnerLevel)    
+            print("openRebid: 1Ma_nMa: ERROR-partner level %d" % partnerLevel)
+            
         # How many points do I have?
         openingSuit = player.teamState.candidateSuit
-        (hcPts, distPts) = hand.evalHand(DistMethod.HCP_SHORT)
+        (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
 
         if partnerLevel == 4:
@@ -412,7 +417,6 @@ class OpenerRebidRegistry:
             return (3, openingSuit)
         if totalPts >= 19 and totalPts <= 21:
             return (4, openingSuit)
-        
         print("openRebid_1Ma_nMa: ERROR - should not reach here")
 
     @OpenerFunctions.register(command="openRebid_1Ma_1NT")
@@ -421,21 +425,21 @@ class OpenerRebidRegistry:
 
         # How many points do I have?
         openingSuit = player.teamState.candidateSuit
-        (hcPts, distPts) = hand.evalHand(DistMethod.HCP_SHORT)
+        (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
-        numCardsInSuit = player.hand.numCardsInSuit(openingSuit)
+        numCardsInSuit = player.hand.getNumCardsInSuit(openingSuit)
 
         if totalPts >= 13 and totalPts <= 15:
             if numCardsInSuit >= 6:
                 return (2, openingSuit)
-            numMinor = player.hand.numCardsInSuit(Suit.DIAMOND)
+            numMinor = player.hand.getNumCardsInSuit(Suit.DIAMOND)
             if numMinor >= 4:
                 return (2, Suit.DIAMOND)
-            numMinor = player.hand.numCardsInSuit(Suit.CLUB)
+            numMinor = player.hand.getNumCardsInSuit(Suit.CLUB)
             if numMinor >= 3:
                 return (2, Suit.CLUB)
 
-            (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
+            (suitA, numCardsA, suitB, numCardsB) = player.hand.getNumCardsInTwoLongestSuits()
             if suitA != openingSuit and isMajor(suitA) and numCardsA >= 4:
                 return (2, suitA)
             if suitA != openingSuit and isMinor(suitA) and numCardsA >= 5:
@@ -448,14 +452,14 @@ class OpenerRebidRegistry:
         elif totalPts >= 16 and totalPts <= 18:
             if numCardsInSuit >= 6:
                 return (3, openingSuit)
-            numMinor = player.hand.numCardsInSuit(Suit.DIAMOND)
+            numMinor = player.hand.getNumCardsInSuit(Suit.DIAMOND)
             if numMinor >= 4:
                 return (3, Suit.DIAMOND)
-            numMinor = player.hand.numCardsInSuit(Suit.CLUB)
+            numMinor = player.hand.getNumCardsInSuit(Suit.CLUB)
             if numMinor >= 3:
                 return (3, Suit.CLUB)
 
-            (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
+            (suitA, numCardsA, suitB, numCardsB) = player.hand.getNumCardsInTwoLongestSuits()
             if suitA != openingSuit and isMajor(suitA) and numCardsA >= 4:
                 return (3, suitA)
             if suitA != openingSuit and isMinor(suitA) and numCardsA >= 5:
@@ -466,7 +470,7 @@ class OpenerRebidRegistry:
                 return (3, suitB)
         
         elif totalPts >= 19 and totalPts <= 21:
-            (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
+            (suitA, numCardsA, suitB, numCardsB) = player.hand.getNumCardsInTwoLongestSuits()
             if suitA != openingSuit and isMajor(suitA) and numCardsA >= 4:
                 return (3, suitA)
             if suitA != openingSuit and isMinor(suitA) and numCardsA >= 5:
@@ -477,7 +481,7 @@ class OpenerRebidRegistry:
                 return (3, suitB)
             if numCardsInSuit >= 6 and player.hand.hasStoppers():
                 return (3, Suit.NOTRUMP)
-            if hcPts >= 18 and hcPts <= 19 and player.hand.isBalanced():
+            if hcPts >= 18 and hcPts <= 19 and player.hand.isHandBalanced():
                 return (3, Suit.NOTRUMP)
             if numCardsInSuit >= 7:
                 return (4, openingSuit)
@@ -492,9 +496,9 @@ class OpenerRebidRegistry:
         # Splinter
         # How many points do I have?
         openingSuit = player.teamState.candidateSuit
-        (hcPts, distPts) = hand.evalHand(DistMethod.HCP_SHORT)
+        (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
-        numCardsInSuit = player.hand.numCardsInSuit(openingSuit)
+        numCardsInSuit = player.hand.getNumCardsInSuit(openingSuit)
 
         # What suit did my partner bid?
         partnerSuit = player.teamState.bidSeq[-1][1]
@@ -521,12 +525,12 @@ class OpenerRebidRegistry:
         
         # How many points do I have?
         openingSuit = player.teamState.candidateSuit
-        (hcPts, distPts) = hand.evalHand(DistMethod.HCP_SHORT)
+        (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
-        numCardsInSuit = player.hand.numCardsInSuit(openingSuit)
+        numCardsInSuit = player.hand.getNumCardsInSuit(openingSuit)
 
         if totalPts >= 13 and totalPts <= 17:
-            if player.hand.isBalanced():
+            if player.hand.isHandBalanced():
                 return (3, Suit.NOTRUMP)
             if openingSuit == Suit.DIAMOND and numCardsInSuit >= 6:
                 return (3, Suit.DIAMOND)
@@ -535,11 +539,11 @@ class OpenerRebidRegistry:
         elif totalPts >= 18 and totalPts <= 21:
             # Gerber
             return (4, Suit.CLUB)
-        
         print("openRebid_1Mi_nNT: ERROR - should not reach here")
 
 
     # Jacoby 2NT    
+    @OpenerFunctions.register(command="openRebid_1Ma_2NT")
     def openRebid_1Ma_2NT(self, table, player):
         writeLog(table, "openRebid_1Ma_2NT by %s" % player.pos.name)
 
@@ -551,7 +555,7 @@ class OpenerRebidRegistry:
         
         # How many points do I have?
         openingSuit = player.teamState.candidateSuit
-        (hcPts, distPts) = hand.evalHand(DistMethod.HCP_SHORT)
+        (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
 
         if totalPts >= 13 and totalPts <= 15:
@@ -561,23 +565,23 @@ class OpenerRebidRegistry:
             return (3, Suit.NOTRUMP)
             
         elif totalPts >= 19 and totalPts <= 21:
-            (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
+            (suitA, numCardsA, suitB, numCardsB) = player.hand.getNumCardsInTwoLongestSuits()
             if suitA != openingSuit and isMinor(suitA) and numCardsA >= 4:
                 return (4, suitA)
             elif suitB != openingSuit and isMinor(suitB) and numCardsB >= 4:
                 return (4, suitB)
             else:
                 return (3, openingSuit)
-        
         print("openRebid_1Ma_2NT: ERROR - should not reach here")
 
         
+    @OpenerFunctions.register(command="openRebid_1Ma_3NT")
     def openRebid_1Ma_3NT(self, table, player):
         writeLog(table, "openRebid_1Ma_3NT by %s" % player.pos.name)
 
         # How many points do I have?
         openingSuit = player.teamState.candidateSuit
-        (hcPts, distPts) = hand.evalHand(DistMethod.HCP_SHORT)
+        (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
 
         if totalPts >= 13 and totalPts <= 14:
@@ -585,7 +589,6 @@ class OpenerRebidRegistry:
 
         # Explore slam with Gerber
         return (4, Suit.CLUB)
-        
         print("openRebid_1Ma_3NT: ERROR - should not reach here")
         
         
@@ -597,18 +600,18 @@ class OpenerRebidRegistry:
         
         # What suit did my partner bid?
         partnerSuit = player.teamState.bidSeq[-1][1]
-        if partnerSuit.level > openingSuit.level:
+        if partnerSuit.value > openingSuit.value:
             print("2_over_1: ERROR-partner did not bid under opening suit")
             
         # How many points do I have?
-        (hcPts, distPts) = hand.evalHand(DistMethod.HCP_SHORT)
+        (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
-        numCardsInSuit = player.hand.numCardsInSuit(openingSuit)
+        numCardsInSuit = player.hand.getNumCardsInSuit(openingSuit)
 
         if totalPts >= 13 and totalPts <= 15:
             if numCardsInSuit >= 6:
                 return (2, openingSuit)
-            numCardsInSuit = player.hand.numCardsInSuit(partnerSuit)
+            numCardsInSuit = player.hand.getNumCardsInSuit(partnerSuit)
             if partnerSuit == Suit.CLUB and numCardsInSuit >= 5:
                 return (3, partnerSuit)
             if partnerSuit == Suit.DIAMOND and numCardsInSuit >= 4:
@@ -620,7 +623,7 @@ class OpenerRebidRegistry:
         elif totalPts >= 16 and totalPts <= 18:
             if numCardsInSuit >= 6:
                 return (3, openingSuit)
-            numCardsInSuit = player.hand.numCardsInSuit(partnerSuit)
+            numCardsInSuit = player.hand.getNumCardsInSuit(partnerSuit)
             if partnerSuit == Suit.CLUB and numCardsInSuit >= 5:
                 return (4, partnerSuit)
             if partnerSuit == Suit.DIAMOND and numCardsInSuit >= 4:
@@ -631,7 +634,7 @@ class OpenerRebidRegistry:
 
         elif totalPts >= 19 and totalPts <= 21:
             # Bid jump shift
-            (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
+            (suitA, numCardsA, suitB, numCardsB) = player.hand.getNumCardsInTwoLongestSuits()
             if suitA != openingSuit and suitA != partnerSuit:
                 if suitA.level > partnerSuit.level:
                     return (partnerSuit.level + 1, suitA)
@@ -641,8 +644,7 @@ class OpenerRebidRegistry:
                 if suitB.level > partnerSuit.level:
                     return (partnerSuit.level + 1, suitB)
                 else:
-                    return (partnerSuit.level + 2, suitB)
-                
+                    return (partnerSuit.level + 2, suitB)  
         print("openRebid_2_over_1: ERROR - should not reach here")
         
     @OpenerFunctions.register(command="openRebid_1NT_Pass")
@@ -654,8 +656,8 @@ class OpenerRebidRegistry:
     def openRebid_1NT_2C(self, table, player):
         writeLog(table, "openRebid_1NT_2C by %s" % player.pos.name)
         # Stayman
-        numHearts = player.hand.numCardsInSuit(Suit.HEART)
-        numSpades = player.hand.numCardsInSuit(Suit.SPADE)
+        numHearts = player.hand.getNumCardsInSuit(Suit.HEART)
+        numSpades = player.hand.getNumCardsInSuit(Suit.SPADE)
 
         if numHearts < 4 and numSpades < 4:
             return (2, Suit.DIAMOND)
@@ -667,7 +669,6 @@ class OpenerRebidRegistry:
             return (2, Suit.HEART)
         else:
             return (2, Suit.SPADE)
-        
         print("openRebid_1NT_2C: ERROR - should not reach here")
     
     @OpenerFunctions.register(command="openRebid_1NT_2W")
@@ -678,7 +679,7 @@ class OpenerRebidRegistry:
         partnerSuit = player.teamState.bidSeq[-1][1]
 
         # How many points do I have?
-        (hcPts, distPts) = hand.evalHand(DistMethod.HCP_SHORT)
+        (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
 
         # Jacoby transfer
@@ -695,7 +696,7 @@ class OpenerRebidRegistry:
             print("openerRebid_1NT_2W: ERROR-called with 2C response")
 
         if totalPts >= 17 and bidSuit != Suit.CLUB:
-            numCardsInSuit = player.hand.numCardsInSuit(bidSuit)
+            numCardsInSuit = player.hand.getNumCardsInSuit(bidSuit)
             if numCardsInSuit >= 4:
                 bidLevel += 1
 
@@ -709,7 +710,7 @@ class OpenerRebidRegistry:
 
         # How many points do I have?
         openingSuit = player.teamState.candidateSuit
-        (hcPts, distPts) = hand.evalHand(DistMethod.HCP_SHORT)
+        (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         
         # What level did my partner bid?
         partnerLevel = player.teamState.bidSeq[-1][0]
@@ -736,8 +737,8 @@ class OpenerRebidRegistry:
     def openRebid_1NT_3Mi(self, table, player):
         writeLog(table, "openRebid_1NT_3Mi by %s" % player.pos.name)
 
-        numHearts = player.hand.numCardsInSuit(Suit.HEART)
-        numSpades = player.hand.numCardsInSuit(Suit.SPADE)
+        numHearts = player.hand.getNumCardsInSuit(Suit.HEART)
+        numSpades = player.hand.getNumCardsInSuit(Suit.SPADE)
 
         if numHearts < 4 and numSpades < 4:
             return (3, Suit.NOTRUMP)
@@ -749,15 +750,14 @@ class OpenerRebidRegistry:
             return (3, Suit.HEART)
         else:
             return (3, Suit.SPADE)
-        
         print("openRebid_1NT_3Mi: ERROR - should not reach here")
 
     @OpenerFunctions.register(command="openRebid_1NT_3Ma")
     def openRebid_1NT_3Ma(self, table, player):
         writeLog(table, "openRebid_1NT_3Ma by %s" % player.pos.name)
 
-        numHearts = player.hand.numCardsInSuit(Suit.HEART)
-        numSpades = player.hand.numCardsInSuit(Suit.SPADE)
+        numHearts = player.hand.getNumCardsInSuit(Suit.HEART)
+        numSpades = player.hand.getNumCardsInSuit(Suit.SPADE)
 
         if numHearts < 3 and numSpades < 3:
             return (3, Suit.NOTRUMP)
@@ -771,7 +771,6 @@ class OpenerRebidRegistry:
             return (4, Suit.HEART)
         else:
             return (3, Suit.SPADE)
-        
         print("openRebid_1NT_3Ma: ERROR - should not reach here")
         
     @OpenerFunctions.register(command="openRebid_1NT_4Ma")
@@ -786,7 +785,7 @@ class OpenerRebidRegistry:
     def openRebid_2C_2D(self, table, player):
         writeLog(table, "openRebid_2C_2D by %s" % player.pos.name)
 
-        (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
+        (suitA, numCardsA, suitB, numCardsB) = player.hand.getNumCardsInTwoLongestSuits()
         
         if suitA.isMajor():
             if numCardsA >= 5:
@@ -813,13 +812,13 @@ class OpenerRebidRegistry:
         partnerSuit = player.teamState.bidSeq[-1][1]
 
         # How many cards do I have in partner's suit
-        numCardsInSuit = player.hand.numCardsInSuit(partnerSuit)
+        numCardsInSuit = player.hand.getNumCardsInSuit(partnerSuit)
 
         if numCardsInSuit >= 3:
             return (3, partnerSuit)
         
         # Find best suit to bid
-        (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
+        (suitA, numCardsA, suitB, numCardsB) = player.hand.getNumCardsInTwoLongestSuits()
         if suitA.isMajor():
             if numCardsA >= 5:
                 return (2, suitA)
@@ -841,7 +840,7 @@ class OpenerRebidRegistry:
     def openRebid_2C_2NT(self, table, player):
         writeLog(table, "openRebid_2C_2NT by %s" % player.pos.name)
 
-        (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
+        (suitA, numCardsA, suitB, numCardsB) = player.hand.getNumCardsInTwoLongestSuits()
         
         if suitA.isMajor():
             if numCardsA >= 5:
@@ -868,13 +867,13 @@ class OpenerRebidRegistry:
         partnerSuit = player.teamState.bidSeq[-1][1]
 
         # How many cards do I have in partner's suit
-        numCardsInSuit = player.hand.numCardsInSuit(partnerSuit)
+        numCardsInSuit = player.hand.getNumCardsInSuit(partnerSuit)
 
         if numCardsInSuit >= 3:
             return (4, partnerSuit)
         
         # Find best suit to bid
-        (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
+        (suitA, numCardsA, suitB, numCardsB) = player.hand.getNumCardsInTwoLongestSuits()
         if suitA.isMajor():
             if numCardsA >= 5:
                 return (3, suitA)
@@ -886,7 +885,6 @@ class OpenerRebidRegistry:
                 return (4, suitA)
             else:
                 return (3, suitA)
-
         print("openRebid_2C_3Mi: ERROR - should not reach here")
 
     @OpenerFunctions.register(command="openRebid_weak_Pass")
@@ -905,12 +903,11 @@ class OpenerRebidRegistry:
         partnerSuit = player.teamState.bidSeq[-1][1]
 
         # How many cards do I have in partner's suit
-        numCardsInSuit = player.hand.numCardsInSuit(partnerSuit)
+        numCardsInSuit = player.hand.getNumCardsInSuit(partnerSuit)
 
         if numCardsInSuit >= 2:
             return (0, Suit.ALL)
         return (3, openingSuit)
-    
         print("openRebid_2weak_2W: ERROR - should not reach here")
 
 
@@ -919,7 +916,7 @@ class OpenerRebidRegistry:
         writeLog(table, "openRebid_2weak_2NT by %s" % player.pos.name)
 
         openingSuit = player.teamState.candidateSuit
-        (hcPts, distPts) = hand.evalHand(DistMethod.HCP_SHORT)
+        (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
         
         if totalPts >= 10 and player.hand.hasStoppers():
@@ -1004,7 +1001,7 @@ class OpenerRebidRegistry:
         partnerSuit = player.teamState.bidSeq[-1][1]
 
         # How many cards do I have in partner's suit
-        numCardsInSuit = player.hand.numCardsInSuit(partnerSuit)
+        numCardsInSuit = player.hand.getNumCardsInSuit(partnerSuit)
 
         if numCardsInSuit >= 3:
             if partnerSuit.isMajor():
@@ -1013,7 +1010,6 @@ class OpenerRebidRegistry:
                 return (0, Suit.ALL)
                 
         return (4, openingSuit)
-    
         print("openRebid_3weak_3W: ERROR - should not reach here")
 
     @OpenerFunctions.register(command="openRebid_3_4")

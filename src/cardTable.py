@@ -6,6 +6,7 @@ This class is dependent of the type of card game, but leaves the
 display functions to the CardTableGui class.
 '''
 import os
+import json
 from time import sleep
 from constants import *
 from enums import Suit, Level, TablePosition, PileOrder, DistMethod
@@ -21,13 +22,15 @@ from openerRebid import OpenerRebidRegistry
 
 class CardTable():
 
-    def __init__(self, enableGui=False, humanPlaying=False):
+    def __init__(self, enableGui=False, humanPlaying=False, replayHand=False):
         self.guiEnabled = enableGui
         self.humanPlayer = humanPlaying
+        self.replayHand = replayHand
         self.deck = Deck()
         self.players = {}
         self.openerRegistry = OpenerRegistry()
         self.responderRegistry = ResponderRegistry()
+        self.openerRebidRegistry = OpenerRebidRegistry()
         self.bidsList = []
         self.roundNum = 0
         self.hasOpener = False
@@ -50,6 +53,10 @@ class CardTable():
         self.guiTable = guiTable
 
     def startHand(self):
+        # Open a file for information logging
+        if self.guiEnabled:
+            self.log_fp = open("../logs/info.log", 'w')
+            writeLog(self, "Start of a new hand\n")
         self.handDone = False
         self.dealCards()
         self.hasOpener = False
@@ -66,12 +73,35 @@ class CardTable():
             self.guiTable.startHand(self.leadPos)
         self.bidRequest()
         
-    def dealCards(self):
-        # Open a file for information logging
-        if self.guiEnabled:
-            self.log_fp = open("../logs/info.log", 'w')
-            writeLog(self, "Start of a new hand\n")
+
+    def dealLastHands(self):
+        # Open the file containing the previous hands
+        hand_fp = open("../logs/lastHands.json", 'r')
+        writeLog(self, "Loading the previous hand\n")
+        handsJson = hand_fp.read()
+        handsDict = json.loads(handsJson)
         
+        for pos in TablePosition:
+            if pos == TablePosition.CONTROL or pos == TablePosition.CENTER:
+                continue
+                    
+            player = self.players[pos]
+            cardTupleList = handsDict[pos.name]
+            for cardTuple in cardTupleList:
+                # Find the card in the deck
+                card = self.deck.deleteCard(Suit(cardTuple[1]), Level(cardTuple[0]))
+                card.position = pos
+                # FIX ME: for debugging, turn all cards up
+                #if pos == TablePosition.SOUTH:
+                if True:
+                    card.faceUp = True
+                player.hand.cards.append(card)
+                
+            if self.guiEnabled:
+                self.guiTable.cardDealt(pos, player.hand)
+
+                
+    def dealNewHands(self):
         self.deck.shuffle()
         
         # Create 4 empty card piles
@@ -126,6 +156,7 @@ class CardTable():
                 eastHasHand = True
             
         # Sort the cards in each hand
+        handsDict = {}
         for pos in TablePosition:
             if pos == TablePosition.CONTROL or pos == TablePosition.CENTER:
                 continue
@@ -133,13 +164,34 @@ class CardTable():
             player = self.players[pos]
             hand = player.hand
             hand.sort()
-            if pos == TablePosition.SOUTH:
+
+            # Store this hand in a dictionary
+            cardList = []
+            for card in hand.cards:
+                cardTuple = (card.level.value, card.suit.value)                
+                cardList.append(cardTuple)
+            handsDict[pos.name] = cardList
+            
+            # FIX ME: for debugging, turn all cards up
+            #if pos == TablePosition.SOUTH:
+            if True:
                 # Turn cards face up
                 for card in hand.cards:
                     card.faceUp = True
             if self.guiEnabled:
                 self.guiTable.cardDealt(pos, hand)
+                
+        # Write the hand dictionary out to a file
+        hand_fp = open("../logs/lastHands.json", 'w')
+        hand_fp.write(json.dumps(handsDict))
 
+        
+    def dealCards(self):
+        # Do we want a new hand or to replay the previous hand?
+        if self.replayHand:
+            self.dealLastHands()
+        else:
+            self.dealNewHands()
 
     def findNextBidder(self):
         if self.leadPos == TablePosition.CONTROL:
@@ -149,17 +201,17 @@ class CardTable():
             (nextBidder, isLeader) = getNextPosition(self.leadPos, self.leadPos)
             self.leadPos = nextBidder;
         self.currentPos = self.leadPos
-        writeLog(self, "cardTable: findNextBidder: position %s\n" % self.leadPos.name)
+        # writeLog(self, "cardTable: findNextBidder: position %s\n" % self.leadPos.name)
 
     def bidRequest(self):
         player = self.players[self.currentPos]
-        writeLog(self, "cardTable: bidRequest for %s in round %d\n" % (player.pos.name, self.roundNum))
+        #writeLog(self, "cardTable: bidRequest for %s in round %d\n" % (player.pos.name, self.roundNum))
         self.outstandingBidReq = True
         player.bidRequest(self, self.bidsList)
 
     def bidResponse(self, pos, bidLevel, bidSuit):
         bidStr = getBidStr(bidLevel, bidSuit)
-        writeLog(self, "cardTable: bidResponse from %s: %s\n" % (pos.name, bidStr))
+        #writeLog(self, "cardTable: bidResponse from %s: %s\n" % (pos.name, bidStr))
         self.outstandingBidReq = False
         if self.hasOpener:
             if bidLevel > 0:
@@ -187,7 +239,7 @@ class CardTable():
             if pos == TablePosition.CONTROL or pos == TablePosition.CENTER:
                 continue
             player = self.players[pos]
-            player.bidNotification(pos, bidLevel, bidSuit)
+            player.bidNotification(self, self.currentPos, bidLevel, bidSuit)
             
         # Provide a development hook to bail out of bidding loop
         if bidLevel > 7:

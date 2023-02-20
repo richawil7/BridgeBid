@@ -76,7 +76,7 @@ class Conv(Enum):
     TWO_OVER_ONE = 5
     STRONG_2 = 6
     WEAK_2 = 7
-    INVERT_MINOR = 8
+    INVERTED_MINORS = 8
     MAJOR_LIMIT = 9
     BLACKWOOD = 10
     GERBER = 11

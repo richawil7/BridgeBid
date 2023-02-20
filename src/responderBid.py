@@ -21,187 +21,300 @@ class ResponderRegistry:
 
 
     # Define functions
+    @ResponderFunctions.register(command="rsp_Pass")
+    def openPassRsp(self, table, player):
+        writeLog(table, "responderBid: openPassRsp by %s\n" % player.pos.name)
+        hand = player.hand
+        (hcPts, lenPts) = hand.evalHand(DistMethod.HCP_LONG)
+        totalPts = hcPts + lenPts
+
+        # Find the longest suit
+        (numCardsLong, longSuit) = hand.findLongestSuit()
+        
+        if totalPts < 14:
+            # Get the two longest suits
+            (suitA, numCardsA, suitB, numCardsB) = hand.numCardsInTwoLongestSuits()
+            # Check for weak bid
+            if numCardsLong >= 6:
+                (category, numCardsIHave, highCardCount) = hand.evalSuitCategory(longSuit)
+                if highCardCount >=2:
+                    if numCardsB >= 4:
+                        return (0, Suit.ALL)
+
+                    # Weak bid
+                    if longSuit != Suit.CLUB:
+                        bidLevel = numCardsLong - 4
+                        return self.checkCompetition(table, bidLevel, longSuit)
+
+                # Check for rule of 20
+                if totalPts + numCardsA + numCardsB >= 20:
+                    return self.checkCompetition(table, 1, suitA)
+                else:
+                    return (0, Suit.ALL)
+                
+        # Check for balanced hand
+        if hand.isHandBalanced():
+            if hcPts >= 15 and hcPts <= 17:
+                return self.checkCompetition(table, 1, Suit.NOTRUMP)
+            # Does hand have stoppers in all 4 suits
+            if hand.hasStoppers():
+                if hcPts >= 18 and hcPts <= 19:
+                    return self.checkCompetition(table, 1, longSuit)
+                if hcPts >= 20 and hcPts <= 21:
+                    return self.checkCompetition(table, 2, Suit.NOTRUMP)
+                if hcPts >= 25 and hcPts <= 27:
+                    return self.checkCompetition(table, 3, Suit.NOTRUMP)
+                if hcPts >= 28 and hcPts <= 29:
+                    return self.checkCompetition(table, 4, Suit.NOTRUMP)
+
+        # If you get here, the hand is unbalanced or is balanced with 22-24 points
+        # Check for a big hand
+        if totalPts >= 22:
+            return self.checkCompetition(table, 2, Suit.CLUB)
+
+        # Check for a long suit
+        if numCardsLong >= 5:
+            return self.checkCompetition(table, 1, longSuit)
+
+        # Bid the longer minor
+        longSuit = findLongerMinor(hand)
+        return self.checkCompetition(table, 1, longSuit)
+
+        print("bid: openPassRsp: ERROR - did not find bid")        
+        print("openPassRsp: hcPts=%d lenPts=%d suit=%s suitLen=%d" % (hcPts, lenPts, longSuit.name, numCardsLong))
+        
+    
     @ResponderFunctions.register(command="rsp_1Mi")
     def open1MinorRsp(self, table, player):
-        writeLog(table, "responderBid: open1MinorRsp by %s" % player.pos.name)
-        hand = player.hand
+        writeLog(table, "responderBid: open1MinorRsp by %s\n" % player.pos.name)
         suit = player.teamState.bidSeq[-1][1]
-        (hcPts, distPts) = hand.evalHand(DistMethod.HCP_SHORT)
+        (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
-        if hcPts < 6:
+        if totalPts < 6:
             return (0, Suit.ALL)
-        if hcPts < 9 and table.competition:
+        if totalPts < 9 and table.competition:
             return (0, Suit.ALL)
 
-        # Can we suggest a major?
-        (numSpades, numHighSpades) = hand.evalSuitStrength(Suit.SPADE)
-        (numHearts, numHighHearts) = hand.evalSuitStrength(Suit.HEART)
-        if numSpades >= 4 or numHearts >= 4:
-            if numSpades == 5 and numHearts == 5:
-                return (1, Suit.SPADE)
-            elif numSpades == 4 and numHearts == 4:
-                return (1, Suit.HEART)
-            elif numSpades > numHearts:
-                return (1, Suit.SPADE)
-            else:
-                return (1, Suit.HEART)
-
-        # Can we support the bid minor?
-        (numMinor, numHighMinor) = hand.evalSuitStrength(suit)
-        if numMinor >= 4:
-            if totalPts >= 6 and totalPts <= 9:
-                singleSuit = hand.hasSingletonOrVoid(suit)
-                if numMinor >= 6 and singleSuit != Suit.ALL:
-                    return (4, suit)
-            return (2, suit)
-
-            if totalPts >= 10 and totalPts <= 11:
-                return (3, suit)
-            else:
-                # Bid a new suit
-                if numSpades > numHearts:
+        # Can support opener's suit
+        (numBidSuit, numHigh) = player.hand.evalSuitStrength(suit)
+        hasSupport = False
+        if suit == Suit.DIAMOND and numBidSuit >= 4:
+            hasSupport = True
+        elif suit == Suit.CLUB and numBidSuit >= 5:
+            hasSupport = True
+            
+        if hasSupport:
+            # Can we suggest a major?
+            (numSpades, numHighSpades) = player.hand.evalSuitStrength(Suit.SPADE)
+            (numHearts, numHighHearts) = player.hand.evalSuitStrength(Suit.HEART)
+            if numSpades >= 4 or numHearts >= 4:
+                if numSpades == 5 and numHearts == 5:
+                    return (1, Suit.SPADE)
+                elif numSpades == 4 and numHearts == 4:
+                    return (1, Suit.HEART)
+                elif numSpades > numHearts:
                     return (1, Suit.SPADE)
                 else:
                     return (1, Suit.HEART)
-            return (1, suit)
 
-        if totalPts >= 10:
-            if hand.hasStoppers():
-                balancedHand = hand.isHandBalanced()
-                if hcpPts >= 16 and hcpPts <= 18 and balancedHand:
-                    return (3, Suit.NOTRUMP)
-                elif hcpPts >= 13 and hcpPts <= 15 and balancedHand:
-                    return (2, Suit.NOTRUMP)
-
-            (suitA, numCardsA, suitB, numCardsB) = hand.numCardsInTwoLongestSuits()
-            if numCardsA >= 5 and numCardsA == numCardsB:
-                # Bid the higher of the two suits
-                if (suitA.value > suitB.value) and (suitA.value > suit.value):
-                    return (1, suitA)
-                elif (suitB.value > suit.value):
-                    return (1, suitB)
-
-            if numCardsA >= 4 and numCardsB >= 4:
-                # Bid the lower of the two suits
-                if suitA.value > suitB.value and suitB.value > suit.value:
-                    return (1, suitB)
-                elif suitA.value > suit.value:
-                    return (1, suitA)
-
-            if suitA.value > suit.value:
-                return (1, suitA)
-            elif suitB.value > suit.value:
-                return (1, suitB)
-            else:
-                return (1, Suit.NOTRUMP)
-
-        if (suit == Suit.CLUB) and (hand.numCardsInSuit(Suit.DIAMOND) >= 4):
-            return (1, Suit.DIAMOND)
-        else:
-            return (1, Suit.NOTRUMP)
-
-    @ResponderFunctions.register(command="rsp_1Ma")
-    def open1MajorRsp(self, table, player):
-        writeLog(table, "responderBid: open1MajorRsp by %s" % player.pos.name)
-        hand = player.hand
-        suit = player.teamState.bidSeq[-1][1]
-        (hcPts, distPts) = hand.evalHand(DistMethod.HCP_SHORT)
-        totalPts = hcPts + distPts
-        if hcPts < 6:
-            return (0, Suit.ALL)
-        if hcPts < 9 and table.competition:
-            return (0, Suit.ALL)
-
-        # Can we support the bid suit?
-        (numBidSuit, numHigh) = hand.evalSuitStrength(suit)
-        if numBidSuit >= 3:
-            if totalPts >= 6 and totalPts <= 9:
-                singleSuit = hand.hasSingletonOrVoid(suit)
-                if numMinor >= 5 and singleSuit != Suit.ALL:
-                    return (4, suit)
-            return (2, suit)
-
-            if totalPts >= 10 and totalPts <= 11:
+            # No 4 card major. Use inverted minors
+            if totalPts >=6 and totalPts <= 10:
+                return (3, suit)
+            elif totalPts >=11 and totalPts <= 12:
                 return (2, suit)
-            else:
-                # Bid a new suit
-                if suit == Suit.HEART:
-                    return (1, Suit.SPADE)
+            elif totalPts >=13:
+                if suit == Suit.DIAMOND:
+                    # 2 over 1
+                    return (2, Suit.CLUB)
+                else:
+                    return (2, Suit.NOTRUMP)
+        else:
+            # Can not support opener's minor
+            # Can we suggest a major?
+            hasMajor = False
+            (numSpades, numHighSpades) = player.hand.evalSuitStrength(Suit.SPADE)
+            (numHearts, numHighHearts) = player.hand.evalSuitStrength(Suit.HEART)
+            if numSpades >= 4 or numHearts >= 4:
+                hasMajor = True
+
+            if totalPts >= 6 and totalPts <= 10:
+                if suit == Suit.CLUB:
+                    (numDiamonds, numHighDiamonds) = player.hand.evalSuitStrength(Suit.DIAMOND)
+                    if numDiamonds >= 4:
+                        return (1, Suit.DIAMOND)
+                elif hasMajor:
+                    if numSpades == 5 and numHearts == 5:
+                        return (1, Suit.SPADE)
+                    elif numSpades == 4 and numHearts == 4:
+                        return (1, Suit.HEART)
+                    elif numSpades > numHearts:
+                        return (1, Suit.SPADE)
+                    else:
+                        return (1, Suit.HEART)
                 else:
                     return (1, Suit.NOTRUMP)
 
-        if suit == Suit.HEART:
-            (numSpades, numHighSpades) = hand.evalSuitStrength(Suit.SPADE)
-            if numSpades >= 4:
-                return (1, Suit.SPADE)
+            if totalPts >= 11 and totalPts <= 12:
+                if hasMajor:
+                    if numSpades == 5 and numHearts == 5:
+                        return (1, Suit.SPADE)
+                    elif numSpades == 4 and numHearts == 4:
+                        return (1, Suit.HEART)
+                    elif numSpades > numHearts:
+                        return (1, Suit.SPADE)
+                    else:
+                        return (1, Suit.HEART)
+                elif suit == Suit.CLUB:
+                    (numDiamonds, numHighDiamonds) = player.hand.evalSuitStrength(Suit.DIAMOND)
+                    if numDiamonds >= 4:
+                        return (1, Suit.DIAMOND)
+                else:
+                    return (1, Suit.NOTRUMP)
 
-        if totalPts >= 10:
-            (numHearts, numHighHearts) = hand.evalSuitStrength(Suit.HEART)
-            if suit == Suit.SPADE and numHearts >= 4:
-                return (2, Suit.HEART)
+            if totalPts >= 13:
+                if suit == Suit.DIAMOND:
+                    # 2 over 1
+                    return (2, Suit.CLUB)
 
-            if hand.hasStoppers():
-                balancedHand = hand.isHandBalanced()
-                if hcpPts >= 16 and hcpPts <= 18 and balancedHand:
-                    return (3, Suit.NOTRUMP)
-                elif hcpPts >= 13 and hcpPts <= 15 and balancedHand:
+            if totalPts >= 13 and totalPts <= 15:
+                if player.hand.isHandBalanced():
                     return (2, Suit.NOTRUMP)
 
-            (suitA, numCardsA, suitB, numCardsB) = hand.numCardsInTwoLongestSuits()
-            if numCardsA >= 5 and numCardsA == numCardsB:
-                # Bid the higher of the two suits
-                if suitA.value > suitB.value:
+            if totalPts >= 16 and totalPts <= 18:
+                if player.hand.isHandBalanced() and player.hand.hasStoppers():
+                    return (3, Suit.NOTRUMP)
+
+            if totalPts >= 13 and hasMajor:
+                if numSpades == numHearts:
+                    return (1, Suit.HEART)
+                elif numSpades > numHearts:
+                    return (1, Suit.SPADE)
+                else:
+                    return (1, Suit.HEART)
+            else:
+                (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
+                if suitA != suit:
                     return (1, suitA)
                 else:
                     return (1, suitB)
 
-            if numCardsA >= 4 and numCardsB >= 4:
-                # Bid the lower of the two suits
-                if suitA.value > suitB.value:
-                    return (1, suitB)
+                
+    @ResponderFunctions.register(command="rsp_1Ma")
+    def open1MajorRsp(self, table, player):
+        writeLog(table, "responderBid: open1MajorRsp by %s\n" % player.pos.name)
+        suit = player.teamState.bidSeq[-1][1]
+        (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
+        totalPts = hcPts + distPts
+        (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
+
+        # Can we support the bid suit?
+        (numBidSuit, numHigh) = player.hand.evalSuitStrength(suit)
+        if numBidSuit >= 3:
+            # Can support opener's suit
+            singleSuit = player.hand.hasSingletonOrVoid(suit)
+            if numBidSuit >= 5 and singleSuit != Suit.ALL:
+                return (4, suit)
+
+            if hcPts < 6:
+                return (0, Suit.ALL)
+            if hcPts < 9 and table.competition:
+                return (0, Suit.ALL)
+
+            if totalPts >= 6 and totalPts <= 10:
+                return (2, suit)
+
+            if totalPts >= 11 and totalPts <= 12:
+                # Major limit raise
+                return (3, suit)
+
+            if totalPts >= 13:
+                if numBidSuit >= 4:
+                    if singleSuit != Suit.ALL:
+                        # Splinter
+                        return (4, singleSuit)
+                    elif player.hand.isHandBalanced():
+                        # Jacoby 2NT
+                        return (2, Suit.NOTRUMP)
                 else:
-                    return (1, suitA)
-            return (1, suitA)
-        return (1, Suit.NOTRUMP)
+                    # 2 over 1
+                    if suitA.value < suit.value:
+                        return (2, suitA)
+                    if suitB.value < suit.value:
+                        return (2, suitB)
+                    return (2, Suit.CLUB)
+        else:
+            # Do not have support for opener's major
+            if hcPts < 6:
+                return (0, Suit.ALL)
+            if hcPts < 9 and table.competition:
+                return (0, Suit.ALL)
+
+            if totalPts >= 6 and totalPts <= 12:
+                if suit == Suit.HEART:
+                    (numSpades, numHighSpades) = player.hand.evalSuitStrength(Suit.SPADE)
+                    if numSpades >= 4:
+                        return (1, Suit.SPADE)
+                return (1, Suit.NOTRUMP)
+
+            if totalPts >= 15 and totalPts <= 17:
+                if player.hand.isHandBalanced() and player.hand.hasStoppers() and numBidSuit >= 2:
+                    return (3, Suit.NOTRUMP)
+
+            if totalPts >= 13:
+                # 2 over 1
+                if suitA.value < suit.value:
+                    return (2, suitA)
+                if suitB.value < suit.value:
+                    return (2, suitB)
+                return (2, Suit.CLUB)
 
     @ResponderFunctions.register(command="rsp_1NT")    
     def open1NoTrumpRsp(self, table, player):
         writeLog(table, "responderBid: open1NoTrumpRsp by %s" % player.pos.name)
-        hand = player.hand
-        (hcPts, distPts) = hand.evalHand(DistMethod.HCP_SHORT)
+        (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
+
+        # Do I have a 5+ card major?
+        (numHearts, numHighHearts) = player.hand.evalSuitStrength(Suit.HEART)
+        if numHearts >= 5:
+            # Jacoby transfer
+            return (2, Suit.DIAMOND)
+        
+        (numSpades, numHighSpades) = player.hand.evalSuitStrength(Suit.SPADE)
+        if numSpades >= 5:
+            # Jacoby transfer
+            return (2, Suit.HEART)
+        
         if hcPts < 8:
-            (suitA, numCardsA, suitB, numCardsB) = hand.numCardsInTwoLongestSuits()
+            (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
             if numCardsA >= 5 and suitA != Suit.CLUB:
                 return (2, suitA)
             else:
                 return (0, Suit.ALL)
 
-        (numSpades, numHighSpades) = hand.evalSuitStrength(Suit.SPADE)
-        (numHearts, numHighHearts) = hand.evalSuitStrength(Suit.HEART)        
-        balancedHand = hand.isHandBalanced()
+        balancedHand = player.hand.isHandBalanced()
         if balancedHand:
             if numSpades >= 4 or numHearts >= 4:
-                if hcpPts >= 8 and hcpPts <= 9:
+                if hcPts >= 8 and hcPts <= 9:
                     return (2, Suit.NOTRUMP)
-                elif hcpPts >= 10 and hcpPts <= 15:
+                elif hcPts >= 10 and hcPts <= 15:
                     return (3, Suit.NOTRUMP)
-                elif hcpPts >= 16 and hcpPts <= 17:
+                elif hcPts >= 16 and hcPts <= 17:
                     return (4, Suit.NOTRUMP)
-                elif hcpPts >= 18 and hcpPts <= 19:
+                elif hcPts >= 18 and hcPts <= 19:
                     return (6, Suit.NOTRUMP)
-                elif hcpPts >= 20 and hcpPts <= 21:
+                elif hcPts >= 20 and hcPts <= 21:
                     return (5, Suit.NOTRUMP)
-                elif hcpPts >= 22:
+                elif hcPts >= 22:
                     return (7, Suit.NOTRUMP)
 
-        (suitA, numCardsA, suitB, numCardsB) = hand.numCardsInTwoLongestSuits()
+        (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
         if numSpades >= 6 or numHearts >= 6:
-            if hcpPts >= 10 and hcpPts <= 15:
+            if hcPts >= 10 and hcPts <= 15:
                 return (4, suitA)
 
-        (numDiamonds, numHighDiamonds) = hand.evalSuitStrength(Suit.DIAMOND)
-        (numClubs, numHighClubs) = hand.evalSuitStrength(Suit.CLUB)
+        (numDiamonds, numHighDiamonds) = player.hand.evalSuitStrength(Suit.DIAMOND)
+        (numClubs, numHighClubs) = player.hand.evalSuitStrength(Suit.CLUB)
         if numDiamonds >= 6 or numClubs >= 6:
             return (3, Suit.NOTRUMP)
 
@@ -215,36 +328,35 @@ class ResponderRegistry:
             if totalPts >= 8 and totalPts <= 9:
                 return (2, Suit.CLUB)
 
-        if hcpPts >= 8 and hcpPts <= 9:
+        if hcPts >= 8 and hcPts <= 9:
             return (2, Suit.NOTRUMP)
-        elif hcpPts >= 10 and hcpPts <= 15:
+        elif hcPts >= 10 and hcPts <= 15:
             return (3, Suit.NOTRUMP)
-        elif hcpPts >= 16 and hcpPts <= 17:
+        elif hcPts >= 16 and hcPts <= 17:
             return (4, Suit.NOTRUMP)
-        elif hcpPts >= 18 and hcpPts <= 19:
+        elif hcPts >= 18 and hcPts <= 19:
             return (6, Suit.NOTRUMP)
-        elif hcpPts >= 20 and hcpPts <= 21:
+        elif hcPts >= 20 and hcPts <= 21:
             return (5, Suit.NOTRUMP)
-        elif hcpPts >= 22:
+        elif hcPts >= 22:
             return (7, Suit.NOTRUMP)
 
     @ResponderFunctions.register(command="rsp_2C")
     def open2ClubRsp(self, table, player):
         writeLog(table, "responderBid: open2ClubRsp by %s" % player.pos.name)
-        hand = player.hand
-        (hcPts, distPts) = hand.evalHand(DistMethod.HCP_SHORT)
+        (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
         if hcPts < 8:
             return (2, Suit.DIAMOND)
 
-        (suitA, numCardsA, suitB, numCardsB) = hand.numCardsInTwoLongestSuits()
+        (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
         if numCardsA >= 5:
             if suitA == Suit.DIAMOND:
                 return (3, suitA)
             else:
                 return (2, suitA)
 
-        balancedHand = hand.isHandBalanced()
+        balancedHand = player.hand.isHandBalanced()
         if balancedHand:
             return (2, Suit.NOTRUMP)
 
@@ -254,15 +366,14 @@ class ResponderRegistry:
     @ResponderFunctions.register(command="rsp_2Weak") 
     def openWeakRsp(self, table, player):
         writeLog(table, "responderBid: openWeakRsp by %s" % player.pos.name)
-        hand = player.hand
         # Get the bid from my partner
         level = player.teamState.bidSeq[-1][0]
         suit = player.teamState.bidSeq[-1][1]
         
         # How many points do I have?
-        (hcPts, distPts) = hand.evalHand(DistMethod.HCP_SHORT)
+        (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
-        (category, numCardsIHave, highCardCount) = hand.evalSuitCategory(suit)
+        (category, numCardsIHave, highCardCount) = player.hand.evalSuitCategory(suit)
         numCardsWeHave = numCardsIHave + level + 4
 
         # Handle the case where we have a fit
@@ -295,15 +406,15 @@ class ResponderRegistry:
                 return (0, Suit.ALL)
 
             # I can show a new 6 card suit           
-            (suitA, numCardsA, suitB, numCardsB) = hand.numCardsInTwoLongestSuits()
-            if numCardsA >= 6 and suitA.level > suit.level:
+            (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
+            if numCardsA >= 6 and suitA.value > suit.value:
                 return (level, suitA)
-            if numCardsB >= 6 and suitB.level > suit.level:
+            if numCardsB >= 6 and suitB.value > suit.value:
                 return (level, suitB)
             if numCardsA >= 6 and suitA > Suit.CLUB:
                 return (3, Suit.CLUB)
             
-            if hand.hasStoppers():
+            if player.hand.hasStoppers():
                 numCardsOppHas = 13 - numCardsWeHave
                 if highCardCount * 2 >= numCardOppHave:
                     return (3, Suit.NOTRUMP)
@@ -326,18 +437,17 @@ class ResponderRegistry:
     @ResponderFunctions.register(command="rsp_2NT")    
     def open2NoTrumpRsp(self, table, player):
         writeLog(table, "responderBid: open2NoTrumpRsp by %s" % player.pos.name)
-        hand = player.hand
-        (hcPts, distPts) = hand.evalHand(DistMethod.HCP_SHORT)
+        (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
-        (suitA, numCardsA, suitB, numCardsB) = hand.numCardsInTwoLongestSuits()
+        (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
         if hcPts < 5:
             if numCardsA >= 6:
                 return (3, suitA)
             else:
                 return (0, Suit.ALL)
 
-        (numSpades, numHighSpades) = hand.evalSuitStrength(Suit.SPADE)
-        (numHearts, numHighHearts) = hand.evalSuitStrength(Suit.HEART)        
+        (numSpades, numHighSpades) = player.hand.evalSuitStrength(Suit.SPADE)
+        (numHearts, numHighHearts) = player.hand.evalSuitStrength(Suit.HEART)        
         if hcPts >= 5 and hcPts <= 11:
             if numSpades >= 6 or numHearts >= 6:
                 return (4, suitA)
@@ -346,38 +456,38 @@ class ResponderRegistry:
             if numSpades >= 4 or numHearts >= 4:
                     return (3, Suit.CLUB)
 
-        balancedHand = hand.isHandBalanced()
+        balancedHand = player.hand.isHandBalanced()
         if not balancedHand:
             if numCardsA >= 5 and suitA != Suit.CLUB:
                 return (3, suitA)
 
         if numSpades >= 4 or numHearts >= 4:
-            if hcpPts >= 5 and hcpPts <= 11:
+            if hcPts >= 5 and hcPts <= 11:
                 return (3, Suit.NOTRUMP)
-            if hcpPts == 12:
+            if hcPts == 12:
                 return (4, Suit.NOTRUMP)
-            if hcpPts >= 13 and hcpPts <= 15:
+            if hcPts >= 13 and hcPts <= 15:
                 return (6, Suit.NOTRUMP)
-            if hcpPts == 16:
+            if hcPts == 16:
                 return (5, Suit.NOTRUMP)
-            if hcpPts >= 17:
+            if hcPts >= 17:
                 return (7, Suit.NOTRUMP)
 
     @ResponderFunctions.register(command="rsp_3NT")    
     def open3NoTrumpRsp(self, table, player):
         writeLog(table, "responderBid: open3NoTrumpRsp by %s" % player.pos.name)
-        hand = player.hand
-        (hcPts, distPts) = hand.evalHand(DistMethod.HCP_SHORT)
-        if hcpPts == 7:
+        (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
+        if hcPts == 7:
             return (4, Suit.NOTRUMP)
-        if hcpPts >= 8 and hcpPts <= 9:
+        if hcPts >= 8 and hcPts <= 9:
             return (6, Suit.NOTRUMP)
-        if hcpPts >= 10 and hcpPts <= 11:
+        if hcPts >= 10 and hcPts <= 11:
             return (5, Suit.NOTRUMP)
-        if hcpPts >= 12:
+        if hcPts >= 12:
             return (7, Suit.NOTRUMP)
 
 def responderBid(self, table, player):
+    # FIX ME: dead code
     print("responderBid: responderBid: ERROR?")
     hand = player.hand
     writeLog(table, "responderBid: bidsList={}\n".format(table.bidsList))
