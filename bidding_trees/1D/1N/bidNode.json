@@ -3,6 +3,8 @@
     "fitSuit": "ALL",
     "candidateSuit": "NOTRUMP",
     "convention": "TWO_OVER_ONE",
+	"suitStates": {
+		"DIAMOND": "NO_SUPPORT"},
     "openerInfo": {
 	    "minPts": 13,
 	    "maxPts": 21,
@@ -13,7 +15,7 @@
 	    "evalMethod": "hcp-short" },
     "force": "NONE",
     "nextBidder": "OPENER",
-    "handler": "openRebid_1Mx_1NT",
+    "handler": "openRebid_1Mi_1NT",
 	"interpretation": "Opener:\t has 13-21 points and 4+ diamonds.\n\tDenies 5 card major\n\tDenies balanced hand\nResponder:\tHas 6-9 points\n\tDenies support for diamonds\n\tDenies a 4 card major",
 	"hints": {
 		"hint0": "Need 6 diamonds to bid them again\nNot forcing when opening a minor",

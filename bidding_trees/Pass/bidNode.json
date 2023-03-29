@@ -16,9 +16,9 @@
 	"handler": "rsp_Pass",
 	"interpretation": "Opener:\tcannot open\n\tDenies long suit and weak points",
 	"hints": {
-		"hint0": "0-5: Pass\n5-11, 6+: len-4 (Weak)\nRule of 20: Suit\n13-21: Suit\n15-17: 1NT\n22+: 2C (Strong)",
-		"hint1": "4+4: Diamond\n5+5: Spade\n20-21: 2NT\n25-27: 3NT\n28+: 4NT",
-		"hint2": "<6 pts: Pass\n<13 pts\n\t>=6 strong\n\t\tTwo 4+ suit:pass\n\t\t(Len-4)L\nBalanced\n\t15-17: 1NT\n\tStop all suits\n\t\t18-19 hcp: 1L and jump NT\n\t\t20-21 hcp: 2NT\n\t\t25-27 hcp: 3NT\n\t\t28-29 hcp: 4NT\n22+ pts: 2C\nRule of 20:\n\tMajor 5+5: 1S\n\tMajor 4+4: 1H\n\tLong major: 1L\n\tMinor 4+4: 1D\n\tMinor 3+3: 1C\n\tLong minor: 1L"
+		"hint0": "0-5: Pass\n5-11, 6+: len-4 (weak)\n2-11, 6+, 3rd seat: len-4 (weak)\nRule of 20: Suit\n13-21: Suit\n15-17: 1NT\n22+: 2C (Strong)",
+		"hint1": "Major 5+5: 1S\nMajor 4+4: 1H\nLong major: 1L\nMinor 4+4: 1D\nMinor 3+3: 1C\nLong minor: 1L\n20-21: 2NT\n25-27: 3NT\n28+: 4NT",
+		"hint2": "<6 pts: Pass\n<13 pts\n\t=6, Q: 2L\n\t=7, 2 honors: 2L\n\t=8, 2 of 3 top: 4L\nRule of 20\nBalanced\n\t15-17: 1NT\n\tStop all suits\n\t\t18-19 hcp: 1L and jump NT\n\t\t20-21 hcp: 2NT\n\t\t25-27 hcp: 3NT\n\t\t28-29 hcp: 4NT\n22+ pts: 2C"
 	}
 }
 

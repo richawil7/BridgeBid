@@ -1,8 +1,10 @@
 {
     "teamRole": "OFFENSE",
-    "fitSuit": "ALL",
-    "candidateSuit": "DIAMOND",
+    "fitSuit": "DIAMOND",
+    "candidateSuit": "ALL",
     "convention": "WEAK_2",
+	"suitStates": {
+		"DIAMOND": "SUPPORT"},
     "openerInfo": {
 	    "minPts": 5,
 	    "maxPts": 11,

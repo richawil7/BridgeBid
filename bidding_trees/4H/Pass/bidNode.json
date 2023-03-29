@@ -2,7 +2,9 @@
     "teamRole": "OFFENSE",
     "fitSuit": "HEART",
     "candidateSuit": "ALL",
-    "convention": "WEAK_2",
+    "convention": "NATURAL",
+	"suitStates": {
+		"HEART": "PLAY"},
     "openerInfo": {
 	    "minPts": 5,
 	    "maxPts": 11,
@@ -11,7 +13,7 @@
 	    "minPts": 0,
 	    "maxPts": 13,
 	    "evalMethod": "hcp-short" },
-    "force": "NONE",
+    "force": "PASS",
     "nextBidder": "OPENER",
     "handler": "openRebid_weak_Pass"
 	"interpretation": "Opener\tHas 5-11 points\n\tHas 8 cards in bid suit\nResponder\tHas <=13 points\n\tDenies support for opening suit\n\tDenies 6+ card major",

@@ -2,9 +2,6 @@
 from constants import *
 from enums import Suit, TablePosition
 
-def writeLog(table, formatStr):
-    if table.guiEnabled:
-        table.log_fp.write(formatStr)
 
 def getHandStr(hand):
     handStr = ''

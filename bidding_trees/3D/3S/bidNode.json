@@ -3,6 +3,9 @@
     "fitSuit": "ALL",
     "candidateSuit": "SPADE",
     "convention": "WEAK_2",
+	"suitStates": {
+		"DIAMOND": "NO_SUPPORT",
+		"SPADE": "CANDIDATE"},
     "openerInfo": {
 	    "minPts": 5,
 	    "maxPts": 11,

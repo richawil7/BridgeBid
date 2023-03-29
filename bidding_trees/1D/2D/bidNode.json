@@ -3,6 +3,8 @@
     "fitSuit": "DIAMOND",
     "candidateSuit": "ALL",
     "convention": "INVERTED_MINORS",
+	"suitStates": {
+		"DIAMOND": "SUPPORT"},
     "openerInfo": {
 	    "minPts": 13,
 	    "maxPts": 21,

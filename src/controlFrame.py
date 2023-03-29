@@ -7,11 +7,12 @@ show game control widgets and game status (e.g. player's scores).
 '''
 
 import tkinter as tk
+from infoLog import Log
 from enums import TablePosition, Suit, PlayerRole
 from frame import TableFrame
+from bidNotif import BidNotif
 from bidUtils import *
 from utils import *
-
 
 BidLevels = [0, 1, 2, 3, 4, 5, 6, 7]
 BidSuits = ['Club', 'Diamond', 'Heart', 'Spade', 'NoTrump']
@@ -29,7 +30,7 @@ class ControlFrame(TableFrame):
         tk.Button(self.tableCtlFrame, text='Next Hand', command=self.app.table.nextHand).pack(side="left", padx=5)
         
         # Create a button to flush the log file
-        tk.Button(self.tableCtlFrame, text='Flush Log', command=self.app.table.flushLog).pack(side="left", padx=5)
+        tk.Button(self.tableCtlFrame, text='Flush Log', command=Log.flush).pack(side="left", padx=5)
 
         
         # Create a frame for holding a text box 
@@ -96,7 +97,10 @@ class ControlFrame(TableFrame):
             suit = Suit.NOTRUMP
             
         # Tell the table the bid
-        self.app.table.bidResponse(TablePosition.SOUTH, level, suit)
+        table = self.app.table
+        player = table.players[TablePosition.SOUTH]
+        bidNotif = BidNotif(level, suit, player.teamState)
+        self.app.table.bidResponse(TablePosition.SOUTH, bidNotif)
         
     '''
     This function displays a bidding hint when requested
@@ -152,7 +156,6 @@ class ControlFrame(TableFrame):
 
 
     def updateBids(self, table, position, bidLevel, bidSuit):
-        #writeLog(table, "updateBids: lead=%s pos=%s lvl=%d suit=%s" % (table.leadPos, position, bidLevel, bidSuit))
         if position == table.leadPos:
             self.bidRowIdx += 1
             self.bidColIdx = 0

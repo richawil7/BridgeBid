@@ -2,6 +2,7 @@
 Functions used for generating bids
 '''
 
+from infoLog import Log
 from enums import Suit, Level, DistMethod, PlayerRole
 from utils import *
 from card import Card
@@ -20,9 +21,85 @@ def findLargestBid(table):
             if bid[1].value > maxSuit.value:
                 maxSuit = bid[1]
     bidStr = getBidStr(maxLevel, maxSuit)
-    print("Largest bid is %s" % bidStr)
+    # print("Largest bid is %s" % bidStr)
     return (maxLevel, maxSuit)
 
+# Given a suit and a number of total points for the team,
+# returns a recommended bid level
+def getBidLevel(teamPoints, suit):
+    if teamPoints < 20:
+        return 0
+    elif teamPoints < 22:
+        return 1
+    elif teamPoints < 24:
+        return 2
+    elif teamPoints < 26:
+        return 3
+    elif teamPoints < 29:
+        if suit.isMinor():
+            return 3
+        else:
+            return 4 
+    elif teamPoints < 32:
+        return 5
+    elif teamPoints < 35:
+        return 6
+    return 7
+
+# Returns the range of points implied by a bid
+# Only call this function when making a natural bid
+def getPointRange(player, bidSuit):
+        if player.playerRole == PlayerRole.RESPONDER:
+            (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
+            if suit == Suit.NOTRUMP:
+                if totalPts >= 0 and totalPts <= 6:
+                    return (0, 6)
+                elif totalPts >= 7 and totalPts <= 8:
+                    return (7, 8)
+                elif totalPts >= 9 and totalPts <= 12:
+                    return (9, 12)
+                elif totalPts >= 13:
+                    return (13, totalPts)
+            else:
+                # A suit bid
+                if totalPts >= 0 and totalPts <= 5:
+                    return (0, 5)
+                elif totalPts >= 6 and totalPts <= 9:
+                    return (6, 9)
+                elif totalPts >= 10 and totalPts <= 12:
+                    return (10, 12)
+                elif totalPts >= 13:
+                    return (22, totalPts)
+        else:
+            # I am the opener, or the would-be opener
+            (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_LONG)
+            totalPts = hcPts + distPts
+            if suit == Suit.NOTRUMP:
+                if totalPts >= 15 and totalPts <= 17:
+                    return (15, 17)
+                elif totalPts >= 18 and totalPts <= 19:
+                    return (18, 19)
+                elif totalPts >= 20 and totalPts <= 21:
+                    return (20, 21)
+                elif totalPts >= 22 and totalPts <= 24:
+                    return (22, 24)
+                elif totalPts >= 25 and totalPts <= 27:
+                    return (25, 27)
+                elif totalPts >= 28:
+                    return (28, totalPts)
+            else:
+                # A suit bid
+                if totalPts >= 0 and totalPts <= 12:
+                    return (0, 12)
+                elif totalPts >= 13 and totalPts <= 15:
+                    return (13, 15)
+                elif totalPts >= 16 and totalPts <= 18:
+                    return (16, 18)
+                elif totalPts >= 19 and totalPts <= 21:
+                    return (19, 21)
+                elif totalPts >= 22:
+                    return (22, totalPts)
+                
 def stubBid(table, bidsList):
     # Get the largest bid
     largestBid = findLargestBid(table)
@@ -47,7 +124,7 @@ def stubBid(table, bidsList):
         elif lastBidSuit == Suit.CLUB:
             nextBidSuit = Suit.DIAMOND
     bidStr = getBidStr(nextBidLevel, nextBidSuit)
-    writeLog(table, "stubBid: %s in round %d by %s\n" % (bidStr, table.roundNum, table.currentPos.name))
+    Log.write("stubBid: %s in round %d by %s\n" % (bidStr, table.roundNum, table.currentPos.name))
     return (nextBidLevel, nextBidSuit)
 
 
@@ -66,7 +143,7 @@ def getMyPlayerRole(table, player):
     # Does the table already have an opener?
     hasOpener = table.hasOpener
     # Have both teams bid?
-    competition = table.competition
+    competition = player.teamState.competition
     # What seat is the player sitting in?
     seat = player.seat
     
@@ -91,11 +168,11 @@ def getMyPlayerRole(table, player):
             if partnerBid > 0:
                 # My partner opened
                 if table.roundNum == 1:
-                    writeLog(table, "bidUtils: getMyPlayerRole: partner opened\n")
+                    Log.write("bidUtils: getMyPlayerRole: partner opened\n")
                 return PlayerRole.RESPONDER
             else:
                 # My partner passed
-                writeLog(table, "bidUtils: getMyPlayerRole: partner passed\n")
+                Log.write("bidUtils: getMyPlayerRole: partner passed\n")
         else:
             iCanOpen = canIOpen(player.hand, competition, seat) 
             if iCanOpen:
@@ -103,6 +180,7 @@ def getMyPlayerRole(table, player):
 
     return PlayerRole.UNKNOWN
 
+# FIX ME: dead code?
 # This function takes the bid list from the table and extracts only the
 # bids for the partnership to which the player belongs
 def getTeamBidSequence(table, playerPos):
@@ -160,3 +238,30 @@ def findLongerMinor(hand):
         return Suit.DIAMOND
     elif numClubs == 3:
         return Suit.CLUB
+
+
+def isShutUpBid(totalPts, bidLevel, bidSuit):
+    if bidLevel == 0:
+        # Pass
+        return True
+
+    if bidSuit.isMinor() and bidLevel == 5:
+        return True
+    if bidSuit.isMajor() and bidLevel == 4:
+        return True
+    if bidSuit == Suit.NOTRUMP and bidLevel == 3:
+        return True
+    
+    if totalPts < 33:
+        if bidSuit.isMinor() and bidLevel == 5:
+            return True
+        if bidSuit.isMajor() and bidLevel == 4:
+            return True
+        if bidSuit == Suit.NOTRUMP and bidLevel == 3:
+            return True
+
+    if totalPts < 36 and bidLevel == 6:
+        return True
+
+    if bidLevel == 7:
+        return True

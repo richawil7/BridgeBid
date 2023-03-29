@@ -9,6 +9,7 @@ teamState, and is that player's view.
 '''
 
 import json
+from infoLog import Log
 from enums import *
 from bidUtils import *
 
@@ -21,12 +22,18 @@ def fetchBidTreeNode(bidSeq):
     path = bidTreeBaseDir
     for i, bid in enumerate(bidSeq):
         if i == 0 and bid[0] == 0:
-            # print("First bid was a Pass - ignoring")
-            continue
-        bidStr = getBidStr(bid[0], bid[1])
+            # First bid was a Pass. Strip it unless it is the only bid.
+            if len(bidSeq) > 1:
+                # print("First bid was a Pass - ignoring")
+                continue
+            else:
+                bidStr = "Pass"
+        else:
+            bidStr = getBidStr(bid[0], bid[1])
         path = path + '/' + bidStr
     path = path + '/' + 'bidNode.json'
-
+    Log.write("fetchBidTreeNode %s\n" % path)
+    
     # Open the file
     fh = open(path, 'r')
     bidDescriptor = json.load(fh)
@@ -49,6 +56,9 @@ def fetchBidTreeNode(bidSeq):
             bidNode.bidSeq = bidDescriptor[key]
         elif key == "handler":
             bidNode.handler = bidDescriptor[key]
+        elif key == "suitStates":
+            for suitStr, fitStr in bidDescriptor[key].items():
+                bidNode.suitStates[Suit[suitStr]] = FitState[fitStr]
         elif key == "openerInfo":
             bidNode.openerMinPoints = bidDescriptor[key]["minPts"]
             bidNode.openerMaxPoints = bidDescriptor[key]["maxPts"]
@@ -72,9 +82,7 @@ def fetchBidTreeNode(bidSeq):
         elif key == "hints":
             bidNode.bidHints.append(bidDescriptor['hints']['hint0'])
             bidNode.bidHints.append(bidDescriptor['hints']['hint1'])
-            bidNode.bidHints.append(bidDescriptor['hints']['hint2'])
-                
-        
+            bidNode.bidHints.append(bidDescriptor['hints']['hint2'])                
     return bidNode
         
         
@@ -88,11 +96,11 @@ class BidNode:
         self.convention = Conv.NATURAL
         self.openerMinPoints = 0
         self.openerMaxPoints = 0
-        self.force = Force.NONE
         self.openerEvalMethod = DistMethod.HCP_ONLY
         self.responderMinPoints = 0
         self.responderMaxPoints = 0
         self.responderEvalMethod = DistMethod.HCP_ONLY
+        self.suitStates = {}
         self.force = Force.NONE
         self.nextBidder = PlayerRole.UNKNOWN
         self.handler = ""
@@ -103,6 +111,9 @@ class BidNode:
         print("Team role = %s" % self.teamRole.name)
         print("Fit suit = %s" % self.fitSuit.name)
         print("Candidate suit = %s" % self.candidateSuit.name)
+        print("Suit states:")
+        for suit, fitState in self.suitStates:
+            print("\t%s - %s" % (suit.name, fitState.name))
         print("Convention = %s" % self.convention.name)
         print("Force = %s" % self.force.name)
         print("Next Bidder = %s" % self.nextBidder.name)

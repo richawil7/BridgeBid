@@ -4,6 +4,7 @@ A Bridge Hand Class
 A collection of bridgeCards
 '''
 
+from infoLog import Log
 from enums import *
 from utils import *
 from cardPile import CardPile
@@ -195,3 +196,11 @@ class BridgeHand(CardPile):
             if numCardsInSuit <= 1:
                 return suit
         return Suit.ALL
+
+    def getCountOfCard(self, cardLevel):
+        cardCount = 0
+        for card in self.cards:
+            if card.level == cardLevel:
+                cardCount += 1
+        return cardCount
+    

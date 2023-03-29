@@ -1,7 +1,7 @@
 {
     "teamRole": "OFFENSE",
     "fitSuit": "ALL",
-    "candidateSuit": "NOTRUMP",
+    "candidateSuit": "HEART",
     "convention": "NATURAL",
     "openerInfo": {
 	    "minPts": 15,

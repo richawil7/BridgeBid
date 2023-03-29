@@ -6,6 +6,7 @@ import threading
 import argparse
 
 from time import sleep
+from infoLog import Log
 from enums import Suit, Level, PileOrder, TablePosition
 from card import Card
 from cardPile import CardPile
@@ -68,7 +69,7 @@ def thread_function(name, table):
             curPos = table.currentPos
             player = table.players[curPos]
             if not player.isHuman and table.outstandingBidReq:
-                player.computerBidRequest(table, table.hasOpener, table.competition, table.roundNum, table.bidsList, player.isHuman, player.hand)
+                player.computerBidRequest(table, table.hasOpener, player.teamState.competition, table.roundNum, table.bidsList, player.isHuman, player.hand)
             sleep(1)
     sys.exit(0)
 
@@ -78,7 +79,7 @@ def main(argv):
     enableGui = True
     humanPlaying = True
     replayHand = False
-    
+
     parser = argparse.ArgumentParser(description='Practice bridge bidding')
     parser.add_argument('-g', '--gui', action='store_true', help='Enable GUI. Default=True', required=False)
     parser.add_argument('-r', '--replay', action='store_true',  help='Replay last hand', required=False)

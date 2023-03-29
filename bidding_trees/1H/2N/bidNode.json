@@ -3,6 +3,8 @@
     "fitSuit": "HEART",
     "candidateSuit": "ALL",
     "convention": "JACOBY_2NT",
+	"suitStates": {
+		"HEART": "SUPPORT"},
     "openerInfo": {
 	    "minPts": 13,
 	    "maxPts": 21,

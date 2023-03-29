@@ -2,7 +2,9 @@
     "teamRole": "OFFENSE",
     "fitSuit": "ALL",
     "candidateSuit": "CLUB",
-    "convention": "WEAK_2",
+    "convention": "NATURAL",
+	"suitStates": {
+		"HEART": "NO_SUPPORT"},
     "openerInfo": {
 	    "minPts": 5,
 	    "maxPts": 11,

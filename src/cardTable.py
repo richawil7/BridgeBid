@@ -9,6 +9,7 @@ import os
 import json
 from time import sleep
 from constants import *
+from infoLog import Log
 from enums import Suit, Level, TablePosition, PileOrder, DistMethod
 from utils import * 
 from card import Card
@@ -34,7 +35,6 @@ class CardTable():
         self.bidsList = []
         self.roundNum = 0
         self.hasOpener = False
-        self.competition = False
         self.currentPos = TablePosition.CONTROL
         self.leadPos = TablePosition.CONTROL
         self.outstandingBidReq = False
@@ -55,12 +55,10 @@ class CardTable():
     def startHand(self):
         # Open a file for information logging
         if self.guiEnabled:
-            self.log_fp = open("../logs/info.log", 'w')
-            writeLog(self, "Start of a new hand\n")
+            Log.write("Start of a new hand\n")
         self.handDone = False
         self.dealCards()
         self.hasOpener = False
-        self.competition = False
         self.findNextBidder()
         self.roundNum = 1
         for pos in TablePosition:
@@ -77,7 +75,7 @@ class CardTable():
     def dealLastHands(self):
         # Open the file containing the previous hands
         hand_fp = open("../logs/lastHands.json", 'r')
-        writeLog(self, "Loading the previous hand\n")
+        Log.write("Loading the previous hand\n")
         handsJson = hand_fp.read()
         handsDict = json.loads(handsJson)
         
@@ -201,33 +199,21 @@ class CardTable():
             (nextBidder, isLeader) = getNextPosition(self.leadPos, self.leadPos)
             self.leadPos = nextBidder;
         self.currentPos = self.leadPos
-        # writeLog(self, "cardTable: findNextBidder: position %s\n" % self.leadPos.name)
+        
 
     def bidRequest(self):
         player = self.players[self.currentPos]
-        #writeLog(self, "cardTable: bidRequest for %s in round %d\n" % (player.pos.name, self.roundNum))
         self.outstandingBidReq = True
         player.bidRequest(self, self.bidsList)
 
-    def bidResponse(self, pos, bidLevel, bidSuit):
+        
+    def bidResponse(self, bidder, bidNotif):
+        (bidLevel, bidSuit) = (bidNotif.bid[0], bidNotif.bid[1])        
         bidStr = getBidStr(bidLevel, bidSuit)
-        #writeLog(self, "cardTable: bidResponse from %s: %s\n" % (pos.name, bidStr))
+
         self.outstandingBidReq = False
-        if self.hasOpener:
-            if bidLevel > 0:
-                # Was this bid received from the opener's competitor?
-                if self.competition == False:
-                    # Check the last bid on the bid list
-                    if self.bidsList[-1][0] > 0:
-                        self.competition = True
-                        writeLog(self, "cardTable: bidResponse: table in competition\n")
-                    else:
-                        if len(self.bidsList) >= 3 and self.bidsList[-3][0] > 0:
-                            self.competition = True
-                            writeLog(self, "cardTable: bidResponse: table in competition\n")
-        elif bidLevel > 0:
+        if bidLevel > 0 and self.hasOpener == False:
             self.hasOpener = True
-            writeLog(self, "cardTable: bidResponse: table has opener\n")
         self.bidsList.append((bidLevel, bidSuit))
         
         # Update the GUI bid board with this player's bid
@@ -238,8 +224,11 @@ class CardTable():
         for pos in TablePosition:
             if pos == TablePosition.CONTROL or pos == TablePosition.CENTER:
                 continue
+            if pos == bidder:
+                # No need to notify the bidder
+                continue
             player = self.players[pos]
-            player.bidNotification(self, self.currentPos, bidLevel, bidSuit)
+            player.bidNotification(self, bidder, bidNotif)
             
         # Provide a development hook to bail out of bidding loop
         if bidLevel > 7:
@@ -276,11 +265,11 @@ class CardTable():
             self.guiTable.processHandDone()
 
         # Close the logging file
-        self.log_fp.close()
+        Log.close()
+
         # Delete the previously saved log file
-        os.remove("../logs/save.log")
-        # Rename the logging file
-        os.rename("../logs/info.log", "../logs/save.log")
+        Log.rotate()
+
 
     '''
     This function is called when the user asks to play another hand
@@ -297,5 +286,3 @@ class CardTable():
         del self.bidsList[:]
         self.startHand()
 
-    def flushLog(self):
-        self.log_fp.flush()

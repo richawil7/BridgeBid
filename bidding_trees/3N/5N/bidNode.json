@@ -1,8 +1,10 @@
 {
     "teamRole": "OFFENSE",
-    "fitSuit": "NOTRUMP",
+    "fitSuit": "ALL",
     "candidateSuit": "ALL",
     "convention": "NATURAL",
+	"suitStates": {
+		"NOTRUMP": "PLAY"},
     "openerInfo": {
 	    "minPts": 25,
 	    "maxPts": 27,
@@ -11,7 +13,7 @@
 	    "minPts": 10,
 	    "maxPts": 11,
 	    "evalMethod": "hcp-only" },
-    "force": "ONE_ROUND",
+    "force": "NONE",
     "nextBidder": "OPENER",
     "handler": "openRebid_3NT_nNT"
 	"interpretation": "Opener\tHas 25-27 high card points\n\tBalanced hand\nResponder\tHas 10-11 points",

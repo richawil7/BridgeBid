@@ -1,8 +1,10 @@
 {
     "teamRole": "OFFENSE",
-    "fitSuit": "NOTRUMP",
+    "fitSuit": "ALL",
     "candidateSuit": "ALL",
     "convention": "NATURAL",
+	"suitStates": {
+		"NOTRUMP": "PLAY"},
     "openerInfo": {
 	    "minPts": 20,
 	    "maxPts": 21,
@@ -11,7 +13,7 @@
 	    "minPts": 5,
 	    "maxPts": 11,
 	    "evalMethod": "hcp-only" },
-    "force": "NONE",
+    "force": "PASS",
     "nextBidder": "OPENER",
     "handler": "openRebid_2NT_3NT",
 	"interpretation": "Opener:\tHas 20-21 points and a balanced hand\n\tMay have a 5 card suit\nResponder:\tHas 5-11 points and a balanced hand",

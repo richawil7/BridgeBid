@@ -1,8 +1,10 @@
 {
     "teamRole": "OFFENSE",
-    "fitSuit": "ALL",
-    "candidateSuit": "SPADE",
+    "fitSuit": "SPADE",
+    "candidateSuit": "ALL",
     "convention": "WEAK_2",
+	"suitStates": {
+		"SPADE": "SUPPORT"},
     "openerInfo": {
 	    "minPts": 5,
 	    "maxPts": 11,

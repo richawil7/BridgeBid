@@ -3,6 +3,8 @@
     "fitSuit": "HEART",
     "candidateSuit": "ALL",
     "convention": "NATURAL",
+	"suitStates": {
+		"HEART": "SUPPORT"},
     "openerInfo": {
 	    "minPts": 13,
 	    "maxPts": 21,

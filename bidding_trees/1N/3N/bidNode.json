@@ -1,8 +1,10 @@
 {
     "teamRole": "OFFENSE",
-    "fitSuit": "NOTRUMP",
+    "fitSuit": "ALL",
     "candidateSuit": "ALL",
     "convention": "NATURAL",
+	"suitStates": {
+		"NOTRUMP": "PLAY"},
     "openerInfo": {
 	    "minPts": 15,
 	    "maxPts": 17,

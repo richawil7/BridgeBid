@@ -61,26 +61,43 @@ class SuitCategory(Enum):
     AKx = 6
     AKQ = 7
 
+class FitState(Enum):
+    UNKNOWN = 0
+    CANDIDATE = 1
+    NO_SUPPORT = 2
+    SUPPORT = 3
+    PLAY = 4
+    
 class Force(Enum):
     NONE = 0
-    ONE_ROUND = 1
-    GAME = 2
-    SLAM = 3
+    PASS = 1
+    ONE_ROUND = 2
+    GAME = 3
+    SLAM = 4
 
 class Conv(Enum):
     NATURAL = 0
     OPENING = 1
     STAYMAN = 2
-    JACOBY_XFER = 3
-    JACOBY_2NT = 4
-    TWO_OVER_ONE = 5
-    STRONG_2 = 6
-    WEAK_2 = 7
-    INVERTED_MINORS = 8
-    MAJOR_LIMIT = 9
-    BLACKWOOD = 10
-    GERBER = 11
-    
+    BEST_MAJOR = 3
+    JACOBY_XFER = 4
+    JACOBY_2NT = 5
+    TWO_OVER_ONE = 6
+    SPLINTER = 7
+    STRONG_2 = 8
+    WEAK_2 = 9
+    INVERTED_MINORS = 10
+    MAJOR_LIMIT = 11
+    CUE_BID = 12
+    BLACKWOOD = 13
+    GERBER = 14
+
+class GameState(Enum):
+    UNKNOWN = 0
+    PARTSCORE = 1
+    GAME = 2
+    SMALL_SLAM = 3
+    LARGE_SLAM = 4
     
 # GUI Classes
 class PileOrder(Enum):

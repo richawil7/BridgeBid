@@ -3,6 +3,8 @@
     "fitSuit": "ALL",
     "candidateSuit": "ALL",
     "convention": "NATURAL",
+	"suitStates": {
+		"DIAMOND": "NO_SUPPORT"},
     "openerInfo": {
 	    "minPts": 13,
 	    "maxPts": 21,

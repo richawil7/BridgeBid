@@ -3,6 +3,8 @@
     "fitSuit": "SPADE",
     "candidateSuit": "ALL",
     "convention": "NATURAL",
+	"suitStates": {
+		"SPADE": "SUPPORT"},
     "openerInfo": {
 	    "minPts": 13,
 	    "maxPts": 21,

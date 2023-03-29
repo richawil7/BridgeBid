@@ -3,6 +3,8 @@
     "fitSuit": "SPADE",
     "candidateSuit": "ALL",
     "convention": "WEAK_2",
+	"suitStates": {
+		"SPADE": "PLAY"},
     "openerInfo": {
 	    "minPts": 5,
 	    "maxPts": 11,
@@ -11,7 +13,7 @@
 	    "minPts": 8,
 	    "maxPts": 13,
 	    "evalMethod": "hcp-short" },
-    "force": "NONE",
+    "force": "PASS",
     "nextBidder": "OPENER",
     "handler": "openRebid_3_4",
 	"interpretation": "Opener\tHas 5-11 points\n\tHas 7 cards in bid suit\nResponder\tHas support for opening suit\n\tThis is a sacrifice",

@@ -3,6 +3,8 @@
     "fitSuit": "CLUB",
     "candidateSuit": "ALL",
     "convention": "INVERTED_MINORS",
+	"suitStates": {
+		"CLUB": "SUPPORT"},
     "openerInfo": {
 	    "minPts": 13,
 	    "maxPts": 21,

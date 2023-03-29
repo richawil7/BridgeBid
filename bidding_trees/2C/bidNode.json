@@ -18,6 +18,6 @@
 	"hints": {
 		"hint0": "Forcing bid",
 		"hint1": "Can show suit with 5+ cards",
-		"hint2": "<0-7: 2D\n8+\tBalanced: 2NT\n\t5+Ma with Q: 2Ma\n\t5+Mi with Q: 3Mi\n\tUnbalanced: 2D"
+		"hint2": "0-7: 2D\n8+\tBalanced: 2NT\n\t5+Ma with Q: 2Ma\n\t5+Mi with Q: 3Mi\n\tUnbalanced: 2D"
 	}
 }

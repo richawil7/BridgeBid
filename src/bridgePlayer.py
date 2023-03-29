@@ -3,6 +3,7 @@ Bridge Player Class
 A player of the game of Spades
 '''
 
+from infoLog import Log
 from enums import Suit, Level, TeamRole, PlayerRole
 from utils import *
 from bidNode import *
@@ -10,9 +11,11 @@ from cardPile import CardPile
 from teamState import TeamState
 from player import Player
 from bridgeHand import BridgeHand
+from bidNotif import BidNotif
 from bidUtils import *
 from openBid import *
 from responderBid import *
+from nonNodeBid import *
 
 class BridgePlayer(Player):
 
@@ -47,7 +50,7 @@ class BridgePlayer(Player):
             player = table.players[curPos]
             # Ask the computer to calculate the bid for the human
             # But later it will be ignored
-            player.computerBidRequest(table, table.hasOpener, table.competition, table.roundNum, table.bidsList, self.isHuman, player.hand)
+            player.computerBidRequest(table, table.hasOpener, player.teamState.competition, table.roundNum, table.bidsList, self.isHuman, player.hand)
             print("Use the dropdown boxes to enter a bid")
             
         # Thread will respond with a card played by computer
@@ -66,57 +69,60 @@ class BridgePlayer(Player):
         bid - the actual bid; a tuple of level and suit
     '''    
     def computerBidRequest(self, table, hasOpener, competition, roundNum, bidsList, isHuman, hand):
-        writeLog(table, "BidReq: pos={} hasOpener={} compet={} roundNum={}\n".format(self.pos.name, hasOpener, competition, roundNum))
+        Log.write("BidReq: pos={} hasOpener={} compet={} roundNum={}\n".format(self.pos.name, hasOpener, competition, roundNum))
 
         if roundNum == 1:
-            (bidLevel, bidSuit) = self.bidRound1(table)
+            bidNotif = self.bidRound1(table)
 
         elif roundNum == 2:
-            (bidLevel, bidSuit) = self.bidRound2(table)
+            bidNotif = self.bidRound2(table)
 
-        elif roundNum == 3:
-            (bidLevel, bidSuit) = self.bidRound3(table)
-
-        else:
-            bidLevel = 0
-            bidSuit = Suit.ALL
+        elif roundNum >= 3:
+            bidNotif = self.bidRound3(table)
         
+        (bidLevel, bidSuit) = (bidNotif.bid[0], bidNotif.bid[1])
         bidStr = getBidStr(bidLevel, bidSuit)
-        writeLog(self.table, "BidRsp: %s as %s bids %s\n" % (self.pos.name, self.playerRole.name, bidStr))
+        Log.write("BidRsp: %s as %s bids %s\n" % (self.pos.name, self.playerRole.name, bidStr))
         
         # Only submit the bid if the computer is this player
         if not isHuman:
-            self.table.bidResponse(self.pos, bidLevel, bidSuit)
+            self.table.bidResponse(self.pos, bidNotif)
 
     def bidRound1(self, table):
         # Figure out this player's bidding role
         self.playerRole = getMyPlayerRole(table, self)
         
         # Get the sequence of bids made by this partnership
-        bidSeq = getTeamBidSequence(table, self.pos)
+        #bidSeq = getTeamBidSequence(table, self.pos)
+        bidSeq = self.teamState.bidSeq
 
         # Fetch the bid node from the bidding tree for this bid sequence
         self.bidNode = fetchBidTreeNode(bidSeq)
 
         # Merge the bid tree node info into the team state
         self.teamState.mergeTreeNode(self, self.bidNode, self.playerRole)
+
+        # FIX ME - debugging
+        if self.pos == TablePosition.NORTH or self.pos == TablePosition.SOUTH:
+            Log.write("Show team state for %s, prior to round 1 bid" % self.pos.name)
+            self.teamState.show()
         
         if self.playerRole == PlayerRole.RESPONDER:
             # Call the handler function for the current team state
-            (bidLevel, bidSuit) = table.responderRegistry.jump_table[self.bidNode.handler](table, self)
+            bidNotif = table.responderRegistry.jump_table[self.bidNode.handler](table, self)
         else:
             # Call the handler function for the current team state
-            (bidLevel, bidSuit) = table.openerRegistry.jump_table[self.bidNode.handler](table, self)
-
+            bidNotif = table.openerRegistry.jump_table[self.bidNode.handler](table, self)
+            
         # Save the most recent bid
-        self.lastBid = (bidLevel, bidSuit)
-
-        return (bidLevel, bidSuit)
+        self.lastBid = bidNotif.bid
+        return bidNotif
 
 
     def bidRound2(self, table):
         # Get the sequence of bids made by this partnership
-        bidSeq = getTeamBidSequence(table, self.pos)
+        #bidSeq = getTeamBidSequence(table, self.pos)
+        bidSeq = self.teamState.bidSeq
         numBids = len(bidSeq)
         # Check if the first bid was a pass
         if bidSeq[0][0] == 0:
@@ -129,7 +135,8 @@ class BridgePlayer(Player):
 
         if self.playerRole == PlayerRole.UNKNOWN:
             # print("bridgePlayer: bidRound2: Player %s STILL has unknown role %s" % (self.pos.name, self.playerRole.name))
-            return (0, Suit.ALL)
+            bidNotif = BidNotif(0, Suit.ALL, self.teamState)
+            return bidNotif
             
         elif self.playerRole == PlayerRole.OPENER:
             # Fetch the bid node from the bidding tree for this bid sequence
@@ -137,50 +144,58 @@ class BridgePlayer(Player):
         
             # Merge the bid tree node info into the team state
             self.teamState.mergeTreeNode(self, self.bidNode, self.playerRole)
+            # FIX ME - debugging
+            if self.pos == TablePosition.NORTH or self.pos == TablePosition.SOUTH:
+                Log.write("Show team state for %s, prior to round 2 bid" % self.pos.name)
+                self.teamState.show()
             
             # Call the handler function for the current team state
-            (bidLevel, bidSuit) = table.openerRebidRegistry.jump_table[self.bidNode.handler](table, self)
+            bidNotif = table.openerRebidRegistry.jump_table[self.bidNode.handler](table, self)
 
         elif self.playerRole == PlayerRole.RESPONDER:
+            # FIX ME - debugging
+            if self.pos == TablePosition.NORTH or self.pos == TablePosition.SOUTH:
+                Log.write("Show team state for %s, prior to round 3 bid" % self.pos.name)
+                self.teamState.show()
             if numBids >= 3:
                 # Can't use bidding trees for responder rebid
-                (bidLevel, bidSuit) = stubBid(table, table.bidsList)
+                bidNotif = nonNodeBidHandler(table, self)
             else:
                 # Call the handler function for the current team state
-                (bidLevel, bidSuit) = table.responderRegistry.jump_table[self.bidNode.handler](table, self)
+                bidNotif = table.responderRegistry.jump_table[self.bidNode.handler](table, self)
 
         else:
             print("bridgePlayer: bidRound2: Player %s has invalid role %d" % (self.pos.name, self.playerRole.value))
 
-        bidStr = getBidStr(bidLevel, bidSuit)
-        self.lastBid = (bidLevel, bidSuit)
-        return (bidLevel, bidSuit)
+        self.lastBid = bidNotif.bid
+        return bidNotif
 
     
     def bidRound3(self, table):
         if self.playerRole == PlayerRole.UNKNOWN:
             return (0, Suit.ALL)
         
-        (bidLevel, bidSuit) = stubBid(table, table.bidsList)
-        bidStr = getBidStr(bidLevel, bidSuit)
-        return (bidLevel, bidSuit)
+        bidNotif = nonNodeBidHandler(table, self)
+        self.lastBid = bidNotif.bid
+        return bidNotif
 
     
-    def bidNotification(self, table, bidder, bidLevel, bidSuit):
+    # Bid notification handler for a player
+    def bidNotification(self, table, bidder, bidNotif):
+        # print("bidNotification: notifying player %s" % self.pos.name)
+        (bidLevel, bidSuit) = (bidNotif.bid[0], bidNotif.bid[1])
         bidStr = getBidStr(bidLevel, bidSuit)
-        # writeLog(table, "bidNotif: bidder={} bid={} me={}\n".format(bidder.name, bidStr, self.pos.name))
+        Log.write("bidNotif: bidder={} bid={} me={}\n".format(bidder.name, bidStr, self.pos.name))
+
         # Need to figure out who the bidder is?
         myPartner = whosMyPartner(self.pos)
-
-        if bidder == self.pos:
-            # I made this bid. Just need to add bid to the team state
-            self.teamState.addTeamBid(bidLevel, bidSuit)
-        elif bidder == myPartner:
-            # Partner this bid
-            self.teamState.addTeamBid(bidLevel, bidSuit)
-            # Get the sequence of bids made by this partnership
-            bidSeq = getTeamBidSequence(table, self.pos)
-
+        if bidder == myPartner:
+            Log.write("bidNotification: {} is my partner\n".format(bidder.name))
+            # Partner made this bid. Update the team state bid sequence
+            self.teamState.bidSeq.append(bidNotif.bid)
+            bidSeq = self.teamState.bidSeq
+            
+            # Can we update our team's state from a bid node?
             # We only have bid node for 2 levels of bids
             numBids = len(bidSeq)
             # check if the first bid was a pass
@@ -193,77 +208,20 @@ class BridgePlayer(Player):
                 # Merge the bid tree node info into the team state
                 self.teamState.mergeTreeNode(self, self.bidNode, self.playerRole)
             else:
-                writeLog(table, "bridgePlayer: bidNotif: Skipping bid node\n")
+                Log.write("bridgePlayer: bidNotif: No bid node available\n")
+                # Team state is updated by the notification
+                bidNotif.notifHandler(self)
+        else:
+            # If opponents did not pass, then our team has competition
+            if bidNotif.bid[0] > 0:
+                self.teamState.competition = True
                 
-        # FIX ME. Debug that can be removed
-        #if self.pos == TablePosition.NORTH and bidder == TablePosition.SOUTH:
-        #    bidStr = getBidStr(bidLevel, bidSuit)
-        #    print("bidNotif: show NORTH state after SOUTH bid of %s" % bidStr)
-        #    self.teamState.show()
-
-            
-    def bidRound1Old(self, table, hasOpener, competition, roundNum, bidsList, hand):
-        # FIX ME: dead code
-        bidLevel = 0
-        bidSuit = Suit.ALL
-        # Determine this player's bidding state
-        if not hasOpener and not competition:
-            # No one has opened yet
-            iCanOpen = canIOpen(self.hand, competition, self.seat) 
-            if iCanOpen:
-                self.playerRole = PlayerRole.OPENER
-                (bidLevel, bidSuit) = calcOpenBid(self.hand)
-
-        elif not hasOpener and competition:
-            print("bridgePlayer: computerBidReq: Error-invalid state ")
-
-        elif hasOpener:
-            # Check if my partner was the opener
-            if len(bidsList) >= 2:
-                if self.seat >= 3:
-                    partnerBidIdx = self.seat - 2 - 1
-                else:
-                    partnerBidIdx = 4 + self.seat - 2 - 1
-                partnerBid = bidsList[partnerBidIdx][0]
-                if partnerBid > 0:
-                    # My partner opened
-                    if roundNum == 1:
-                        writeLog(self.table, "bridgePlayer: compBidReq: partner opened\n")
-                    self.playerRole = PlayerRole.RESPONDER
-                    (bidLevel, bidSuit) = responderBid(self.table, self.hand, bidsList)
-                else:
-                    # My partner passed
-                    writeLog(self.table, "bridgePlayer: compBidReq: partner passed\n")
-            else:
-                iCanOpen = canIOpen(self.hand, competition, self.seat) 
-                if iCanOpen:
-                    self.playerRole = PlayerRole.OPENER
-                    (bidLevel, bidSuit) = calcOpenBid(self.hand)
-                else:
-                    bidLevel = 0
-        return (bidLevel, bidSuit)
-
-    def bidRound2Old(self, table, hasOpener, competition, roundNum, bidsList, hand):
-        bidLevel = 0
-        bidSuit = Suit.ALL
-        if self.playerRole == PlayerRole.UNKNOWN:
-            if self.seat <= 2:
-                # Need to check if my partner bid in round 1
-                partnerBidIdx = self.seat + 2 - 1
-                partnerBid = bidsList[partnerBidIdx][0]
-                if partnerBid > 0:
-                    # My partner opened
-                    self.playerRole == PlayerRole.RESPONDER
-                    (bidLevel, bidSuit) = responderBid(self.table, self.hand, bidsList)
-        elif self.playerRole == PlayerRole.OPENER:
-            #(bidLevel, bidSuit) = openerRebid(self.table, self.hand, bidsList)
-            (bidLevel, bidSuit) = stubBid(table, bidsList)
-        elif self.playerRole == PlayerRole.RESPONDER:
-            #(bidLevel, bidSuit) = responderRebid(self.table, self.hand, bidsList)
-            (bidLevel, bidSuit) = stubBid(table, bidsList)
-        return (bidLevel, bidSuit)
-
-    
+            # We want to update the fit state for a suit bid by opposition
+            bidSuitValue = bidNotif.bid[1].value
+            if bidSuitValue >= Suit.SPADE.value and bidSuitValue <= Suit.CLUB.value:
+                Log.write("bidNotification: no fit for {} bid by opposition\n".format(bidNotif.bid[1].name))
+                self.teamState.suitState[bidNotif.bid[1]] = FitState.NO_SUPPORT
+                
     '''
     This function is called by the card table at the end of a hand
     '''

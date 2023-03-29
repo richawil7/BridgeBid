@@ -6,6 +6,7 @@ that player's view.
 '''
 
 import json
+from infoLog import Log
 from enums import *
 from openBid import *
 
@@ -13,32 +14,61 @@ from openBid import *
 class TeamState:
 
     def __init__(self):
-        self.partnerMinPoints = 0
-        self.partnerMaxPoints = 0
-        self.teamMinPoints = 0
-        self.teamMaxPoints = 0
-        self.bidSeq = []
+        self.fitSuit = Suit.ALL        # updated by bid node
+        self.candidateSuit = Suit.ALL  # updated by bid node/handler
+        self.myMinPoints = 0           # updated by bid node/handler
+        self.myMaxPoints = 0           # updated by bid node/handler
+        self.convention = Conv.NATURAL # updated by bid node/handler
+        self.force = Force.NONE        # updated by bid node/handler
+        self.competition = False       # updated by notif handler
+        self.bidSeq = []               # bidder: bid, non-bidder: notif
+        self.suitState = {Suit.NOTRUMP: FitState.UNKNOWN, Suit.SPADE: FitState.UNKNOWN, Suit.HEART: FitState.UNKNOWN, Suit.DIAMOND: FitState.UNKNOWN, Suit.CLUB: FitState.UNKNOWN}
         
+        self.gameState = GameState.UNKNOWN # updated by bid node/handler
+        self.partnerMinPoints = 0      # updated by notification handler
+        self.partnerMaxPoints = 0      # updated by notification handler
+        self.partnerNumAces = 0        # updated by notification handler
+        self.partnerNumKings = 0       # updated by notification handler
+        self.teamMinPoints = 0         # updated by notification handler
+        self.teamMaxPoints = 0         # updated by notification handler
+
     def show(self):
-        print("Partner min points = %d" % self.partnerMinPoints)
-        print("Partner max points = %d" % self.partnerMaxPoints)
-        print("Team min points = %d" % self.teamMinPoints)
-        print("Team max points = %d" % self.teamMaxPoints)
         bidSeqStr = ''        
         for bid in self.bidSeq:
             bidStr = getBidStr(bid[0], bid[1])
             bidSeqStr += bidStr + "-"
-        print("Team bid sequence: %s", bidSeqStr)
+        Log.write("Team state for bid sequence %s\n" % bidSeqStr)
+        Log.write("Fit suit:\t\t%s\n" % self.fitSuit.name)
+        Log.write("Candidate suit:\t%s\n" % self.candidateSuit[1])
+        for suit, fit in self.suitState.items():
+            Log.write("\t%s:\t%s\n" % (suit.name, fit.name))
+            
+        Log.write("Convention: %s\n" % self.convention.name)
+        Log.write("Force type: %s\n" % self.force.name)
+        
+        Log.write("My min points = %d\n" % self.myMinPoints)
+        Log.write("My max points = %d\n" % self.myMaxPoints)
+        Log.write("Partner min points = %d\n" % self.partnerMinPoints)
+        Log.write("Partner max points = %d\n" % self.partnerMaxPoints)
+        Log.write("Team min points = %d\n" % self.teamMinPoints)
+        Log.write("Team max points = %d\n" % self.teamMaxPoints)
+        Log.write("Game state: %s\n" % self.gameState.name)
 
     # Merge the information from a bidding tree node into the team state
     def mergeTreeNode(self, player, bidTreeNode, playerRole):
+        self.convention = bidTreeNode.convention
+        self.force = bidTreeNode.force
         if playerRole == PlayerRole.RESPONDER:
+            self.myMinPoints = bidTreeNode.responderMinPoints
+            self.myMaxPoints = bidTreeNode.responderMaxPoints
             (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
             # My partner is the opener
             self.partnerMinPoints = bidTreeNode.openerMinPoints
             self.partnerMaxPoints = bidTreeNode.openerMaxPoints
         else:
             # I am the opener, or the would-be opener
+            self.myMinPoints = bidTreeNode.openerMinPoints
+            self.myMaxPoints = bidTreeNode.openerMaxPoints
             (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_LONG)
             # My partner is the responder
             self.partnerMinPoints = bidTreeNode.responderMinPoints
@@ -52,3 +82,5 @@ class TeamState:
     def addTeamBid(self, level, suit):
         self.bidSeq.append((level, suit))
 
+    def setSuitState(self, suit, fit):
+        self.suitState[suit] = fit

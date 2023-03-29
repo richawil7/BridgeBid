@@ -3,6 +3,8 @@
     "fitSuit": "ALL",
     "candidateSuit": "NOTRUMP",
     "convention": "TWO_OVER_ONE",
+	"suitStates": {
+		"CLUB": "NO_SUPPORT"},
     "openerInfo": {
 	    "minPts": 13,
 	    "maxPts": 21,
