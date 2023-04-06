@@ -38,21 +38,21 @@ class TeamState:
             bidStr = getBidStr(bid[0], bid[1])
             bidSeqStr += bidStr + "-"
         Log.write("Team state for bid sequence %s\n" % bidSeqStr)
-        Log.write("Fit suit:\t\t%s\n" % self.fitSuit.name)
-        Log.write("Candidate suit:\t%s\n" % self.candidateSuit.name)
+        Log.write("\tFit suit:\t\t%s\n" % self.fitSuit.name)
+        Log.write("\tCandidate suit:\t%s\n" % self.candidateSuit.name)
         for suit, fit in self.suitState.items():
-            Log.write("\t%s:\t%s\n" % (suit.name, fit.name))
+            Log.write("\t\t%s:\t%s\n" % (suit.name, fit.name))
             
-        Log.write("Convention: %s\n" % self.convention.name)
-        Log.write("Force type: %s\n" % self.force.name)
+        Log.write("\tConvention: %s\n" % self.convention.name)
+        Log.write("\tForce type: %s\n" % self.force.name)
         
-        Log.write("My min points = %d\n" % self.myMinPoints)
-        Log.write("My max points = %d\n" % self.myMaxPoints)
-        Log.write("Partner min points = %d\n" % self.partnerMinPoints)
-        Log.write("Partner max points = %d\n" % self.partnerMaxPoints)
-        Log.write("Team min points = %d\n" % self.teamMinPoints)
-        Log.write("Team max points = %d\n" % self.teamMaxPoints)
-        Log.write("Game state: %s\n" % self.gameState.name)
+        Log.write("\tMy min points = %d\n" % self.myMinPoints)
+        Log.write("\tMy max points = %d\n" % self.myMaxPoints)
+        Log.write("\tPartner min points = %d\n" % self.partnerMinPoints)
+        Log.write("\tPartner max points = %d\n" % self.partnerMaxPoints)
+        Log.write("\tTeam min points = %d\n" % self.teamMinPoints)
+        Log.write("\tTeam max points = %d\n" % self.teamMaxPoints)
+        Log.write("\tGame state: %s\n" % self.gameState.name)
 
     # Merge the information from a bidding tree node into the team state
     def mergeTreeNode(self, player, bidTreeNode, playerRole):

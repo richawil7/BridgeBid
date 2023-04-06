@@ -73,7 +73,8 @@ class BridgePlayer(Player):
         bid - the actual bid; a tuple of level and suit
     '''    
     def computerBidRequest(self, table, hasOpener, competition, roundNum, bidsList, isHuman, hand):
-        Log.write("BidReq: pos={} hasOpener={} compet={} roundNum={}\n".format(self.pos.name, hasOpener, competition, roundNum))
+        if self.pos == TablePosition.NORTH or self.pos == TablePosition.SOUTH:
+            Log.write("BidReq: pos={} hasOpener={} compet={} roundNum={}\n".format(self.pos.name, hasOpener, competition, roundNum))
 
         if roundNum == 1:
             bidNotif = self.bidRound1(table)
@@ -89,7 +90,8 @@ class BridgePlayer(Player):
         
         # Only submit the bid if the computer is this player
         if not isHuman:
-            Log.write("BidRsp: %s as %s bids %s\n" % (self.pos.name, self.playerRole.name, bidStr))
+            if self.pos == TablePosition.NORTH or self.pos == TablePosition.SOUTH:
+                Log.write("BidRsp: %s as %s bids %s\n" % (self.pos.name, self.playerRole.name, bidStr))
             self.table.bidResponse(self.pos, bidNotif)
         else:
             # This is the bid the computer thinks the human should make

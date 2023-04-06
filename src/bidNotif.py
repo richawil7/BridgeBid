@@ -124,15 +124,15 @@ class BidNotif:
                 teamState.gameState = self.gameState
         elif player.playerRole == PlayerRole.RESPONDER:
             # The responder sets the game state            
-            if teamState.fitSuit.isMinor():
+            if isMinor(teamState.fitSuit):
                 minGamePts = 29
             else: 
                 minGamePts = 26
-            if teamState.teamMinPts < minGamePts:
+            if teamState.teamMinPoints < minGamePts:
                 teamState.gameState = GameState.PARTSCORE
-            elif teamState.teamMinPts < 33:
+            elif teamState.teamMinPoints < 33:
                 teamState.gameState = GameState.GAME
-            elif teamState.teamMinPts < 36:
+            elif teamState.teamMinPoints < 36:
                 teamState.gameState = GameState.SMALL_SLAM
             else:
                 teamState.gameState = GameState.LARGE_SLAM

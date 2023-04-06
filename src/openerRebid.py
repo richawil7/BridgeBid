@@ -160,7 +160,7 @@ class OpenerRebidRegistry:
             else:
                 if player.hand.getNumCardsInSuit(openingSuit) >= 7:
                     # Bid game
-                    if openingSuit.isMajor():
+                    if isMajor(openingSuit):
                         bidNotif = BidNotif(4, openingSuit, ts)
                         return bidNotif                
                     else:
@@ -1411,7 +1411,7 @@ class OpenerRebidRegistry:
                 ts.candidateSuit = suitA
                 bidNotif = BidNotif(3, suitA, ts)
                 return bidNotif    
-        if suitB.isMajor():
+        if isMajor(suitB):
             ts.candidateSuit = suitB
             bidNotif = BidNotif(3, suitB, ts)
             return bidNotif

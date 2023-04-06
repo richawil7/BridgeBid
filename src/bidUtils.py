@@ -272,17 +272,17 @@ def isShutUpBid(totalPts, bidLevel, bidSuit):
         # Pass
         return True
 
-    if bidSuit.isMinor() and bidLevel == 5:
+    if isMinor(bidSuit) and bidLevel == 5:
         return True
-    if bidSuit.isMajor() and bidLevel == 4:
+    if isMajor(bidSuit) and bidLevel == 4:
         return True
     if bidSuit == Suit.NOTRUMP and bidLevel == 3:
         return True
     
     if totalPts < 33:
-        if bidSuit.isMinor() and bidLevel == 5:
+        if isMinor(bidSuit) and bidLevel == 5:
             return True
-        if bidSuit.isMajor() and bidLevel == 4:
+        if isMajor(bidSuit) and bidLevel == 4:
             return True
         if bidSuit == Suit.NOTRUMP and bidLevel == 3:
             return True

@@ -1,4 +1,3 @@
-
 from infoLog import Log
 from enums import *
 from bidUtils import *
@@ -110,22 +109,26 @@ def nonNodeBidHandler(table, player):
 
     # What is our team's highest bid so far
     teamBid = findLargestTeamBid(player)
+    bidStr = getBidStr(teamBid[0], teamBid[1])
     
+    bidNotif = None
     # Have we achieved our target game state? If so, we can pass.
     if ts.gameState == GameState.LARGE_SLAM and teamBid[0] == 7:
         bidNotif = BidNotif(0, Suit.ALL)
     elif ts.gameState == GameState.SMALL_SLAM and teamBid[0] == 6:
-        bidNotif = BidNotif(0, Suit.ALL)
+        bidNotif = BidNotif(0, Suit.ALL, ts)
     elif ts.gameState == GameState.GAME:
         if teamBid[1] == Suit.NOTRUMP and teamBid[0] >= 3:
-            bidNotif = BidNotif(0, Suit.ALL)
-        elif teamBid[1].isMinor() and teamBid[0] >= 5:
-            bidNotif = BidNotif(0, Suit.ALL)
-        elif teamBid[1].isMajor() and teamBid[0] >= 4:
-            bidNotif = BidNotif(0, Suit.ALL)
+            bidNotif = BidNotif(0, Suit.ALL, ts)
+        elif isMinor(teamBid[1]) and teamBid[0] >= 5:
+            bidNotif = BidNotif(0, Suit.ALL, ts)
+        elif isMajor(teamBid[1]) and teamBid[0] >= 4:
+            bidNotif = BidNotif(0, Suit.ALL, ts)
     elif ts.gameState == GameState.PARTSCORE and teamBid[0] >= 1:
-            bidNotif = BidNotif(0, Suit.ALL)
-
+            bidNotif = BidNotif(0, Suit.ALL, ts)
+    if bidNotif != None:
+        return bidNotif
+    
     # If we get here, the bid is natural
     # Do we have a fit?
     if ts.fitSuit == Suit.ALL:
@@ -146,7 +149,7 @@ def nonNodeBidHandler(table, player):
         # What is lowest level I can bid the proposed suit?
         proposedBidLevel = getNextLowestBid(table, proposedBidSuit)
         
-        bidNotif = BidNotif(proposedBidLevel, proposedBidSuit, player.teamState)
+        bidNotif = BidNotif(proposedBidLevel, proposedBidSuit, ts)
         bidNotif.minPoints, bidNotif.maxPoints = getPointRange(player, proposedBidSuit)
         bidNotif.convention = Conv.NATURAL
         bidNotif.force = Force.ONE_ROUND
@@ -158,27 +161,27 @@ def nonNodeBidHandler(table, player):
     minLevel = getBidLevel(ts.teamMinPoints, ts.fitSuit)
     maxLevel = getBidLevel(ts.teamMaxPoints, ts.fitSuit)
     
-    # Compare the teamMaxPts against the game levels
+    # Compare the teamMaxPoints against the game levels
     if maxLevel >= 6 and ts.fitSuit != Suit.ALL and ts.partnerNumAces == 4:
         # Explore large slam by asking for kings
         if ts.fitSuit == Suit.NOTRUMP:
             Log.write("nonNodeBid: gerber req for Kings by %s\n" % player.pos.name)
-            bidNotif = BidNotif(5, Suit.CLUB)
+            bidNotif = BidNotif(5, Suit.CLUB, ts)
             bidNotif.setConv(Conv.GERBER)
         else:
             Log.write("nonNodeBid: blackwood req for Kings by %s\n" % player.pos.name)
-            bidNotif = BidNotif(6, Suit.NOTRUMP)
+            bidNotif = BidNotif(6, Suit.NOTRUMP, ts)
             bidNotif.setConv(Conv.BLACKWOOD)
     
     if maxLevel >= 6 and ts.fitSuit != Suit.ALL:
         # Explore small slam
         if ts.fitSuit == Suit.NOTRUMP:
             Log.write("nonNodeBid: gerber req for Aces by %s\n" % player.pos.name)
-            bidNotif = BidNotif(4, Suit.CLUB)
+            bidNotif = BidNotif(4, Suit.CLUB, ts)
             bidNotif.setConv(Conv.GERBER)
         else:
             Log.write("nonNodeBid: blackwood req for Aces by %s\n" % player.pos.name)
-            bidNotif = BidNotif(4, Suit.NOTRUMP)
+            bidNotif = BidNotif(4, Suit.NOTRUMP, ts)
             bidNotif.setConv(Conv.BLACKWOOD)
         (minPts, maxPts) = getPointRange(player, ts.fitSuit)
         bidNotif.setPoints(minPts, maxPts)
@@ -200,7 +203,7 @@ def nonNodeBidHandler(table, player):
         actualBidLevel = Pass
         
     # Build the notification for a natural bid
-    bidNotif = BidNotif(actualBidLevel, ts.fitSuit)
+    bidNotif = BidNotif(actualBidLevel, ts.fitSuit, ts)
     (minPts, maxPts) = getPointRange(player, ts.fitSuit)
     bidNotif.setPoints(minPts, maxPts)
     bidNotif.setConv(Conv.NATURAL)
