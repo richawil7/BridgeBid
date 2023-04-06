@@ -2,17 +2,26 @@
 
 import os
 import sys
-from teamState import TeamState
+from infoLog import Log
 
 
 def main(argv):
-    #openRegistry = OpenerRegistry()
-    teamState = TeamState()
-    teamState.show()
-    bidList = []
-    teamState.fetchTeamState(bidList)
-    teamState.show()
+    '''
+    Log = InfoLog()
+    Log.write("This is a test\n")
+    Log.write("This is another test\n")
+    Log.flush()
+    Log.close()
 
+    InfoLog.write("This 2 was a test\n")
+    InfoLog.write("This 2 was another test\n")
+    InfoLog.flush()
+    InfoLog.close()
+    '''
+    Log.write("This 2 was a test\n")
+    Log.write("This 2 was another test\n")
+    Log.flush()
+    Log.close()
     print("Program Done")
     
 if __name__ == '__main__':

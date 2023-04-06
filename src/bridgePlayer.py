@@ -40,9 +40,13 @@ class BridgePlayer(Player):
 
         # Evaluate the hand and initialize the team state
         (hcPoints, distPoints) = self.hand.evalHand(DistMethod.HCP_LONG)
+
+        # Initialize the team state
+        self.teamState.__init__()
         self.teamState.minTeamPts = hcPoints
         self.teamState.maxTeamPts = hcPoints + distPoints
-        self.teamState.candidateSuit = self.hand.findLongestSuit()
+        numCards, longSuit = self.hand.findLongestSuit()
+        self.teamState.candidateSuit = longSuit
         
     def bidRequest(self, table, listOfBids):
         if self.isHuman:
@@ -82,12 +86,15 @@ class BridgePlayer(Player):
         
         (bidLevel, bidSuit) = (bidNotif.bid[0], bidNotif.bid[1])
         bidStr = getBidStr(bidLevel, bidSuit)
-        Log.write("BidRsp: %s as %s bids %s\n" % (self.pos.name, self.playerRole.name, bidStr))
         
         # Only submit the bid if the computer is this player
         if not isHuman:
+            Log.write("BidRsp: %s as %s bids %s\n" % (self.pos.name, self.playerRole.name, bidStr))
             self.table.bidResponse(self.pos, bidNotif)
-
+        else:
+            # This is the bid the computer thinks the human should make
+            Log.write("BidRsp: Computer thinks human should bid %s\n" % bidStr)
+           
     def bidRound1(self, table):
         # Figure out this player's bidding role
         self.playerRole = getMyPlayerRole(table, self)
@@ -104,7 +111,7 @@ class BridgePlayer(Player):
 
         # FIX ME - debugging
         if self.pos == TablePosition.NORTH or self.pos == TablePosition.SOUTH:
-            Log.write("Show team state for %s, prior to round 1 bid" % self.pos.name)
+            Log.write("Show team state for %s, prior to round 1 bid\n" % self.pos.name)
             self.teamState.show()
         
         if self.playerRole == PlayerRole.RESPONDER:
@@ -146,7 +153,7 @@ class BridgePlayer(Player):
             self.teamState.mergeTreeNode(self, self.bidNode, self.playerRole)
             # FIX ME - debugging
             if self.pos == TablePosition.NORTH or self.pos == TablePosition.SOUTH:
-                Log.write("Show team state for %s, prior to round 2 bid" % self.pos.name)
+                Log.write("Show team state for %s, prior to round 2 bid\n" % self.pos.name)
                 self.teamState.show()
             
             # Call the handler function for the current team state
@@ -155,7 +162,7 @@ class BridgePlayer(Player):
         elif self.playerRole == PlayerRole.RESPONDER:
             # FIX ME - debugging
             if self.pos == TablePosition.NORTH or self.pos == TablePosition.SOUTH:
-                Log.write("Show team state for %s, prior to round 3 bid" % self.pos.name)
+                Log.write("Show team state for %s, prior to round 2 bid\n" % self.pos.name)
                 self.teamState.show()
             if numBids >= 3:
                 # Can't use bidding trees for responder rebid
@@ -173,8 +180,14 @@ class BridgePlayer(Player):
     
     def bidRound3(self, table):
         if self.playerRole == PlayerRole.UNKNOWN:
-            return (0, Suit.ALL)
+            bidNotif = BidNotif(0, Suit.ALL, self.teamState)
+            return bidNotif
         
+        # FIX ME - debugging
+        if self.pos == TablePosition.NORTH or self.pos == TablePosition.SOUTH:
+            Log.write("Show team state for %s, prior to round %d bid\n" % (self.pos.name, table.roundNum))
+            self.teamState.show()
+            
         bidNotif = nonNodeBidHandler(table, self)
         self.lastBid = bidNotif.bid
         return bidNotif
@@ -182,15 +195,14 @@ class BridgePlayer(Player):
     
     # Bid notification handler for a player
     def bidNotification(self, table, bidder, bidNotif):
-        # print("bidNotification: notifying player %s" % self.pos.name)
         (bidLevel, bidSuit) = (bidNotif.bid[0], bidNotif.bid[1])
         bidStr = getBidStr(bidLevel, bidSuit)
-        Log.write("bidNotif: bidder={} bid={} me={}\n".format(bidder.name, bidStr, self.pos.name))
+        # Log.write("bidNotif: bidder={} bid={} me={}\n".format(bidder.name, bidStr, self.pos.name))
 
         # Need to figure out who the bidder is?
         myPartner = whosMyPartner(self.pos)
         if bidder == myPartner:
-            Log.write("bidNotification: {} is my partner\n".format(bidder.name))
+            # Log.write("bidNotification: {} is my partner\n".format(bidder.name))
             # Partner made this bid. Update the team state bid sequence
             self.teamState.bidSeq.append(bidNotif.bid)
             bidSeq = self.teamState.bidSeq
@@ -208,7 +220,7 @@ class BridgePlayer(Player):
                 # Merge the bid tree node info into the team state
                 self.teamState.mergeTreeNode(self, self.bidNode, self.playerRole)
             else:
-                Log.write("bridgePlayer: bidNotif: No bid node available\n")
+                # Log.write("bridgePlayer: bidNotif: No bid node available\n")
                 # Team state is updated by the notification
                 bidNotif.notifHandler(self)
         else:
@@ -219,7 +231,7 @@ class BridgePlayer(Player):
             # We want to update the fit state for a suit bid by opposition
             bidSuitValue = bidNotif.bid[1].value
             if bidSuitValue >= Suit.SPADE.value and bidSuitValue <= Suit.CLUB.value:
-                Log.write("bidNotification: no fit for {} bid by opposition\n".format(bidNotif.bid[1].name))
+                # Log.write("bidNotification: no fit for {} bid by opposition\n".format(bidNotif.bid[1].name))
                 self.teamState.suitState[bidNotif.bid[1]] = FitState.NO_SUPPORT
                 
     '''

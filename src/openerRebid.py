@@ -4,7 +4,7 @@ a responding bid from the partner
 '''
 
 from infoLog import Log
-from enums import Suit, Level, DistMethod, FitState, Force
+from enums import Suit, Level, DistMethod, FitState, Force, GameState
 from utils import *
 from card import Card
 from cardPile import CardPile
@@ -351,8 +351,8 @@ class OpenerRebidRegistry:
                 bidNotif = BidNotif(2, Suit.NOTRUMP, ts)
                 return bidNotif
             if numSpades >= 4:
-                ts.candidateSuit = Suit.SPADES
-                bidNotif = BidNotif(3, Suit.SPADES)
+                ts.candidateSuit = Suit.SPADE
+                bidNotif = BidNotif(3, Suit.SPADE, ts)
                 return bidNotif
             ts.candidateSuit = Suit.NOTRUMP
             bidNotif = BidNotif(3, Suit.NOTRUMP, ts)
@@ -1162,6 +1162,7 @@ class OpenerRebidRegistry:
                 return bidNotif
         elif partnerLevel == 3:
             ts.candidateSuit = Suit.ALL
+            ts.gameState = GameState.GAME
             bidNotif = BidNotif(0, Suit.ALL, ts)
             return bidNotif
         elif partnerLevel == 4:
@@ -1179,8 +1180,14 @@ class OpenerRebidRegistry:
             ts.candidateSuit = Suit.CLUB
             bidNotif = BidNotif(6, Suit.CLUB, ts)
             return bidNotif
+        elif partnerLevel == 6:
+            ts.candidateSuit = Suit.ALL
+            ts.gameState = GameState.SMALL_SLAM
+            bidNotif = BidNotif(0, Suit.ALL, ts)
+            return bidNotif
         else:
             ts.candidateSuit = Suit.ALL
+            ts.gameState = GameState.LARGE_SLAM
             bidNotif = BidNotif(0, Suit.ALL, ts)
             return bidNotif
            

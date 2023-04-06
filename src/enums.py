@@ -4,11 +4,11 @@ from enum import Enum
 
 class Suit(Enum):
     ALL = 0
-    SPADE = 1
-    HEART = 2
-    DIAMOND = 3
-    CLUB = 4
-    NOTRUMP = 5
+    NOTRUMP = 1
+    SPADE = 2
+    HEART = 3
+    DIAMOND = 4
+    CLUB = 5
 
 class Level(Enum):
     LOW = 0

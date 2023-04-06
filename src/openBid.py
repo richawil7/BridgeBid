@@ -21,24 +21,21 @@ class OpenerRegistry:
         self.jump_table = OpenerRegistry.OpenerFunctions.get_bound_jump_table(self)
 
     def enforceMinBid(self, table, player, bidLevel, bidSuit):
+        # print("enforceMinBid: self is {}".format(self))
         myBidStr = getBidStr(bidLevel, bidSuit)
 
-        # Find the highest bid made so far
-        minBid = (0, Suit.ALL)
-        for bid in table.bidsList:
-            tableBidStr = getBidStr(bid[0], bid[1])
-            if bid[0] > 0:
-                minBid = bid
-        minBidStr = getBidStr(minBid[0], minBid[1])
+        # Find the highest bid made at the table so far
+        (maxLevel, maxSuit) = findLargestTableBid(table)
+        maxBidStr = getBidStr(maxLevel, maxSuit)
 
-        if minBid[0] > bidLevel:
+        if maxLevel > bidLevel:
             # Competitors already bid higher than my bid. Return pass
-            Log.write("enforceMinBid: my bid of %s was squashed by %s\n" % (myBidStr, minBidStr))
+            Log.write("enforceMinBid: my bid of %s was squashed by %s\n" % (myBidStr, maxBidStr))
             bidNotif = BidNotif(0, Suit.ALL, player.teamState)
             return bidNotif
-        elif minBid[0] == bidLevel:
-            if minBid[1].value <= bidSuit.value:
-                Log.write("enforceMinBid: my bid of %s was squashed by %s\n" % (myBidStr, minBidStr))
+        elif maxLevel == bidLevel:
+            if maxSuit.value <= bidSuit.value:
+                Log.write("enforceMinBid: my bid of %s was squashed by %s\n" % (myBidStr, maxBidStr))
                 bidNotif = BidNotif(0, Suit.ALL, player.teamState)
                 return bidNotif
 
@@ -146,7 +143,6 @@ class OpenerRegistry:
         # Bid the longer minor
         longSuit = findLongerMinor(hand)
         player.playerRole = PlayerRole.OPENER
-        print("Bidding the longer minor")
         return self.enforceMinBid(table, player, 1, longSuit)
 
         print("bid: calcOpenBid: ERROR - did not find bid")        

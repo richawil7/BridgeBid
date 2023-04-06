@@ -52,7 +52,7 @@ class BridgeHand(CardPile):
         # Find the suit with the most cards
         maxVal = 0
         maxSuit = Suit.ALL
-        for value in range(Suit.SPADE.value, Suit.NOTRUMP.value):
+        for value in range(Suit.SPADE.value, Suit.CLUB.value + 1):
             suit = Suit(value)
             if dist[suit] > maxVal:
                 maxVal = dist[suit]

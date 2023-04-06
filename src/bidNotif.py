@@ -6,11 +6,11 @@ the bidder) for processing.
 
 from infoLog import Log
 from enums import *
+from utils import *
 
 class BidNotif:
 
     def __init__(self, bidLevel, bidSuit, teamState):
-        teamState.bidSeq.append((bidLevel, bidSuit))
         self.bid = (bidLevel, bidSuit)
         self.minPoints = teamState.myMinPoints
         self.maxPoints = teamState.myMaxPoints
@@ -66,19 +66,19 @@ class BidNotif:
 
         
     def notifHandler(self, player):
-        print("notifHandler for player %s" % player.pos.name)
         teamState = player.teamState
+        bidSeqStr = ''        
+        for bid in teamState.bidSeq:
+            bidStr = getBidStr(bid[0], bid[1])
+            bidSeqStr += bidStr + "-"
 
         # We don't want to process a notification if a bid node exists
         numTeamBids = len(teamState.bidSeq)
         if numTeamBids <= 2:
-            bidSeqStr = ''        
-            for bid in self.bidSeq:
-                bidStr = getBidStr(bid[0], bid[1])
-                bidSeqStr += bidStr + "-"
-            print("notifHandler: ignoring notif for bid seq %s" % bidSeqStr)
+            Log.write("notifHandler: %s ignoring notif for bid seq %s\n" % (player.pos.name, bidSeqStr))
             return
         
+        Log.write("notifHandler: %s processing notif for bid seq %s\n" % (player.pos.name, bidSeqStr))
         # Merge this notification into a team state
         # Update fit suit
         for (suit, fitState) in self.suitState.items():
@@ -88,8 +88,9 @@ class BidNotif:
                 teamState.fitSuit = suit
 
         # Candidate suit depends upon fit state
-        if self.suitState[self.bid[1]] == FitState.UNKNOWN and self.convention == Conv.NATURAL:
-            teamState.candidateSuit = self.bid[1]
+        if self.bid[0] > 0:
+            if self.suitState[self.bid[1]] == FitState.UNKNOWN and self.convention == Conv.NATURAL:
+                teamState.candidateSuit = self.bid[1]
             
         teamState.partnerMinPoints = self.minPoints
         teamState.partnerMaxPoints = self.maxPoints
@@ -114,30 +115,28 @@ class BidNotif:
             self.processCuebidResponse()
                     
         teamState.force = teamState.force
-        
-        teamState.bidSeq.append(self.bid)
+
+        # Don't update the bid sequence here. It was done in the player's
+        # notification code
         if player.playerRole == PlayerRole.OPENER:
             # The opener copies the game state from the notification
             if self.gameState.value > teamState.gameState.value:
                 teamState.gameState = self.gameState
         elif player.playerRole == PlayerRole.RESPONDER:
-            # The responder sets the game state
-            if teamState.fitSuit == Suit.ALL:
-                teamState.gameState == GameState.UNKNOWN
+            # The responder sets the game state            
+            if teamState.fitSuit.isMinor():
+                minGamePts = 29
+            else: 
+                minGamePts = 26
+            if teamState.teamMinPts < minGamePts:
+                teamState.gameState = GameState.PARTSCORE
+            elif teamState.teamMinPts < 33:
+                teamState.gameState = GameState.GAME
+            elif teamState.teamMinPts < 36:
+                teamState.gameState = GameState.SMALL_SLAM
             else:
-                if teamState.fitSuit.isMinor():
-                    minGamePts = 29
-                else: 
-                    minGamePts = 26
-                if teamState.teamMinPts < minGamePts:
-                    teamState.gameState = GameState.PARTSCORE
-                elif teamState.teamMinPts < 33:
-                    teamState.gameState = GameState.GAME
-                elif teamState.teamMinPts < 36:
-                    teamState.gameState = GameState.SMALL_SLAM
-                else:
-                    teamState.gameState = GameState.LARGE_SLAM
-                
+                teamState.gameState = GameState.LARGE_SLAM
+            Log.write("%s set game state to %s\n" % (player.pos.name, teamState.gameState.name))    
                         
     
 

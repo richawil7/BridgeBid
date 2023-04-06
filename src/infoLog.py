@@ -7,8 +7,12 @@ logging facility.
 import os
 
 class Log():
-    log_fp = open("../logs/info.log", 'w')
+    log_fp = None
 
+    @classmethod
+    def open(cls):
+        cls.log_fp = open("../logs/info.log", 'w')
+        
     @classmethod
     def write(cls, formatStr):
         cls.log_fp.write(formatStr)

@@ -8,8 +8,18 @@ from utils import *
 from card import Card
 from cardPile import CardPile
 
-def findLargestBid(table):
+# Find the largest bid at the table
+def findLargestTableBid(table):
     bidsList = table.bidsList
+    return findLargestBid(bidsList)
+
+# Find the largest bid by my team
+def findLargestTeamBid(player):
+    bidsList = player.teamState.bidSeq
+    return findLargestBid(bidsList)
+
+# Find the largest bid in a sequence of bids
+def findLargestBid(bidsList):
     # Find the largest bid in the list
     maxLevel = 0
     maxSuit = Suit.CLUB
@@ -18,12 +28,28 @@ def findLargestBid(table):
             maxLevel = bid[0]
             maxSuit = bid[1]            
         elif bid[0] == maxLevel:
-            if bid[1].value > maxSuit.value:
+            if bid[1].value < maxSuit.value:
                 maxSuit = bid[1]
     bidStr = getBidStr(maxLevel, maxSuit)
-    # print("Largest bid is %s" % bidStr)
     return (maxLevel, maxSuit)
 
+
+# Given a proposed suit, find the lowest allowed level at which the suit
+# can be bid
+def getNextLowestBid(table, suit):
+    # Find the highest bid on the table so far
+    (maxLevel, maxSuit) = findLargestTableBid(table)
+    if suit.value < maxSuit.value:
+        # Can bid proposed suit at current level
+        return maxLevel
+    else:
+        # Must bid the suit at the next higher level
+        if maxLevel < 6:
+            return maxLevel + 1
+        else:
+            return 0
+
+    
 # Given a suit and a number of total points for the team,
 # returns a recommended bid level
 def getBidLevel(teamPoints, suit):
@@ -36,7 +62,7 @@ def getBidLevel(teamPoints, suit):
     elif teamPoints < 26:
         return 3
     elif teamPoints < 29:
-        if suit.isMinor():
+        if isMinor(suit):
             return 3
         else:
             return 4 
@@ -51,7 +77,8 @@ def getBidLevel(teamPoints, suit):
 def getPointRange(player, bidSuit):
         if player.playerRole == PlayerRole.RESPONDER:
             (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
-            if suit == Suit.NOTRUMP:
+            totalPts = hcPts + distPts
+            if bidSuit == Suit.NOTRUMP:
                 if totalPts >= 0 and totalPts <= 6:
                     return (0, 6)
                 elif totalPts >= 7 and totalPts <= 8:
@@ -74,7 +101,7 @@ def getPointRange(player, bidSuit):
             # I am the opener, or the would-be opener
             (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_LONG)
             totalPts = hcPts + distPts
-            if suit == Suit.NOTRUMP:
+            if bidSuit == Suit.NOTRUMP:
                 if totalPts >= 15 and totalPts <= 17:
                     return (15, 17)
                 elif totalPts >= 18 and totalPts <= 19:

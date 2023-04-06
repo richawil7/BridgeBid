@@ -33,6 +33,7 @@ class CardTable():
         self.responderRegistry = ResponderRegistry()
         self.openerRebidRegistry = OpenerRebidRegistry()
         self.bidsList = []
+        self.highestBid = (0, Suit.ALL)
         self.roundNum = 0
         self.hasOpener = False
         self.currentPos = TablePosition.CONTROL
@@ -54,6 +55,7 @@ class CardTable():
 
     def startHand(self):
         # Open a file for information logging
+        Log.open()
         if self.guiEnabled:
             Log.write("Start of a new hand\n")
         self.handDone = False
@@ -214,8 +216,28 @@ class CardTable():
         self.outstandingBidReq = False
         if bidLevel > 0 and self.hasOpener == False:
             self.hasOpener = True
+
+        # Verify this bid is higher than the previous highest bid
+        if bidLevel > 0:
+            if bidLevel < self.highestBid[0]:
+                print("bidResponse: invalid bid of %s" % bidStr)
+            elif bidLevel == self.highestBid[0] and bidSuit.value >= self.highestBid[1].value:
+                print("bidResponse: invalid bid of %s" % bidStr)
+            self.highestBid = bidNotif.bid
+            
+        # Record the bid on both the table and bidder's bid list
         self.bidsList.append((bidLevel, bidSuit))
         
+        player = self.players[bidder]
+        player.teamState.bidSeq.append((bidLevel, bidSuit))
+        # The bidder's partner will be updated via a bid notification
+
+        # Check if the computer and human agreed on this bid
+        if player.isHuman:
+            if bidLevel != player.lastBid[0] or bidSuit != player.lastBid[1]:
+                computerBidStr = getBidStr(player.lastBid[0], player.lastBid[1])
+                print("Computer bid %s != Human bid %s" % (computerBidStr, bidStr))
+                
         # Update the GUI bid board with this player's bid
         if self.guiEnabled:
             self.guiTable.updateBids(self.currentPos, bidLevel, bidSuit)
@@ -265,9 +287,11 @@ class CardTable():
             self.guiTable.processHandDone()
 
         # Close the logging file
+        print("Hand completed")
+        Log.write("Hand completed\n")
         Log.close()
 
-        # Delete the previously saved log file
+        # Rotate the info log to the save log
         Log.rotate()
 
 

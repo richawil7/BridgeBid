@@ -39,7 +39,7 @@ class TeamState:
             bidSeqStr += bidStr + "-"
         Log.write("Team state for bid sequence %s\n" % bidSeqStr)
         Log.write("Fit suit:\t\t%s\n" % self.fitSuit.name)
-        Log.write("Candidate suit:\t%s\n" % self.candidateSuit[1])
+        Log.write("Candidate suit:\t%s\n" % self.candidateSuit.name)
         for suit, fit in self.suitState.items():
             Log.write("\t%s:\t%s\n" % (suit.name, fit.name))
             

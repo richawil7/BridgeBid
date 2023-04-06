@@ -99,7 +99,7 @@ def nonNodeBidHandler(table, player):
 
     # Did I receive a shut up bid from partner and now should pass?
     if player.teamState.force == Force.PASS:
-        bidNotif = BidNotif(proposedBidLevel, proposedBidSuit)
+        bidNotif = BidNotif(0, Suit.ALL)
         (minPts, maxPts) = getPointRange(player, proposedBidSuit)
         bidNotif.setPoints(minPts, maxPts)
         bidNotif.setConv(Conv.NATURAL)
@@ -107,7 +107,25 @@ def nonNodeBidHandler(table, player):
         bidNotif.setSuitState(player.teamState.suitState)
         bidNotif.setGameState(player.teamState.gameState)
         return bidNotif
-        
+
+    # What is our team's highest bid so far
+    teamBid = findLargestTeamBid(player)
+    
+    # Have we achieved our target game state? If so, we can pass.
+    if ts.gameState == GameState.LARGE_SLAM and teamBid[0] == 7:
+        bidNotif = BidNotif(0, Suit.ALL)
+    elif ts.gameState == GameState.SMALL_SLAM and teamBid[0] == 6:
+        bidNotif = BidNotif(0, Suit.ALL)
+    elif ts.gameState == GameState.GAME:
+        if teamBid[1] == Suit.NOTRUMP and teamBid[0] >= 3:
+            bidNotif = BidNotif(0, Suit.ALL)
+        elif teamBid[1].isMinor() and teamBid[0] >= 5:
+            bidNotif = BidNotif(0, Suit.ALL)
+        elif teamBid[1].isMajor() and teamBid[0] >= 4:
+            bidNotif = BidNotif(0, Suit.ALL)
+    elif ts.gameState == GameState.PARTSCORE and teamBid[0] >= 1:
+            bidNotif = BidNotif(0, Suit.ALL)
+
     # If we get here, the bid is natural
     # Do we have a fit?
     if ts.fitSuit == Suit.ALL:
@@ -124,27 +142,26 @@ def nonNodeBidHandler(table, player):
             proposedBidSuit = Suit.SPADE
         else:
             proposedBidSuit = Suit.NOTRUMP
+            
         # What is lowest level I can bid the proposed suit?
         proposedBidLevel = getNextLowestBid(table, proposedBidSuit)
         
-        bidNotif = BidNotif(proposedBidLevel, proposedBidSuit)
-        (minPts, maxPts) = getPointRange(player, proposedBidSuit)
-        bidNotif.setPoints(minPts, maxPts)
-        bidNotif.setConv(Conv.NATURAL)
-        bidNotif.setForce(Force.ONE_ROUND)
-        bidNotif.setSuitState(player.teamState.suitState)
-        bidNotif.setGameState(player.teamState.gameState)
+        bidNotif = BidNotif(proposedBidLevel, proposedBidSuit, player.teamState)
+        bidNotif.minPoints, bidNotif.maxPoints = getPointRange(player, proposedBidSuit)
+        bidNotif.convention = Conv.NATURAL
+        bidNotif.force = Force.ONE_ROUND
+        bidNotif.suitState[proposedBidSuit] = FitState.CANDIDATE
         return bidNotif
     
     # If we get here, we have a known fit
     # Get the recommended bid levels for the team's point range
-    minLevel = getBidLevel(teamMinPoints, suit)
-    maxLevel = getBidLevel(teamMaxPoints, suit)
+    minLevel = getBidLevel(ts.teamMinPoints, ts.fitSuit)
+    maxLevel = getBidLevel(ts.teamMaxPoints, ts.fitSuit)
     
     # Compare the teamMaxPts against the game levels
-    if maxLevel >= 6 and fitSuit != Suit.ALL and ts.partnerNumAces == 4:
+    if maxLevel >= 6 and ts.fitSuit != Suit.ALL and ts.partnerNumAces == 4:
         # Explore large slam by asking for kings
-        if fitSuit == Suit.NOTRUMP:
+        if ts.fitSuit == Suit.NOTRUMP:
             Log.write("nonNodeBid: gerber req for Kings by %s\n" % player.pos.name)
             bidNotif = BidNotif(5, Suit.CLUB)
             bidNotif.setConv(Conv.GERBER)
@@ -153,9 +170,9 @@ def nonNodeBidHandler(table, player):
             bidNotif = BidNotif(6, Suit.NOTRUMP)
             bidNotif.setConv(Conv.BLACKWOOD)
     
-    if maxLevel >= 6 and fitSuit != Suit.ALL:
+    if maxLevel >= 6 and ts.fitSuit != Suit.ALL:
         # Explore small slam
-        if fitSuit == Suit.NOTRUMP:
+        if ts.fitSuit == Suit.NOTRUMP:
             Log.write("nonNodeBid: gerber req for Aces by %s\n" % player.pos.name)
             bidNotif = BidNotif(4, Suit.CLUB)
             bidNotif.setConv(Conv.GERBER)
@@ -163,7 +180,7 @@ def nonNodeBidHandler(table, player):
             Log.write("nonNodeBid: blackwood req for Aces by %s\n" % player.pos.name)
             bidNotif = BidNotif(4, Suit.NOTRUMP)
             bidNotif.setConv(Conv.BLACKWOOD)
-        (minPts, maxPts) = getPointRange(player, fitSuit)
+        (minPts, maxPts) = getPointRange(player, ts.fitSuit)
         bidNotif.setPoints(minPts, maxPts)
         bidNotif.setForce(Force.ONE_ROUND)
         bidNotif.setSuitState(player.teamState.suitState)
@@ -171,6 +188,9 @@ def nonNodeBidHandler(table, player):
         return bidNotif
         
     # If we get here, this is a natural bid
+    # What is lowest level I can bid the fit suit?
+    proposedBidLevel = getNextLowestBid(table, ts.fitSuit)
+    
     # Now determine where the proposedBidLevel lies wrt the min and maxLevel
     if proposedBidLevel < minLevel:
         actualBidLevel = minLevel
@@ -180,8 +200,8 @@ def nonNodeBidHandler(table, player):
         actualBidLevel = Pass
         
     # Build the notification for a natural bid
-    bidNotif = BidNotif(actualBidLevel, fitSuit)
-    (minPts, maxPts) = getPointRange(player, fitSuit)
+    bidNotif = BidNotif(actualBidLevel, ts.fitSuit)
+    (minPts, maxPts) = getPointRange(player, ts.fitSuit)
     bidNotif.setPoints(minPts, maxPts)
     bidNotif.setConv(Conv.NATURAL)
     bidNotif.setForce(Force.NONE)
