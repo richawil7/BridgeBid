@@ -3,7 +3,7 @@ Functions used for generating bids
 '''
 
 from infoLog import Log
-from enums import Suit, Level, DistMethod, PlayerRole
+from enums import Suit, Level, DistMethod, PlayerRole, GameState
 from utils import *
 from card import Card
 from cardPile import CardPile
@@ -51,27 +51,58 @@ def getNextLowestBid(table, suit):
 
     
 # Given a suit and a number of total points for the team,
-# returns a recommended bid level
-def getBidLevel(teamPoints, suit):
+# returns a recommended bid level and game state
+def getBidLevelAndState(teamPoints, suit):
     if teamPoints < 20:
-        return 0
+        return (0, GameState.PARTSCORE)
     elif teamPoints < 22:
-        return 1
+        return (1, GameState.PARTSCORE)
     elif teamPoints < 24:
-        return 2
+        return (2, GameState.PARTSCORE)
     elif teamPoints < 26:
-        return 3
+        return (3, GameState.PARTSCORE)
     elif teamPoints < 29:
         if isMinor(suit):
-            return 3
+            return (3, GameState.PARTSCORE)
         else:
-            return 4 
+            return (4, GameState.GAME) 
     elif teamPoints < 32:
-        return 5
+        if isMinor(suit):
+            return (5, GameState.GAME)
+        elif isMajor(suit):
+            return (4, GameState.GAME) 
+        else:
+            return (3, GameState.GAME) 
     elif teamPoints < 35:
-        return 6
-    return 7
+        return (6, GameState.SMALL_SLAM)
+    return (7, GameState.LARGE_SLAM)
 
+# Return the game state associated with a bid
+def getGameStateOfBid(bid):
+    bidLevel = bid[0]
+    bidSuit = bid[1]
+    if bidLevel <= 2:
+        return GameState.PARTSCORE
+    elif bidLevel <= 3:
+        if bidSuit == Suit.NOTRUMP:
+            return GameState.GAME
+        else:
+            return GameState.PARTSCORE
+    elif bidLevel <= 4:
+        if bidSuit == Suit.NOTRUMP:
+            return GameState.GAME
+        elif isMajor(bidSuit):
+            return GameState.GAME
+        else:
+            return GameState.PARTSCORE
+    elif bidLevel <= 5:
+        return GameState.GAME
+    elif bidLevel <= 6:
+        return GameState.SMALL_SLAM
+    elif bidLevel <= 7:
+        return GameState.LARGE_SLAM
+            
+    
 # Returns the range of points implied by a bid
 # Only call this function when making a natural bid
 def getPointRange(player, bidSuit):
@@ -207,6 +238,26 @@ def getMyPlayerRole(table, player):
 
     return PlayerRole.UNKNOWN
 
+
+def amITheCaptain(player):
+    # The captain is usually the responder. But if the first bid was
+    # a pass, then the opener is the captain
+    ts = player.teamState
+
+    # Was the first bid a pass?
+    if ts.bidSeq[0][0] == 0:
+        if player.playerRole == PlayerRole.OPENER:
+            return True
+        else:
+            return False
+    else:
+        if player.playerRole == PlayerRole.RESPONDER:
+            return True
+        else:
+            return False
+
+
+        
 # FIX ME: dead code?
 # This function takes the bid list from the table and extracts only the
 # bids for the partnership to which the player belongs

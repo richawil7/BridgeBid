@@ -3,7 +3,7 @@ Module for generating an opening bid
 '''
 
 from infoLog import Log
-from enums import Suit, Level, DistMethod, SuitCategory
+from enums import Suit, Level, DistMethod, SuitCategory, Conv
 from utils import *
 from bidUtils import *
 from card import Card
@@ -40,6 +40,7 @@ class OpenerRegistry:
                 return bidNotif
 
         bidNotif = BidNotif(bidLevel, bidSuit, player.teamState)
+        bidNotif.convention = Conv.OPENING
         return bidNotif
         
 

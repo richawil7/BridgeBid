@@ -213,6 +213,18 @@ class CardTable():
         (bidLevel, bidSuit) = (bidNotif.bid[0], bidNotif.bid[1])        
         bidStr = getBidStr(bidLevel, bidSuit)
 
+        player = self.players[bidder]
+        if bidder == TablePosition.NORTH or bidder == TablePosition.SOUTH:
+            Log.write("BidRsp: %s as %s bids %s\n" % (bidder.name, player.playerRole.name, bidStr))
+        
+        # Check if the computer and human agreed on this bid
+        if player.isHuman:
+            if bidLevel != player.lastBid[0] or bidSuit != player.lastBid[1]:
+                computerBidStr = getBidStr(player.lastBid[0], player.lastBid[1])
+                print("Computer bid %s != Human bid %s" % (computerBidStr, bidStr))
+            # Overwrite the last bid with what the human bid
+            player.lastBid = (bidLevel, bidSuit)
+
         self.outstandingBidReq = False
         if bidLevel > 0 and self.hasOpener == False:
             self.hasOpener = True
@@ -228,15 +240,8 @@ class CardTable():
         # Record the bid on both the table and bidder's bid list
         self.bidsList.append((bidLevel, bidSuit))
         
-        player = self.players[bidder]
         player.teamState.bidSeq.append((bidLevel, bidSuit))
         # The bidder's partner will be updated via a bid notification
-
-        # Check if the computer and human agreed on this bid
-        if player.isHuman:
-            if bidLevel != player.lastBid[0] or bidSuit != player.lastBid[1]:
-                computerBidStr = getBidStr(player.lastBid[0], player.lastBid[1])
-                print("Computer bid %s != Human bid %s" % (computerBidStr, bidStr))
                 
         # Update the GUI bid board with this player's bid
         if self.guiEnabled:

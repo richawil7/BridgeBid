@@ -4,7 +4,7 @@ opening bid from the partner
 '''
 
 from infoLog import Log
-from enums import Suit, Level, DistMethod
+from enums import Suit, Level, DistMethod, Conv
 from utils import *
 from card import Card
 from cardPile import CardPile
@@ -162,9 +162,11 @@ class ResponderRegistry:
                 if suit == Suit.DIAMOND:
                     # 2 over 1
                     bidNotif = BidNotif(2, Suit.CLUB, player.teamState)
+                    bidNotif.convention = Conv.TWO_OVER_ONE
                     return bidNotif
                 else:
                     bidNotif = BidNotif(2, Suit.NOTRUMP, player.teamState)
+                    bidNotif.convention = Conv.TWO_OVER_ONE
                     return bidNotif
         else:
             # Can not support opener's minor
@@ -231,6 +233,7 @@ class ResponderRegistry:
                 if suit == Suit.DIAMOND:
                     # 2 over 1
                     bidNotif = BidNotif(2, Suit.CLUB, player.teamState)
+                    bidNotif.convention = Conv.TWO_OVER_ONE
                     return bidNotif
 
             if totalPts >= 13 and totalPts <= 15:
@@ -317,20 +320,25 @@ class ResponderRegistry:
                     if singleSuit != Suit.ALL:
                         # Splinter
                         bidNotif = BidNotif(4, singleSuit, player.teamState)
+                        bidNotif.convention = Conv.SPLINTER
                         return bidNotif
                     elif player.hand.isHandBalanced():
                         # Jacoby 2NT
                         bidNotif = BidNotif(2, Suit.NOTRUMP, player.teamState)
+                        bidNotif.convention = Conv.JACOBY_2NT             
                         return bidNotif
                 else:
                     # 2 over 1
                     if suitA.value < suit.value:
                         bidNotif = BidNotif(2, suitA, player.teamState)
+                        bidNotif.convention = Conv.TWO_OVER_ONE
                         return bidNotif
                     if suitB.value < suit.value:
                         bidNotif = BidNotif(2, suitB, player.teamState)
+                        bidNotif.convention = Conv.TWO_OVER_ONE
                         return bidNotif
                     bidNotif = BidNotif(2, Suit.CLUB, player.teamState)
+                    bidNotif.convention = Conv.TWO_OVER_ONE
                     return bidNotif
         else:
             # Do not have support for opener's major
@@ -356,25 +364,46 @@ class ResponderRegistry:
                 bidNotif = BidNotif(1, Suit.NOTRUMP, player.teamState)
                 return bidNotif
 
-            if totalPts >= 15 and totalPts <= 17:
-                ts.myMinPoints = 15
-                ts.myMaxPoints = 17
-                if player.hand.isHandBalanced() and player.hand.hasStoppers() and numBidSuit >= 2:
-                    bidNotif = BidNotif(3, Suit.NOTRUMP, player.teamState)
-                    return bidNotif
-
             if totalPts >= 13:
                 ts.myMinPoints = 13
-                ts.myMaxPoints = 27
-                # 2 over 1
-                if suitA.value < suit.value:
+                ts.myMaxPoints = 27                
+                # Can we bid 2 over 1? Need a long suit less than the bid suit
+                if suitA.value > suit.value:
                     bidNotif = BidNotif(2, suitA, player.teamState)
+                    bidNotif.convention = Conv.TWO_OVER_ONE
                     return bidNotif
-                if suitB.value < suit.value:
-                    bidNotif = BidNotif(2, suitA, player.teamState)
+                if suitB.value > suit.value:
+                    bidNotif = BidNotif(2, suitB, player.teamState)
+                    bidNotif.convention = Conv.TWO_OVER_ONE
                     return bidNotif
-                bidNotif = BidNotif(2, Suit.CLUB, player.teamState)
-                return bidNotif
+                
+                if player.hand.isHandBalanced():
+                    if totalPts >= 13 and totalPts <= 15:
+                        ts.myMinPoints = 13
+                        ts.myMaxPoints = 15
+                        bidNotif = BidNotif(2, Suit.NOTRUMP, player.teamState)
+                        return bidNotif
+                    if totalPts >= 16 and totalPts <= 18:
+                        ts.myMinPoints = 16
+                        ts.myMaxPoints = 18
+                        bidNotif = BidNotif(3, Suit.NOTRUMP, player.teamState)
+                        return bidNotif
+
+                # Just bid best suit up the line
+                if numCardsA > numCardsB:
+                    bidNotif = BidNotif(1, suitA, player.teamState)
+                    return bidNotif
+                elif numCardsB > numCardsA:
+                    bidNotif = BidNotif(1, suitB, player.teamState)
+                    return bidNotif
+                else:
+                    if suitA.value > suitB.value:
+                        bidNotif = BidNotif(1, suitA, player.teamState)
+                        return bidNotif
+                    else:
+                        bidNotif = BidNotif(1, suitB, player.teamState)
+                        return bidNotif
+                        
 
     @ResponderFunctions.register(command="rsp_1NT")    
     def open1NoTrumpRsp(self, table, player):
@@ -383,76 +412,25 @@ class ResponderRegistry:
         (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
 
-        # Do I have a 5+ card major?
+        # Do I have a 6+ card major?
         (numHearts, numHighHearts) = player.hand.evalSuitStrength(Suit.HEART)
-        if numHearts >= 5:
-            # Jacoby transfer
-            ts.myMinPoints = 0
-            ts.myMaxPoints = 27
-            bidNotif = BidNotif(2, Suit.DIAMOND, player.teamState)
-            return bidNotif
-        
         (numSpades, numHighSpades) = player.hand.evalSuitStrength(Suit.SPADE)
-        if numSpades >= 5:
-            # Jacoby transfer
-            ts.myMinPoints = 0
-            ts.myMaxPoints = 27
-            bidNotif = BidNotif(2, Suit.HEART, player.teamState)
-            return bidNotif
-        
-        if hcPts < 8:
-            ts.myMinPoints = 0
-            ts.myMaxPoints = 7
-            (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
-            if numCardsA >= 5 and suitA != Suit.CLUB:
-                bidNotif = BidNotif(2, suitA, player.teamState)
-                return bidNotif
-            else:
-                bidNotif = BidNotif(0, Suit.ALL, player.teamState)
-                return bidNotif
-
-        balancedHand = player.hand.isHandBalanced()
-        if balancedHand:
-            if numSpades >= 4 or numHearts >= 4:
-                if hcPts >= 8 and hcPts <= 9:
-                    ts.myMinPoints = 8
-                    ts.myMaxPoints = 9
-                    bidNotif = BidNotif(2, Suit.NOTRUMP, player.teamState)
-                    return bidNotif
-                elif hcPts >= 10 and hcPts <= 15:
-                    ts.myMinPoints = 10
-                    ts.myMaxPoints = 15
-                    bidNotif = BidNotif(3, Suit.NOTRUMP, player.teamState)
-                    return bidNotif
-                elif hcPts >= 16 and hcPts <= 17:
-                    ts.myMinPoints = 16
-                    ts.myMaxPoints = 17
-                    bidNotif = BidNotif(4, Suit.NOTRUMP, player.teamState)
-                    return bidNotif
-                elif hcPts >= 18 and hcPts <= 19:
-                    ts.myMinPoints = 18
-                    ts.myMaxPoints = 19
-                    bidNotif = BidNotif(6, Suit.NOTRUMP, player.teamState)
-                    return bidNotif
-                elif hcPts >= 20 and hcPts <= 21:
-                    ts.myMinPoints = 20
-                    ts.myMaxPoints = 21
-                    bidNotif = BidNotif(5, Suit.NOTRUMP, player.teamState)
-                    return bidNotif
-                elif hcPts >= 22:
-                    ts.myMinPoints = 22
-                    ts.myMaxPoints = 27
-                    bidNotif = BidNotif(7, Suit.NOTRUMP, player.teamState)
-                    return bidNotif
-
-        (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
+        if numHearts >= numSpades:
+            suitA = Suit.HEART
+        else:
+            suitA = Suit.SPADE
+            
         if numSpades >= 6 or numHearts >= 6:
             if hcPts >= 10 and hcPts <= 15:
                 ts.myMinPoints = 10
                 ts.myMaxPoints = 15
-                bidNotif = BidNotif(4, suitA, player.teamState)
+                if numHearts >= numSpades:
+                    bidNotif = BidNotif(4, Suit.HEART, player.teamState)
+                else:
+                    bidNotif = BidNotif(4, Suit.SPADE, player.teamState)
                 return bidNotif
 
+        # Do I have a 6+ card minor?
         (numDiamonds, numHighDiamonds) = player.hand.evalSuitStrength(Suit.DIAMOND)
         (numClubs, numHighClubs) = player.hand.evalSuitStrength(Suit.CLUB)
         if numDiamonds >= 6 or numClubs >= 6:
@@ -461,69 +439,97 @@ class ResponderRegistry:
                 ts.myMaxPoints = 27
                 bidNotif = BidNotif(3, Suit.NOTRUMP, player.teamState)
                 return bidNotif
-            else:
+
+        # Do I have a 5+ card major
+        if numSpades >= 5 or numHearts >= 5:
+            if hcPts < 8:
                 ts.myMinPoints = 0
                 ts.myMaxPoints = 7
-                if numDiamonds > numClubs:
+                # Jacoby transfer
+                if suitA == Suit.HEART:
                     bidNotif = BidNotif(2, Suit.DIAMOND, player.teamState)
                 else:
-                    bidNotif = BidNotif(2, Suit.CLUB, player.teamState)
+                    bidNotif = BidNotif(2, Suit.HEART, player.teamState)
+                bidNotif.convention = Conv.JACOBY_XFER
+                return bidNotif
+            elif hcPts >= 8 and hcPts <= 9:
+                ts.myMinPoints = 8
+                ts.myMaxPoints = 9
+                # Stayman
+                bidNotif = BidNotif(2, Suit.CLUB, player.teamState)
+                bidNotif.convention = Conv.STAYMAN
+                return bidNotif
+            elif hcPts >= 10:
+                ts.myMinPoints = 10
+                ts.myMaxPoints = 25
+                # Jacoby transfer
+                if suitA == Suit.HEART:
+                    bidNotif = BidNotif(2, Suit.DIAMOND, player.teamState)
+                else:
+                    bidNotif = BidNotif(2, Suit.HEART, player.teamState)
+                bidNotif.convention = Conv.JACOBY_XFER
                 return bidNotif
 
+        # Do I have a 4+ card major
         if numSpades >= 4 or numHearts >= 4:
             if hcPts >= 8:
                 ts.myMinPoints = 8
-                ts.myMaxPoints = 27
+                ts.myMaxPoints = 25
+                # Stayman
                 bidNotif = BidNotif(2, Suit.CLUB, player.teamState)
+                bidNotif.convention = Conv.STAYMAN
                 return bidNotif
-            else:
+
+        # If I get here, we don't have a 4+ card major
+        if numClubs >= 5:
+            bidNotif = BidNotif(2, Suit.SPADE, player.teamState)
+            bidNotif.convention = Conv.JACOBY_XFER
+            return bidNotif
+
+        # Natural bid from here on out
+        balancedHand = player.hand.isHandBalanced()
+        if balancedHand:
+            if hcPts <= 7:
                 ts.myMinPoints = 0
                 ts.myMaxPoints = 7
                 bidNotif = BidNotif(0, Suit.ALL, player.teamState)
                 return bidNotif
-
-        if numCardsA >= 5 and hcPts >= 10:
-            ts.myMinPoints = 10
-            ts.myMaxPoints = 27
-            bidNotif = BidNotif(3, suitA, player.teamState)
-            return bidNotif
-
-        if numSpades >= 5 or numHearts >= 5:
-            if totalPts >= 8 and totalPts <= 9:
+            if hcPts >= 8 and hcPts <= 9:
                 ts.myMinPoints = 8
                 ts.myMaxPoints = 9
-                bidNotif = BidNotif(2, Suit.CLUB, player.teamState)
+                bidNotif = BidNotif(2, Suit.NOTRUMP, player.teamState)
                 return bidNotif
-
-        if hcPts >= 8 and hcPts <= 9:
-            ts.myMinPoints = 8
-            ts.myMaxPoints = 9
-            bidNotif = BidNotif(2, Suit.NOTRUMP, player.teamState)
-            return bidNotif
-        elif hcPts >= 10 and hcPts <= 15:
-            ts.myMinPoints = 10
-            ts.myMaxPoints = 15
-            bidNotif = BidNotif(3, Suit.NOTRUMP, player.teamState)
-            return bidNotif
-        elif hcPts >= 16 and hcPts <= 17:
-            ts.myMinPoints = 16
-            ts.myMaxPoints = 17
-            bidNotif = BidNotif(4, Suit.NOTRUMP, player.teamState)
-            return bidNotif
-        elif hcPts >= 18 and hcPts <= 19:
-            ts.myMinPoints = 18
-            ts.myMaxPoints = 19
-            bidNotif = BidNotif(6, Suit.NOTRUMP, player.teamState)
-            return bidNotif
-        elif hcPts >= 20 and hcPts <= 21:
-            ts.myMinPoints = 20
-            ts.myMaxPoints = 21
-            bidNotif = BidNotif(5, Suit.NOTRUMP, player.teamState)
-            return bidNotif
-        elif hcPts >= 22:
-            ts.myMinPoints = 22
-            ts.myMaxPoints = 27
-            bidNotif = BidNotif(7, Suit.NOTRUMP, player.teamState)
+            elif hcPts >= 10 and hcPts <= 15:
+                ts.myMinPoints = 10
+                ts.myMaxPoints = 15
+                bidNotif = BidNotif(3, Suit.NOTRUMP, player.teamState)
+                return bidNotif
+            elif hcPts >= 16 and hcPts <= 17:
+                ts.myMinPoints = 16
+                ts.myMaxPoints = 17
+                bidNotif = BidNotif(4, Suit.NOTRUMP, player.teamState)
+                return bidNotif
+            elif hcPts >= 18 and hcPts <= 19:
+                ts.myMinPoints = 18
+                ts.myMaxPoints = 19
+                bidNotif = BidNotif(6, Suit.NOTRUMP, player.teamState)
+                return bidNotif
+            elif hcPts >= 20 and hcPts <= 21:
+                ts.myMinPoints = 20
+                ts.myMaxPoints = 21
+                bidNotif = BidNotif(5, Suit.NOTRUMP, player.teamState)
+                return bidNotif
+            elif hcPts >= 22:
+                ts.myMinPoints = 22
+                ts.myMaxPoints = 27
+                bidNotif = BidNotif(7, Suit.NOTRUMP, player.teamState)
+                return bidNotif
+            
+        # Not a balanced hand    
+        if hcPts <= 7:
+            ts.myMinPoints = 0
+            ts.myMaxPoints = 7
+            bidNotif = BidNotif(0, Suit.ALL, player.teamState)
             return bidNotif
 
     @ResponderFunctions.register(command="rsp_2C")
@@ -662,66 +668,76 @@ class ResponderRegistry:
         ts = player.teamState
         (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
-        (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
+
+        # Do I have a 6+ card major?
+        (numHearts, numHighHearts) = player.hand.evalSuitStrength(Suit.HEART)
+        (numSpades, numHighSpades) = player.hand.evalSuitStrength(Suit.SPADE)
+        if numHearts >= numSpades:
+            suitA = Suit.HEART
+        else:
+            suitA = Suit.SPADE
+            
+        if numSpades >= 5 or numHearts >= 5:
+            ts.myMinPoints = 0
+            ts.myMaxPoints = 20
+            # Jacoby transfer
+            if suitA == Suit.HEART:
+                bidNotif = BidNotif(2, Suit.DIAMOND, player.teamState)
+            else:
+                bidNotif = BidNotif(2, Suit.HEART, player.teamState)
+            bidNotif.convention = Conv.JACOBY_XFER
+            return bidNotif
+
+        # Do I have a 4+ card major
+        if numSpades >= 4 or numHearts >= 4:
+            if hcPts >= 6:
+                ts.myMinPoints = 6
+                ts.myMaxPoints = 20
+                # Stayman
+                bidNotif = BidNotif(2, Suit.CLUB, player.teamState)
+                bidNotif.convention = Conv.STAYMAN
+                return bidNotif
+
+        (numClubs, numHighClubs) = player.hand.evalSuitStrength(Suit.CLUB)
+        if numClubs >= 5:
+            ts.myMinPoints = 0
+            ts.myMaxPoints = 20
+            # Jacoby transfer
+            bidNotif = BidNotif(2, Suit.SPADE, player.teamState)
+            bidNotif.convention = Conv.JACOBY_XFER
+            return bidNotif
+
+        # No 4 card major or 5 clubs
         if hcPts < 5:
             ts.myMinPoints = 0
             ts.myMaxPoints = 4
-            if numCardsA >= 6:
-                bidNotif = BidNotif(3, suitA, player.teamState)
-                return bidNotif
-                return (3, suitA)
-            else:
-                bidNotif = BidNotif(0, Suit.ALL, player.teamState)
-                return bidNotif
-
-        (numSpades, numHighSpades) = player.hand.evalSuitStrength(Suit.SPADE)
-        (numHearts, numHighHearts) = player.hand.evalSuitStrength(Suit.HEART)        
+            bidNotif = BidNotif(0, Suit.ALL, player.teamState)
+            return bidNotif
         if hcPts >= 5 and hcPts <= 11:
             ts.myMinPoints = 5
             ts.myMaxPoints = 11
-            if numSpades >= 6 or numHearts >= 6:
-                bidNotif = BidNotif(4, suitA, player.teamState)
-                return bidNotif
-
-        if hcPts >= 5:
-            ts.myMinPoints = 5
+            bidNotif = BidNotif(3, Suit.NOTRUMP, player.teamState)
+            return bidNotif
+        if hcPts == 12:
+            ts.myMinPoints = 12
+            ts.myMaxPoints = 12
+            bidNotif = BidNotif(4, Suit.NOTRUMP, player.teamState)
+            return bidNotif
+        if hcPts >= 13 and hcPts <= 15:
+            ts.myMinPoints = 13
+            ts.myMaxPoints = 15
+            bidNotif = BidNotif(6, Suit.NOTRUMP, player.teamState)
+            return bidNotif
+        if hcPts == 16:
+            ts.myMinPoints = 16
+            ts.myMaxPoints = 16
+            bidNotif = BidNotif(5, Suit.NOTRUMP, player.teamState)
+            return bidNotif
+        if hcPts >= 17:
+            ts.myMinPoints = 17
             ts.myMaxPoints = 20
-            if numSpades >= 4 or numHearts >= 4:
-                bidNotif = BidNotif(3, Suit.CLUB, player.teamState)
-                return bidNotif
-
-        balancedHand = player.hand.isHandBalanced()
-        if not balancedHand:
-            if numCardsA >= 5 and suitA != Suit.CLUB:
-                bidNotif = BidNotif(3, suitA, player.teamState)
-                return bidNotif
-
-        if numSpades >= 4 or numHearts >= 4:
-            if hcPts >= 5 and hcPts <= 11:
-                ts.myMinPoints = 5
-                ts.myMaxPoints = 11
-                bidNotif = BidNotif(3, Suit.NOTRUMP, player.teamState)
-                return bidNotif
-            if hcPts == 12:
-                ts.myMinPoints = 12
-                ts.myMaxPoints = 12
-                bidNotif = BidNotif(4, Suit.NOTRUMP, player.teamState)
-                return bidNotif
-            if hcPts >= 13 and hcPts <= 15:
-                ts.myMinPoints = 13
-                ts.myMaxPoints = 15
-                bidNotif = BidNotif(6, Suit.NOTRUMP, player.teamState)
-                return bidNotif
-            if hcPts == 16:
-                ts.myMinPoints = 16
-                ts.myMaxPoints = 16
-                bidNotif = BidNotif(5, Suit.NOTRUMP, player.teamState)
-                return bidNotif
-            if hcPts >= 17:
-                ts.myMinPoints = 17
-                ts.myMaxPoints = 20
-                bidNotif = BidNotif(7, Suit.NOTRUMP, player.teamState)
-                return bidNotif
+            bidNotif = BidNotif(7, Suit.NOTRUMP, player.teamState)
+            return bidNotif
 
     @ResponderFunctions.register(command="rsp_3NT")    
     def open3NoTrumpRsp(self, table, player):

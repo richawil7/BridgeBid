@@ -47,6 +47,8 @@ def getBidStr(bidLevel, bidSuit):
         bidStr += "S"
     elif bidSuit == Suit.NOTRUMP:
         bidStr += "N"
+    else:
+        bidStr += "Unknown suit %d" % bidSuit.value
     return bidStr
 
 def isMinor(suit):

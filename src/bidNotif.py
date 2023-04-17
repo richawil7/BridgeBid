@@ -14,13 +14,12 @@ class BidNotif:
         self.bid = (bidLevel, bidSuit)
         self.minPoints = teamState.myMinPoints
         self.maxPoints = teamState.myMaxPoints
-        self.convention = teamState.convention
+        self.convention = Conv.NATURAL
         self.force = teamState.force
         self.suitState = teamState.suitState.copy()
         self.gameState = teamState.gameState
 
     def processBlackwoodResponse(self):
-        print("processBlackwoodResponse")
         if self.bid[0] == 5:
             if self.bid[1] == Suit.CLUB:
                 self.partnerNumAces = 4
@@ -41,7 +40,6 @@ class BidNotif:
                 self.partnerNumKings = 3
 
     def processGerberResponse(self):
-        print("processBlackwoodResponse")
         if self.bid[0] == 4:
             if self.bid[1] == Suit.DIAMOND:
                 self.partnerNumAces = 4
@@ -106,14 +104,17 @@ class BidNotif:
         teamState.teamMinPoints = teamState.partnerMinPoints + myTotalPts
         teamState.teamMaxPoints = teamState.partnerMaxPoints + myTotalPts
         
-        teamState.convention = self.convention
+        Log.write("notifHandler: convention is %s\n" % self.convention.name)
         if self.convention == Conv.BLACKWOOD:
             self.processBlackwoodResponse()
         elif self.convention == Conv.GERBER:
             self.processGerberResponse()
         elif self.convention == Conv.CUE_BID:
             self.processCuebidResponse()
-                    
+        elif self.convention == Conv.NATURAL:
+            pass
+        else:
+            print("notifHandler: did not handle convention %s" % self.convention.name)
         teamState.force = teamState.force
 
         # Don't update the bid sequence here. It was done in the player's

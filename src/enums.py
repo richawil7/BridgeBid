@@ -79,18 +79,13 @@ class Conv(Enum):
     NATURAL = 0
     OPENING = 1
     STAYMAN = 2
-    BEST_MAJOR = 3
-    JACOBY_XFER = 4
-    JACOBY_2NT = 5
-    TWO_OVER_ONE = 6
-    SPLINTER = 7
-    STRONG_2 = 8
-    WEAK_2 = 9
-    INVERTED_MINORS = 10
-    MAJOR_LIMIT = 11
-    CUE_BID = 12
-    BLACKWOOD = 13
-    GERBER = 14
+    JACOBY_XFER = 3
+    JACOBY_2NT = 4
+    TWO_OVER_ONE = 5
+    SPLINTER = 6
+    CUE_BID = 7
+    BLACKWOOD = 8
+    GERBER = 9
 
 class GameState(Enum):
     UNKNOWN = 0

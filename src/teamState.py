@@ -18,7 +18,7 @@ class TeamState:
         self.candidateSuit = Suit.ALL  # updated by bid node/handler
         self.myMinPoints = 0           # updated by bid node/handler
         self.myMaxPoints = 0           # updated by bid node/handler
-        self.convention = Conv.NATURAL # updated by bid node/handler
+        self.convention = Conv.NATURAL # updated by notif handler
         self.force = Force.NONE        # updated by bid node/handler
         self.competition = False       # updated by notif handler
         self.bidSeq = []               # bidder: bid, non-bidder: notif

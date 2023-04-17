@@ -85,13 +85,13 @@ class BridgePlayer(Player):
         elif roundNum >= 3:
             bidNotif = self.bidRound3(table)
         
+        # Store this bid
+        self.lastBid = bidNotif.bid
         (bidLevel, bidSuit) = (bidNotif.bid[0], bidNotif.bid[1])
         bidStr = getBidStr(bidLevel, bidSuit)
         
         # Only submit the bid if the computer is this player
         if not isHuman:
-            if self.pos == TablePosition.NORTH or self.pos == TablePosition.SOUTH:
-                Log.write("BidRsp: %s as %s bids %s\n" % (self.pos.name, self.playerRole.name, bidStr))
             self.table.bidResponse(self.pos, bidNotif)
         else:
             # This is the bid the computer thinks the human should make
@@ -122,9 +122,6 @@ class BridgePlayer(Player):
         else:
             # Call the handler function for the current team state
             bidNotif = table.openerRegistry.jump_table[self.bidNode.handler](table, self)
-            
-        # Save the most recent bid
-        self.lastBid = bidNotif.bid
         return bidNotif
 
 
@@ -175,8 +172,6 @@ class BridgePlayer(Player):
 
         else:
             print("bridgePlayer: bidRound2: Player %s has invalid role %d" % (self.pos.name, self.playerRole.value))
-
-        self.lastBid = bidNotif.bid
         return bidNotif
 
     
@@ -191,7 +186,6 @@ class BridgePlayer(Player):
             self.teamState.show()
             
         bidNotif = nonNodeBidHandler(table, self)
-        self.lastBid = bidNotif.bid
         return bidNotif
 
     
