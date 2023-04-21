@@ -164,7 +164,16 @@ class BridgePlayer(Player):
                 Log.write("Show team state for %s, prior to round 2 bid\n" % self.pos.name)
                 self.teamState.show()
             if numBids >= 3:
-                # Can't use bidding trees for responder rebid
+                # We don't have a bid node for the third bid
+                # But we still want to capture the last available bid node
+                if bidSeq[0][0] == 0:
+                    # First bid was a pass. Skip it.
+                    twoBidSeq = bidSeq[1:]
+                else:
+                    twoBidSeq = bidSeq[:-1]
+                
+                print("round2: 3+ bids: seq={} trunc={}".format(bidSeq, twoBidSeq))
+                self.bidNode = fetchBidTreeNode(twoBidSeq)
                 bidNotif = nonNodeBidHandler(table, self)
             else:
                 # Call the handler function for the current team state
@@ -184,6 +193,18 @@ class BridgePlayer(Player):
         if self.pos == TablePosition.NORTH or self.pos == TablePosition.SOUTH:
             Log.write("Show team state for %s, prior to round %d bid\n" % (self.pos.name, table.roundNum))
             self.teamState.show()
+
+            # We don't have a bid node for any round 3 bid
+            # But we still want to capture the last available bid node
+            bidSeq = self.teamState.bidSeq
+            if bidSeq[0][0] == 0:
+                # First bid was a pass. Skip it.
+                twoBidSeq = bidSeq[1:3]
+            else:
+                twoBidSeq = bidSeq[:2]
+            self.bidNode = fetchBidTreeNode(twoBidSeq)
+                
+            print("round3: seq={} trunc={}".format(bidSeq, twoBidSeq))
             
         bidNotif = nonNodeBidHandler(table, self)
         return bidNotif

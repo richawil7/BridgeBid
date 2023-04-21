@@ -450,14 +450,14 @@ class ResponderRegistry:
                     bidNotif = BidNotif(2, Suit.DIAMOND, player.teamState)
                 else:
                     bidNotif = BidNotif(2, Suit.HEART, player.teamState)
-                bidNotif.convention = Conv.JACOBY_XFER
+                bidNotif.convention = Conv.JACOBY_XFER_REQ
                 return bidNotif
             elif hcPts >= 8 and hcPts <= 9:
                 ts.myMinPoints = 8
                 ts.myMaxPoints = 9
                 # Stayman
                 bidNotif = BidNotif(2, Suit.CLUB, player.teamState)
-                bidNotif.convention = Conv.STAYMAN
+                bidNotif.convention = Conv.STAYMAN_REQ
                 return bidNotif
             elif hcPts >= 10:
                 ts.myMinPoints = 10
@@ -467,7 +467,7 @@ class ResponderRegistry:
                     bidNotif = BidNotif(2, Suit.DIAMOND, player.teamState)
                 else:
                     bidNotif = BidNotif(2, Suit.HEART, player.teamState)
-                bidNotif.convention = Conv.JACOBY_XFER
+                bidNotif.convention = Conv.JACOBY_XFER_REQ
                 return bidNotif
 
         # Do I have a 4+ card major
@@ -477,13 +477,13 @@ class ResponderRegistry:
                 ts.myMaxPoints = 25
                 # Stayman
                 bidNotif = BidNotif(2, Suit.CLUB, player.teamState)
-                bidNotif.convention = Conv.STAYMAN
+                bidNotif.convention = Conv.STAYMAN_REQ
                 return bidNotif
 
         # If I get here, we don't have a 4+ card major
         if numClubs >= 5:
             bidNotif = BidNotif(2, Suit.SPADE, player.teamState)
-            bidNotif.convention = Conv.JACOBY_XFER
+            bidNotif.convention = Conv.JACOBY_XFER_REQ
             return bidNotif
 
         # Natural bid from here on out
@@ -685,7 +685,7 @@ class ResponderRegistry:
                 bidNotif = BidNotif(2, Suit.DIAMOND, player.teamState)
             else:
                 bidNotif = BidNotif(2, Suit.HEART, player.teamState)
-            bidNotif.convention = Conv.JACOBY_XFER
+            bidNotif.convention = Conv.JACOBY_XFER_REQ
             return bidNotif
 
         # Do I have a 4+ card major
@@ -695,7 +695,7 @@ class ResponderRegistry:
                 ts.myMaxPoints = 20
                 # Stayman
                 bidNotif = BidNotif(2, Suit.CLUB, player.teamState)
-                bidNotif.convention = Conv.STAYMAN
+                bidNotif.convention = Conv.STAYMAN_REQ
                 return bidNotif
 
         (numClubs, numHighClubs) = player.hand.evalSuitStrength(Suit.CLUB)
@@ -704,7 +704,7 @@ class ResponderRegistry:
             ts.myMaxPoints = 20
             # Jacoby transfer
             bidNotif = BidNotif(2, Suit.SPADE, player.teamState)
-            bidNotif.convention = Conv.JACOBY_XFER
+            bidNotif.convention = Conv.JACOBY_XFER_REQ
             return bidNotif
 
         # No 4 card major or 5 clubs

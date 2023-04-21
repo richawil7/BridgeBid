@@ -2,7 +2,7 @@
     "teamRole": "OFFENSE",
     "fitSuit": "ALL",
     "candidateSuit": "ALL",
-    "convention": "STAYMAN",
+    "convention": "STAYMAN_REQ",
     "openerInfo": {
 	    "minPts": 20,
 	    "maxPts": 21,

@@ -3,12 +3,12 @@
 from enum import Enum
 
 class Suit(Enum):
-    ALL = 0
     NOTRUMP = 1
     SPADE = 2
     HEART = 3
     DIAMOND = 4
     CLUB = 5
+    ALL = 6
 
 class Level(Enum):
     LOW = 0
@@ -78,14 +78,18 @@ class Force(Enum):
 class Conv(Enum):
     NATURAL = 0
     OPENING = 1
-    STAYMAN = 2
-    JACOBY_XFER = 3
-    JACOBY_2NT = 4
-    TWO_OVER_ONE = 5
-    SPLINTER = 6
-    CUE_BID = 7
-    BLACKWOOD = 8
-    GERBER = 9
+    STAYMAN_REQ = 2
+    STAYMAN_RSP = 3
+    JACOBY_XFER_REQ = 4
+    JACOBY_XFER_RSP = 5
+    JACOBY_2NT = 6
+    TWO_OVER_ONE = 7
+    SPLINTER = 8
+    CUE_BID = 9
+    BLACKWOOD_REQ = 10
+    BLACKWOOD_RSP = 11
+    GERBER_RSP = 12
+    GERBER_REQ = 13
 
 class GameState(Enum):
     UNKNOWN = 0

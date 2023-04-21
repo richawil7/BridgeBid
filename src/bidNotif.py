@@ -19,6 +19,26 @@ class BidNotif:
         self.suitState = teamState.suitState.copy()
         self.gameState = teamState.gameState
 
+    def processStaymanResponse(self, player, teamState):
+        print("processStaymanResponse")
+        if self.bid[1] == Suit.DIAMOND and self.bid[0] == 2:
+            # No fit in major
+            teamState.suitState[Suit.HEART] = FitState.NO_SUPPORT
+            teamState.suitState[Suit.SPADE] = FitState.NO_SUPPORT
+        elif self.bid[1] == Suit.HEART:
+            # Do I have 4+ hearts
+            if player.hand.getNumCardsInSuit(Suit.HEART) >= 4:
+                teamState.suitState[Suit.HEART] = FitState.SUPPORT
+                teamState.fitSuit = Suit.HEART
+        elif self.bid[1] == Suit.SPADE:
+            # Do I have 4+ spades
+            if player.hand.getNumCardsInSuit(Suit.SPADE) >= 4:
+                teamState.suitState[Suit.SPADE] = FitState.SUPPORT
+                teamState.fitSuit = Suit.SPADE
+        
+    def processJacobyResponse(self, player):
+        print("processJacobyResponse: no action taken")
+    
     def processBlackwoodResponse(self):
         if self.bid[0] == 5:
             if self.bid[1] == Suit.CLUB:
@@ -60,7 +80,7 @@ class BidNotif:
                 self.partnerNumKings = 3
 
     def processCuebidResponse(self):
-        print("processCuebidResponse")
+        print("processCuebidResponse: no action taken")
 
         
     def notifHandler(self, player):
@@ -105,9 +125,13 @@ class BidNotif:
         teamState.teamMaxPoints = teamState.partnerMaxPoints + myTotalPts
         
         Log.write("notifHandler: convention is %s\n" % self.convention.name)
-        if self.convention == Conv.BLACKWOOD:
+        if self.convention == Conv.STAYMAN_RSP:
+            self.processStaymanResponse(player, teamState)
+        elif self.convention == Conv.JACOBY_XFER_RSP:
+            self.processJacobyResponse(player)
+        elif self.convention == Conv.BLACKWOOD_RSP:
             self.processBlackwoodResponse()
-        elif self.convention == Conv.GERBER:
+        elif self.convention == Conv.GERBER_RSP:
             self.processGerberResponse()
         elif self.convention == Conv.CUE_BID:
             self.processCuebidResponse()
@@ -115,7 +139,8 @@ class BidNotif:
             pass
         else:
             print("notifHandler: did not handle convention %s" % self.convention.name)
-        teamState.force = teamState.force
+        teamState.convention = self.convention
+        teamState.force = self.force
 
         # Don't update the bid sequence here. It was done in the player's
         # notification code

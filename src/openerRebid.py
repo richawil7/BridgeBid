@@ -4,7 +4,7 @@ a responding bid from the partner
 '''
 
 from infoLog import Log
-from enums import Suit, Level, DistMethod, FitState, Force, GameState
+from enums import Suit, Level, DistMethod, FitState, Force, GameState, Conv
 from utils import *
 from card import Card
 from cardPile import CardPile
@@ -660,7 +660,7 @@ class OpenerRebidRegistry:
                 ts.fitSuit = openingSuit
                 ts.candidateSuit = Suit.ALL
                 bidNotif = BidNotif(4, Suit.NOTRUMP, ts)
-                bidNotif.convention = Conv.BLACKWOOD
+                bidNotif.convention = Conv.BLACKWOOD_REQ
                 return bidNotif
         # Partner level = 2
         if totalPts <= 15:
@@ -862,7 +862,7 @@ class OpenerRebidRegistry:
             ts.candidateSuit = Suit.ALL
             ts.force = Force.GAME
             bidNotif = BidNotif(4, Suit.CLUB, ts)
-            bidNotif.convention = Conv.GERBER
+            bidNotif.convention = Conv.GERBER_REQ
             return bidNotif
         
         # How many points do I have?
@@ -1000,6 +1000,7 @@ class OpenerRebidRegistry:
         numCardsPartnersSuit = player.hand.getNumCardsInSuit(partnerSuit)
         if numCardsPartnersSuit >= 4:
             ts.setSuitState(partnerSuit, FitState.SUPPORT)
+            ts.fitSuit = partnerSuit
         else:
             ts.setSuitState(partnerSuit, FitState.NO_SUPPORT)
             
@@ -1086,27 +1087,27 @@ class OpenerRebidRegistry:
         if numHearts < 4 and numSpades < 4:
             ts.candidateSuit = Suit.DIAMOND
             bidNotif = BidNotif(2, Suit.DIAMOND, ts)
-            bidNotif.convention = Conv.STAYMAN
+            bidNotif.convention = Conv.STAYMAN_RSP
             return bidNotif
         if numHearts == 4 and numSpades == 4:
             ts.candidateSuit = Suit.HEART
             bidNotif = BidNotif(2, Suit.HEART, ts)
-            bidNotif.convention = Conv.STAYMAN
+            bidNotif.convention = Conv.STAYMAN_RSP
             return bidNotif
         if numHearts == 5 and numSpades == 5:
             ts.candidateSuit = Suit.SPADE
             bidNotif = BidNotif(2, Suit.SPADE, ts)
-            bidNotif.convention = Conv.STAYMAN
+            bidNotif.convention = Conv.STAYMAN_RSP
             return bidNotif
         if numHearts > numSpades:
             ts.candidateSuit = Suit.HEART
             bidNotif = BidNotif(2, Suit.HEART, ts)
-            bidNotif.convention = Conv.STAYMAN
+            bidNotif.convention = Conv.STAYMAN_RSP
             return bidNotif
         else:
             ts.candidateSuit = Suit.SPADE
             bidNotif = BidNotif(2, Suit.SPADE, ts)
-            bidNotif.convention = Conv.STAYMAN
+            bidNotif.convention = Conv.STAYMAN_RSP
             return bidNotif
         print("openRebid_1NT_2C: ERROR - should not reach here")
     
@@ -1126,12 +1127,30 @@ class OpenerRebidRegistry:
         if partnerSuit == Suit.DIAMOND:
             bidSuit = Suit.HEART
             bidLevel = 2
+            numCardsInSuit = player.hand.getNumCardsInSuit(Suit.HEART)
+            if numCardsInSuit >= 3:
+                ts.suitState[Suit.HEART] = FitState.SUPPORT
+                ts.fitSuit = Suit.HEART
+            else:
+                ts.suitState[Suit.HEART] = FitState.NO_SUPPORT
         elif partnerSuit == Suit.HEART:
             bidSuit = Suit.SPADE
             bidLevel = 2
+            numCardsInSuit = player.hand.getNumCardsInSuit(Suit.SPADE)
+            if numCardsInSuit >= 3:
+                ts.suitState[Suit.SPADE] = FitState.SUPPORT
+                ts.fitSuit = Suit.SPADE
+            else:
+                ts.suitState[Suit.SPADE] = FitState.NO_SUPPORT
         elif partnerSuit == Suit.SPADE:
             bidSuit = Suit.CLUB
             bidLevel = 3
+            numCardsInSuit = player.hand.getNumCardsInSuit(Suit.CLUB)
+            if numCardsInSuit >= 3:
+                ts.suitState[Suit.CLUB] = FitState.SUPPORT
+                ts.fitSuit = Suit.CLUB
+            else:
+                ts.suitState[Suit.CLUB] = FitState.NO_SUPPORT
         else:
             print("openerRebid_1NT_2W: ERROR-called with 2C response")
 
@@ -1142,6 +1161,7 @@ class OpenerRebidRegistry:
 
         ts.candidateSuit = bidSuit
         bidNotif = BidNotif(bidLevel, bidSuit, ts)
+        bidNotif.convention = Conv.JACOBY_XFER_RSP
         return bidNotif
         print("openRebid_1NT_2W: ERROR - should not reach here")
 
@@ -1208,6 +1228,7 @@ class OpenerRebidRegistry:
         numCardsPartnersSuit = player.hand.getNumCardsInSuit(partnerSuit)
         if numCardsPartnersSuit >= 3:
             ts.setSuitState(partnerSuit, FitState.SUPPORT)
+            ts.fitSuit = partnerSuit
         else:
             ts.setSuitState(partnerSuit, FitState.NO_SUPPORT)
         
@@ -1275,6 +1296,7 @@ class OpenerRebidRegistry:
         numCardsPartnersSuit = player.hand.getNumCardsInSuit(partnerSuit)
         if numCardsPartnersSuit >= 2:
             ts.setSuitState(partnerSuit, FitState.SUPPORT)
+            ts.fitSuit = partnerSuit
         else:
             ts.setSuitState(partnerSuit, FitState.NO_SUPPORT)
 
@@ -1530,27 +1552,27 @@ class OpenerRebidRegistry:
         if numHearts < 4 and numSpades < 4:
             ts.candidateSuit = Suit.DIAMOND
             bidNotif = BidNotif(3, Suit.DIAMOND, ts)
-            bidNotif.convention = Conv.STAYMAN
+            bidNotif.convention = Conv.STAYMAN_RSP
             return bidNotif
         if numHearts == 4 and numSpades == 4:
             ts.candidateSuit = Suit.HEART
             bidNotif = BidNotif(3, Suit.HEART, ts)
-            bidNotif.convention = Conv.STAYMAN
+            bidNotif.convention = Conv.STAYMAN_RSP
             return bidNotif
         if numHearts == 5 and numSpades == 5:
             ts.candidateSuit = Suit.SPADE
             bidNotif = BidNotif(3, Suit.SPADE, ts)
-            bidNotif.convention = Conv.STAYMAN
+            bidNotif.convention = Conv.STAYMAN_RSP
             return bidNotif
         if numHearts > numSpades:
             ts.candidateSuit = Suit.HEART
             bidNotif = BidNotif(3, Suit.HEART, ts)
-            bidNotif.convention = Conv.STAYMAN
+            bidNotif.convention = Conv.STAYMAN_RSP
             return bidNotif
         else:
             ts.candidateSuit = Suit.SPADE
             bidNotif = BidNotif(3, Suit.SPADE, ts)
-            bidNotif.convention = Conv.STAYMAN
+            bidNotif.convention = Conv.STAYMAN_RSP
             return bidNotif
         print("openRebid_2NT_3C: ERROR - should not reach here")
     
@@ -1566,14 +1588,28 @@ class OpenerRebidRegistry:
         if partnerSuit == Suit.DIAMOND:
             bidSuit = Suit.HEART
             bidLevel = 3
+            numCardsInSuit = player.hand.getNumCardsInSuit(Suit.HEART)
+            if numCardsInSuit >= 3:
+                ts.suitState[Suit.HEART] = FitState.SUPPORT
+                ts.fitSuit = Suit.HEART
+            else:
+                ts.suitState[Suit.HEART] = FitState.NO_SUPPORT
+            
         elif partnerSuit == Suit.HEART:
             bidSuit = Suit.SPADE
             bidLevel = 3
+            numCardsInSuit = player.hand.getNumCardsInSuit(Suit.SPADE)
+            if numCardsInSuit >= 3:
+                ts.suitState[Suit.SPADE] = FitState.SUPPORT
+                ts.fitSuit = Suit.SPADE
+            else:
+                ts.suitState[Suit.SPADE] = FitState.NO_SUPPORT
         else:
             print("openerRebid_2NT_3W: ERROR-called with 2C response")
 
         ts.candidateSuit = bidSuit
         bidNotif = BidNotif(bidLevel, bidSuit, ts)
+        bidNotif.convention = Conv.JACOBY_XFER_RSP
         return bidNotif
     
     @OpenerFunctions.register(command="openRebid_2NT_3NT")

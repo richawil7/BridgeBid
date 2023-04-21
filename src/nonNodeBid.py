@@ -37,7 +37,7 @@ def blackwoodHandler(player):
     (minPts, maxPts) = getPointRange(player, ts.fitSuit)
     bidNotif.minPoints = minPts
     bidNotif.maxPoints = maxPts
-    bidNotif.convention = Conv.BLACKWOOD
+    bidNotif.convention = Conv.BLACKWOOD_RSP
     bidNotif.force = Force.ONE_ROUND
     bidNotif.suitState = ts.suitState
     bidNotif.gameState = ts.gameState
@@ -77,7 +77,7 @@ def gerberHandler(player):
     (minPts, maxPts) = getPointRange(player, ts.fitSuit)
     bidNotif.minPoints = minPts
     bidNotif.maxPoints = maxPts
-    bidNotif.convention = Conv.GERBER
+    bidNotif.convention = Conv.GERBER_RSP
     bidNotif.force = Force.ONE_ROUND
     bidNotif.suitState = ts.suitState
     bidNotif.gameState = ts.gameState
@@ -91,13 +91,11 @@ def nonNodeBidHandler(table, player):
     # Does the team state show an active convention?
     convention = ts.convention
     ts.convention = Conv.NATURAL
-    if convention == Conv.BLACKWOOD:
+    if convention == Conv.BLACKWOOD_REQ:
         bidNotif = blackwoodHandler(player)
-        bidNotif.convention = Conv.BLACKWOOD
         return bidNotif
-    elif convention == Conv.GERBER:
+    elif convention == Conv.GERBER_REQ:
         bidNotif = gerberHandler(player)
-        bidNotif.convention = Conv.GERBER
         return bidNotif
     elif player.teamState.convention != Conv.NATURAL:
         print("nonNodeBidHandler: ERROR - convention %s not handled" % ts.convRsp.name)
@@ -119,6 +117,10 @@ def nonNodeBidHandler(table, player):
         bidNotif = captainBidHandler(table, player)
     else:
         bidNotif = describerBidHandler(table, player)
+
+    # Clear the force variable
+    player.teamState.force = Force.NONE
+    
     return bidNotif
 
 
@@ -164,8 +166,8 @@ def captainBidHandler(table, player):
     (minLevel, minGameState) = getBidLevelAndState(ts.teamMinPoints, proposedBidSuit)
     (maxLevel, maxGameState) = getBidLevelAndState(ts.teamMaxPoints, proposedBidSuit)
 
-    print("capt: Min level=%d state=%s" % (minLevel, minGameState.name))
-    print("capt: Max level=%d state=%s" % (maxLevel, maxGameState.name))
+    #print("capt: Min level=%d state=%s" % (minLevel, minGameState.name))
+    #print("capt: Max level=%d state=%s" % (maxLevel, maxGameState.name))
     
     lastTeamBid = findLargestTeamBid(player)
     bidGameState = getGameStateOfBid(lastTeamBid)
@@ -175,7 +177,7 @@ def captainBidHandler(table, player):
         force = Force.PASS
     elif bidGameState.value == minGameState.value and maxGameState.value > minGameState.value:
         force = Force.NONE
-    print("capt: force=%s" % (force.name))
+    #print("capt: force=%s" % (force.name))
 
     # Check if we should explore slam
     if maxLevel >= 6 and ts.fitSuit != Suit.ALL:
@@ -184,40 +186,46 @@ def captainBidHandler(table, player):
             if ts.fitSuit == Suit.NOTRUMP:
                 Log.write("nonNodeBid: gerber req for Kings by %s\n" % player.pos.name)
                 bidNotif = BidNotif(5, Suit.CLUB, ts)
-                bidNotif.convention = Conv.GERBER
+                bidNotif.convention = Conv.GERBER_REQ
             else:
                 Log.write("nonNodeBid: blackwood req for Kings by %s\n" % player.pos.name)
                 bidNotif = BidNotif(6, Suit.NOTRUMP, ts)
-                bidNotif.convention = Conv.BLACKWOOD
+                bidNotif.convention = Conv.BLACKWOOD_REQ
         else:
             # Explore small slam
             if ts.fitSuit == Suit.NOTRUMP:
                 Log.write("nonNodeBid: gerber req for Aces by %s\n" % player.pos.name)
                 bidNotif = BidNotif(4, Suit.CLUB, ts)
-                bidNotif.convention = Conv.GERBER
+                bidNotif.convention = Conv.GERBER_REQ
             else:
                 Log.write("nonNodeBid: blackwood req for Aces by %s\n" % player.pos.name)
                 bidNotif = BidNotif(4, Suit.NOTRUMP, ts)
-                bidNotif.convention = Conv.BLACKWOOD
+                bidNotif.convention = Conv.BLACKWOOD_REQ
 
         (minPts, maxPts) = getPointRange(player, ts.fitSuit)
         bidNotif.minPoints = minPts
         bidNotif.maxPoints = maxPts
         bidNotif.force = Force.ONE_ROUND
-        bidNotif.suitState = player.teamState.suitState
-        bidNotif.gameState = player.teamState.gameState
+        bidNotif.suitState = ts.suitState
+        bidNotif.gameState = ts.gameState
         return bidNotif
         
     # If we get here, this is a natural bid
     # Now determine where the proposedBidLevel lies wrt the min and maxLevel
+    force = Force.NONE
     if proposedBidLevel < minLevel:
-        actualBidLevel = proposedBidLevel
+        if ts.gameState == GameState.GAME:
+            actualBidLevel = minLevel
+            force = Force.PASS
+        else:
+            actualBidLevel = proposedBidLevel
     elif proposedBidLevel >= minLevel and proposedBidLevel <= maxLevel:
         actualBidLevel = proposedBidLevel
     elif proposedBidLevel > maxLevel:
         actualBidLevel = 0
+        force = Force.PASS
 
-    print("capt: proposed level=%d actual level=%d" % (proposedBidLevel, actualBidLevel))
+    print("capt: proposed level=%d actual level=%d force=%s" % (proposedBidLevel, actualBidLevel, force.name))
     
     # Build the notification for a natural bid
     bidNotif = BidNotif(actualBidLevel, proposedBidSuit, ts)
@@ -225,7 +233,7 @@ def captainBidHandler(table, player):
     bidNotif.minPoints = minPts
     bidNotif.maxPoints = maxPts
     bidNotif.convention = Conv.NATURAL
-    bidNotif.force = Force.NONE
+    bidNotif.force = force
     bidNotif.suitState[proposedBidSuit] = FitState.CANDIDATE
     bidNotif.suitState = ts.suitState
     bidNotif.gameState = ts.gameState
@@ -245,7 +253,7 @@ def describerBidHandler(table, player):
             proposedBid = (0, Suit.ALL)
 
     elif ts.force == Force.NONE:
-        (hcPts, distPts) = player.hand.evalHand(HCP_SHORT)
+        (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
         # Compare my actual points against the advertised point range
         rangeSize = ts.myMaxPoints - ts.myMinPoints

@@ -2,7 +2,7 @@
     "teamRole": "OFFENSE",
     "fitSuit": "ALL",
     "candidateSuit": "HEART",
-    "convention": "JACOBY_XFER",
+    "convention": "JACOBY_XFER_REQ",
     "openerInfo": {
 	    "minPts": 15,
 	    "maxPts": 17,
