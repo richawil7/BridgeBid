@@ -50,6 +50,7 @@ class PlayerRole(Enum):
     UNKNOWN = 0,
     OPENER = 1,
     RESPONDER = 2
+    NONE = 3
     
 class SuitCategory(Enum):
     xxx = 0
@@ -66,14 +67,12 @@ class FitState(Enum):
     CANDIDATE = 1
     NO_SUPPORT = 2
     SUPPORT = 3
-    PLAY = 4
     
 class Force(Enum):
     NONE = 0
     PASS = 1
     ONE_ROUND = 2
     GAME = 3
-    SLAM = 4
 
 class Conv(Enum):
     NATURAL = 0

@@ -27,8 +27,8 @@ class TeamState:
         self.gameState = GameState.UNKNOWN # updated by bid node/handler
         self.partnerMinPoints = 0      # updated by notification handler
         self.partnerMaxPoints = 0      # updated by notification handler
-        self.partnerNumAces = 0        # updated by notification handler
-        self.partnerNumKings = 0       # updated by notification handler
+        self.partnerNumAces = -1       # updated by notification handler
+        self.partnerNumKings = -1      # updated by notification handler
         self.teamMinPoints = 0         # updated by notification handler
         self.teamMaxPoints = 0         # updated by notification handler
 
@@ -45,6 +45,7 @@ class TeamState:
             
         Log.write("\tConvention: %s\n" % self.convention.name)
         Log.write("\tForce type: %s\n" % self.force.name)
+        Log.write("\tPartner number of Aces = %d\n" % self.partnerNumAces)
         
         Log.write("\tMy min points = %d\n" % self.myMinPoints)
         Log.write("\tMy max points = %d\n" % self.myMaxPoints)
@@ -57,7 +58,13 @@ class TeamState:
     # Merge the information from a bidding tree node into the team state
     def mergeTreeNode(self, player, bidTreeNode, playerRole):
         self.convention = bidTreeNode.convention
-        self.force = bidTreeNode.force
+        # Bid nodes can have a game force entry. But team states model
+        # this as a game state, not a force state
+        if bidTreeNode.force == Force.GAME:
+            self.gameState = GameState.GAME
+            self.force = Force.ONE_ROUND
+        else:
+            self.force = bidTreeNode.force
         if playerRole == PlayerRole.RESPONDER:
             self.myMinPoints = bidTreeNode.responderMinPoints
             self.myMaxPoints = bidTreeNode.responderMaxPoints
@@ -77,9 +84,8 @@ class TeamState:
         totalPts = hcPts + distPts 
         self.teamMinPoints = self.partnerMinPoints + totalPts
         self.teamMaxPoints = self.partnerMaxPoints + totalPts
-
-        
-    def addTeamBid(self, level, suit):
+     
+    def addTeamBid(self, bid):
         self.bidSeq.append((level, suit))
 
     def setSuitState(self, suit, fit):

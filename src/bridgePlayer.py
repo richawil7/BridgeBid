@@ -26,7 +26,7 @@ class BridgePlayer(Player):
         self.playerRole = PlayerRole.UNKNOWN
         self.hand = BridgeHand(position)
         self.teamState = TeamState()
-        self.lastBid = (Level.LOW, Suit.ALL)
+        self.lastNotif = None
         self.bidNode = BidNode()
         
 
@@ -86,28 +86,31 @@ class BridgePlayer(Player):
             bidNotif = self.bidRound3(table)
         
         # Store this bid
-        self.lastBid = bidNotif.bid
+        self.lastNotif = bidNotif
         (bidLevel, bidSuit) = (bidNotif.bid[0], bidNotif.bid[1])
         bidStr = getBidStr(bidLevel, bidSuit)
-        
-        # Only submit the bid if the computer is this player
         if not isHuman:
+            Log.write("BidRsp: %s bids %s\n" % (self.pos.name, bidStr))
+            # Only submit the bid if the computer is this player
             self.table.bidResponse(self.pos, bidNotif)
         else:
             # This is the bid the computer thinks the human should make
             Log.write("BidRsp: Computer thinks human should bid %s\n" % bidStr)
-           
+
+        if bidNotif.bid[0] != 0 or self.teamState.bidSeq[-1][0] != 0:    
+            bidNotif.show()
+
+        
     def bidRound1(self, table):
         # Figure out this player's bidding role
         self.playerRole = getMyPlayerRole(table, self)
         
         # Get the sequence of bids made by this partnership
-        #bidSeq = getTeamBidSequence(table, self.pos)
         bidSeq = self.teamState.bidSeq
-
+        
         # Fetch the bid node from the bidding tree for this bid sequence
         self.bidNode = fetchBidTreeNode(bidSeq)
-
+  
         # Merge the bid tree node info into the team state
         self.teamState.mergeTreeNode(self, self.bidNode, self.playerRole)
 
@@ -122,12 +125,19 @@ class BridgePlayer(Player):
         else:
             # Call the handler function for the current team state
             bidNotif = table.openerRegistry.jump_table[self.bidNode.handler](table, self)
+
+        # Update the bid notification using the bid node information
+        print("round1: cur bid seq = {}".format(self.teamState.bidSeq))
+        newBidSeq = self.teamState.bidSeq.copy()
+        newBidSeq.append(bidNotif.bid)
+        print("round1: next bid seq = {}".format(newBidSeq))
+        nextBidNode = fetchBidTreeNode(newBidSeq)
+        bidNotif.updateWithBidnode(self, nextBidNode)
         return bidNotif
 
-
+        
     def bidRound2(self, table):
         # Get the sequence of bids made by this partnership
-        #bidSeq = getTeamBidSequence(table, self.pos)
         bidSeq = self.teamState.bidSeq
         numBids = len(bidSeq)
         # Check if the first bid was a pass
@@ -139,31 +149,46 @@ class BridgePlayer(Player):
         if self.playerRole == PlayerRole.UNKNOWN:
             self.playerRole = getMyPlayerRole(table, self)
 
-        if self.playerRole == PlayerRole.UNKNOWN:
-            # print("bridgePlayer: bidRound2: Player %s STILL has unknown role %s" % (self.pos.name, self.playerRole.name))
+        if self.playerRole == PlayerRole.NONE:
             bidNotif = BidNotif(0, Suit.ALL, self.teamState)
             return bidNotif
+
+        # FIX ME - debugging
+        if self.pos == TablePosition.NORTH or self.pos == TablePosition.SOUTH:
+            Log.write("Show team state for %s, prior to round 2 bid\n" % self.pos.name)
+            self.teamState.show()
             
-        elif self.playerRole == PlayerRole.OPENER:
+        if self.playerRole == PlayerRole.OPENER:
             # Fetch the bid node from the bidding tree for this bid sequence
             self.bidNode = fetchBidTreeNode(bidSeq)
         
             # Merge the bid tree node info into the team state
             self.teamState.mergeTreeNode(self, self.bidNode, self.playerRole)
-            # FIX ME - debugging
-            if self.pos == TablePosition.NORTH or self.pos == TablePosition.SOUTH:
-                Log.write("Show team state for %s, prior to round 2 bid\n" % self.pos.name)
-                self.teamState.show()
             
             # Call the handler function for the current team state
             bidNotif = table.openerRebidRegistry.jump_table[self.bidNode.handler](table, self)
 
+            # No bid node exists after a round 2 opener rebid
+
         elif self.playerRole == PlayerRole.RESPONDER:
-            # FIX ME - debugging
-            if self.pos == TablePosition.NORTH or self.pos == TablePosition.SOUTH:
-                Log.write("Show team state for %s, prior to round 2 bid\n" % self.pos.name)
-                self.teamState.show()
-            if numBids >= 3:
+            # Update the team state if a bid node exists for the current bid
+            if numBids < 3:
+                # Fetch the bid node from the bidding tree for this bid sequence
+                self.bidNode = fetchBidTreeNode(bidSeq)
+                # Merge the bid tree node info into the team state
+                self.teamState.mergeTreeNode(self, self.bidNode, self.playerRole)                
+                # Call the handler function for the current team state
+                bidNotif = table.responderRegistry.jump_table[self.bidNode.handler](table, self)
+                numBids += 1
+                if numBids < 3:
+                    # Update the bid notification using the bid node information
+                    print("round2: cur bid seq = {}".format(self.teamState.bidSeq))
+                    newBidSeq = self.teamState.bidSeq.copy()
+                    newBidSeq.append(bidNotif.bid)
+                    print("round2: next bid seq = {}".format(newBidSeq))
+                    nextBidNode = fetchBidTreeNode(newBidSeq)
+                    bidNotif.updateWithBidnode(self, nextBidNode)
+            else:
                 # We don't have a bid node for the third bid
                 # But we still want to capture the last available bid node
                 if bidSeq[0][0] == 0:
@@ -171,14 +196,9 @@ class BridgePlayer(Player):
                     twoBidSeq = bidSeq[1:]
                 else:
                     twoBidSeq = bidSeq[:-1]
-                
-                print("round2: 3+ bids: seq={} trunc={}".format(bidSeq, twoBidSeq))
                 self.bidNode = fetchBidTreeNode(twoBidSeq)
                 bidNotif = nonNodeBidHandler(table, self)
-            else:
-                # Call the handler function for the current team state
-                bidNotif = table.responderRegistry.jump_table[self.bidNode.handler](table, self)
-
+                
         else:
             print("bridgePlayer: bidRound2: Player %s has invalid role %d" % (self.pos.name, self.playerRole.value))
         return bidNotif
@@ -194,18 +214,16 @@ class BridgePlayer(Player):
             Log.write("Show team state for %s, prior to round %d bid\n" % (self.pos.name, table.roundNum))
             self.teamState.show()
 
-            # We don't have a bid node for any round 3 bid
-            # But we still want to capture the last available bid node
-            bidSeq = self.teamState.bidSeq
-            if bidSeq[0][0] == 0:
-                # First bid was a pass. Skip it.
-                twoBidSeq = bidSeq[1:3]
-            else:
-                twoBidSeq = bidSeq[:2]
-            self.bidNode = fetchBidTreeNode(twoBidSeq)
+        # We don't have a bid node for any round 3 bid
+        # But we still want to capture the last available bid node
+        bidSeq = self.teamState.bidSeq
+        if bidSeq[0][0] == 0:
+            # First bid was a pass. Skip it.
+            twoBidSeq = bidSeq[1:3]
+        else:
+            twoBidSeq = bidSeq[:2]
+        self.bidNode = fetchBidTreeNode(twoBidSeq)
                 
-            print("round3: seq={} trunc={}".format(bidSeq, twoBidSeq))
-            
         bidNotif = nonNodeBidHandler(table, self)
         return bidNotif
 
@@ -223,7 +241,12 @@ class BridgePlayer(Player):
             # Partner made this bid. Update the team state bid sequence
             self.teamState.bidSeq.append(bidNotif.bid)
             bidSeq = self.teamState.bidSeq
-            
+
+            # Call common notification handling code
+            bidNotif.notifHandler(self)
+
+            # FIX ME - dead code
+            '''
             # Can we update our team's state from a bid node?
             # We only have bid node for 2 levels of bids
             numBids = len(bidSeq)
@@ -233,13 +256,14 @@ class BridgePlayer(Player):
             if len(bidSeq) <= 2: 
                 # Fetch the bid node from the bidding tree for this bid sequence
                 self.bidNode = fetchBidTreeNode(bidSeq)
-
+                
                 # Merge the bid tree node info into the team state
                 self.teamState.mergeTreeNode(self, self.bidNode, self.playerRole)
             else:
                 # Log.write("bridgePlayer: bidNotif: No bid node available\n")
                 # Team state is updated by the notification
                 bidNotif.notifHandler(self)
+            '''    
         else:
             # If opponents did not pass, then our team has competition
             if bidNotif.bid[0] > 0:

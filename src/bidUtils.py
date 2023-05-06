@@ -64,8 +64,10 @@ def getBidLevelAndState(teamPoints, suit):
     elif teamPoints < 29:
         if isMinor(suit):
             return (3, GameState.PARTSCORE)
-        else:
+        elif isMajor(suit):
             return (4, GameState.GAME) 
+        else:
+            return (3, GameState.GAME)
     elif teamPoints < 32:
         if isMinor(suit):
             return (5, GameState.GAME)
@@ -236,7 +238,7 @@ def getMyPlayerRole(table, player):
             if iCanOpen:
                 return PlayerRole.OPENER
 
-    return PlayerRole.UNKNOWN
+    return PlayerRole.NONE
 
 
 def amITheCaptain(player):
@@ -258,20 +260,6 @@ def amITheCaptain(player):
 
 
         
-# FIX ME: dead code?
-# This function takes the bid list from the table and extracts only the
-# bids for the partnership to which the player belongs
-def getTeamBidSequence(table, playerPos):
-    bidSeq = []
-    currentPos = table.leadPos
-    partnerPos = whosMyPartner(playerPos)
-    for bid in table.bidsList:
-        if currentPos == playerPos or currentPos == partnerPos:
-            bidSeq.append(bid)
-        (currentPos, dummy) = getNextPosition(currentPos, table.leadPos)
-    return bidSeq
-
-
 def canIOpen(hand, competition, seatNum):
     (hcPts, lenPts) = hand.evalHand(DistMethod.HCP_LONG)
     totalPts = hcPts + lenPts 
@@ -343,3 +331,34 @@ def isShutUpBid(totalPts, bidLevel, bidSuit):
 
     if bidLevel == 7:
         return True
+
+# Return True if the last bid is in a suit not previously bid (new suit)
+def isBidNewSuit(bidSeq):
+    numBids = len(bidSeq)
+    lastBid = bidSeq[-1]
+    lastBidSuit = lastBid[1]
+    # A bid of NOTRUMP is not considered a new suit
+    if lastBidSuit == Suit.NOTRUMP:
+        return False
+    # A bid of PASS is not considered a new suit
+    if lastBid[0] == 0:
+        return False
+    
+    # Was the last bid suit previously bid
+    for bid in bidSeq:
+        if bid[1] == lastBidSuit:
+            return False
+
+    return True
+
+# Return the opening (non-pass) bid for a team
+def getOpeningBid(bidSeq):
+    numBids = len(bidSeq)
+    # Check if the first bid was a PASS
+    if bidSeq[0][0] == 0:
+        if numBids == 1:
+            return bidSeq[0]
+        else:
+            return bidSeq[1]
+    else:
+        return bidSeq[0]

@@ -232,8 +232,9 @@ class ResponderRegistry:
                 ts.myMaxPoints = 27
                 if suit == Suit.DIAMOND:
                     # 2 over 1
+                    ts.convention = Conv.TWO_OVER_ONE
                     bidNotif = BidNotif(2, Suit.CLUB, player.teamState)
-                    bidNotif.convention = Conv.TWO_OVER_ONE
+                    ts.convention = Conv.NATURAL
                     return bidNotif
 
             if totalPts >= 13 and totalPts <= 15:

@@ -10,6 +10,7 @@ import tkinter as tk
 from infoLog import Log
 from enums import TablePosition, Suit, PlayerRole
 from frame import TableFrame
+from bidNode import *
 from bidNotif import BidNotif
 from bidUtils import *
 from utils import *
@@ -95,11 +96,20 @@ class ControlFrame(TableFrame):
             suit = Suit.SPADE
         elif suitStr == 'NoTrump':
             suit = Suit.NOTRUMP
+        bidStr = getBidStr(level, suit)
             
         # Tell the table the bid
         table = self.app.table
         player = table.players[TablePosition.SOUTH]
-        bidNotif = BidNotif(level, suit, player.teamState)
+        
+        # Use the notification built by the computer
+        bidNotif = player.lastNotif
+        # Check if the computer and human agreed on this bid
+        if level != bidNotif.bid[0] or suit != bidNotif.bid[1]:
+            computerBidStr = getBidStr(bidNotif.bid[0], bidNotif.bid[1])
+            print("Computer bid %s != Human bid %s" % (computerBidStr, bidStr))
+            # Overwrite the last bid with what the human bid
+            bidNotif.bid = (level, suit)
         self.app.table.bidResponse(TablePosition.SOUTH, bidNotif)
         
     '''

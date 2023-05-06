@@ -58,7 +58,7 @@ def fetchBidTreeNode(bidSeq):
             bidNode.handler = bidDescriptor[key]
         elif key == "suitStates":
             for suitStr, fitStr in bidDescriptor[key].items():
-                bidNode.suitStates[Suit[suitStr]] = FitState[fitStr]
+                bidNode.suitState[Suit[suitStr]] = FitState[fitStr]
         elif key == "openerInfo":
             bidNode.openerMinPoints = bidDescriptor[key]["minPts"]
             bidNode.openerMaxPoints = bidDescriptor[key]["maxPts"]
@@ -100,7 +100,7 @@ class BidNode:
         self.responderMinPoints = 0
         self.responderMaxPoints = 0
         self.responderEvalMethod = DistMethod.HCP_ONLY
-        self.suitStates = {}
+        self.suitState = {Suit.NOTRUMP: FitState.UNKNOWN, Suit.SPADE: FitState.UNKNOWN, Suit.HEART: FitState.UNKNOWN, Suit.DIAMOND: FitState.UNKNOWN, Suit.CLUB: FitState.UNKNOWN}
         self.force = Force.NONE
         self.nextBidder = PlayerRole.UNKNOWN
         self.handler = ""
@@ -112,7 +112,7 @@ class BidNode:
         print("Fit suit = %s" % self.fitSuit.name)
         print("Candidate suit = %s" % self.candidateSuit.name)
         print("Suit states:")
-        for suit, fitState in self.suitStates:
+        for suit, fitState in self.suitState:
             print("\t%s - %s" % (suit.name, fitState.name))
         print("Convention = %s" % self.convention.name)
         print("Force = %s" % self.force.name)

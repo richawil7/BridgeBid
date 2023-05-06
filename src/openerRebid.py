@@ -858,9 +858,9 @@ class OpenerRebidRegistry:
         if partnerLevel == 3:
             # Gerber
             ts.fitSuit = Suit.NOTRUMP
-            ts.setSuitState(Suit.NOTRUMP, FitState.PLAY)
+            ts.setSuitState(Suit.NOTRUMP, FitState.SUPPORT)
             ts.candidateSuit = Suit.ALL
-            ts.force = Force.GAME
+            ts.gameState = GameState.GAME
             bidNotif = BidNotif(4, Suit.CLUB, ts)
             bidNotif.convention = Conv.GERBER_REQ
             return bidNotif
@@ -876,7 +876,7 @@ class OpenerRebidRegistry:
             ts.myMaxPoints = 17
             if player.hand.isHandBalanced():
                 ts.fitSuit = Suit.NOTRUMP
-                ts.setSuitState(Suit.NOTRUMP, FitState.PLAY)
+                ts.setSuitState(Suit.NOTRUMP, FitState.SUPPORT)
                 ts.candidateSuit = Suit.ALL
                 bidNotif = BidNotif(3, Suit.NOTRUMP, ts)
                 return bidNotif
@@ -889,7 +889,7 @@ class OpenerRebidRegistry:
                 bidNotif = BidNotif(3, Suit.CLUB, ts)
                 return bidNotif
             ts.fitSuit = Suit.NOTRUMP
-            ts.setSuitState(Suit.NOTRUMP, FitState.PLAY)
+            ts.setSuitState(Suit.NOTRUMP, FitState.SUPPORT)
             ts.candidateSuit = Suit.ALL
             bidNotif = BidNotif(3, Suit.NOTRUMP, ts)
             return bidNotif
@@ -897,9 +897,9 @@ class OpenerRebidRegistry:
         elif totalPts >= 18 and totalPts <= 21:
             # Gerber
             ts.fitSuit = Suit.NOTRUMP
-            ts.setSuitState(Suit.NOTRUMP, FitState.PLAY)
+            ts.setSuitState(Suit.NOTRUMP, FitState.SUPPORT)
             ts.candidateSuit = Suit.ALL
-            ts.force = Force.GAME
+            ts.gameState = GameState.GAME
             bidNotif = BidNotif(4, Suit.CLUB, ts)
             bidNotif.convention = Conv.GERBER
             return bidNotif
@@ -978,7 +978,7 @@ class OpenerRebidRegistry:
         ts.myMinPoints = 15
         ts.myMaxPoints = 21
         ts.fitSuit = Suit.NOTRUMP
-        ts.setSuitState(Suit.NOTRUMP, FitState.PLAY)
+        ts.setSuitState(Suit.NOTRUMP, FitState.SUPPORT)
         ts.candidateSuit = Suit.ALL
         bidNotif = BidNotif(4, Suit.CLUB, ts)
         bidNotif.convention = Conv.GERBER
@@ -989,21 +989,40 @@ class OpenerRebidRegistry:
     @OpenerFunctions.register(command="openRebid_2_over_1")
     def openRebid_2_over_1(self, table, player):
         Log.write("openRebid_2_over_1 by %s\n" % player.pos.name)
-        ts = player.teamState        
-
+        ts = player.teamState
+        # Clear the convention
+        ts.convention = Conv.NATURAL
         openingSuit = player.teamState.candidateSuit
         
         # What suit did my partner bid?
         partnerSuit = ts.bidSeq[-1][1]
         if partnerSuit.value <= openingSuit.value:
             print("2_over_1: ERROR-partner did not bid under opening suit")
+        # How many cards is partner promising with their bid?
         numCardsPartnersSuit = player.hand.getNumCardsInSuit(partnerSuit)
-        if numCardsPartnersSuit >= 4:
-            ts.setSuitState(partnerSuit, FitState.SUPPORT)
-            ts.fitSuit = partnerSuit
-        else:
-            ts.setSuitState(partnerSuit, FitState.NO_SUPPORT)
-            
+        if partnerSuit == Suit.HEART:
+            # Responder promises 5
+            if numCardsPartnersSuit >= 3:
+                ts.setSuitState(partnerSuit, FitState.SUPPORT)
+                ts.fitSuit = partnerSuit
+            else:
+                ts.setSuitState(partnerSuit, FitState.NO_SUPPORT)
+        elif partnerSuit == Suit.DIAMOND:
+            # Responder promises 4
+            if numCardsPartnersSuit >= 4:
+                ts.setSuitState(partnerSuit, FitState.SUPPORT)
+                ts.fitSuit = partnerSuit
+            else:
+                ts.setSuitState(partnerSuit, FitState.NO_SUPPORT)
+        elif partnerSuit == Suit.CLUB and openingSuit != Suit.DIAMOND: 
+            # Responder promises 4
+            if numCardsPartnersSuit >= 4:
+                ts.setSuitState(partnerSuit, FitState.SUPPORT)
+                ts.fitSuit = partnerSuit
+            else:
+                ts.setSuitState(partnerSuit, FitState.NO_SUPPORT)
+        # A 1D-2C bid does not promise any number of clubs
+        
         # How many points do I have?
         (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
@@ -1045,27 +1064,28 @@ class OpenerRebidRegistry:
         elif totalPts >= 19 and totalPts <= 21:
             ts.myMinPoints = 19
             ts.myMaxPoints = 21        
-            # Bid jump shift
             (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
-            if suitA != openingSuit and suitA != partnerSuit:
-                if suitA.level > partnerSuit.level:
-                    ts.candidateSuit = suitA
-                    bidNotif = BidNotif(partnerSuit.level + 1, suitA, ts)
-                    return bidNotif
-                else:
-                    ts.candidateSuit = suitA
-                    bidNotif = BidNotif(partnerSuit.level + 2, suitA, ts)
-                    return bidNotif
-                    return (partnerSuit.level + 2, suitA)
-            if suitB != openingSuit and suitB != partnerSuit:
-                if suitB.level > partnerSuit.level:
+            if numCardsA >= 6:
+                # Rebid opening suit at 3 level
+                ts.candidateSuit = suitA
+                bidNotif = BidNotif(3, suitA, ts)
+                return bidNotif
+
+            # Otherwise bid my second best suit as a jump shift
+            if suitB != partnerSuit:
+                if suitB.value > partnerSuit.value:
                     ts.candidateSuit = suitB
-                    bidNotif = BidNotif(partnerSuit.level + 1, suitB, ts)
+                    bidNotif = BidNotif(partnerSuit.value + 1, suitB, ts)
                     return bidNotif
                 else:
                     ts.candidateSuit = suitB
-                    bidNotif = BidNotif(partnerSuit.level + 2, suitB, ts)
+                    bidNotif = BidNotif(partnerSuit.value + 2, suitB, ts)
                     return bidNotif
+            else:
+                # Jump to show large hand
+                ts.candidateSuit = suitB
+                bidNotif = BidNotif(4, suitB, ts)
+                return bidNotif
         print("openRebid_2_over_1: ERROR - should not reach here")
         
     @OpenerFunctions.register(command="openRebid_1NT_Pass")
@@ -1123,7 +1143,7 @@ class OpenerRebidRegistry:
         (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
 
-        # Jacoby transfer
+        # Jacoby transfer response
         if partnerSuit == Suit.DIAMOND:
             bidSuit = Suit.HEART
             bidLevel = 2
@@ -1160,8 +1180,10 @@ class OpenerRebidRegistry:
                 bidLevel += 1
 
         ts.candidateSuit = bidSuit
+        ts.force = Force.NONE
+        ts.convention = Conv.JACOBY_XFER_RSP
         bidNotif = BidNotif(bidLevel, bidSuit, ts)
-        bidNotif.convention = Conv.JACOBY_XFER_RSP
+        ts.convention = Conv.NATURAL
         return bidNotif
         print("openRebid_1NT_2W: ERROR - should not reach here")
 

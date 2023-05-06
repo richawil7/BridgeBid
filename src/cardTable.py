@@ -217,14 +217,6 @@ class CardTable():
         if bidder == TablePosition.NORTH or bidder == TablePosition.SOUTH:
             Log.write("BidRsp: %s as %s bids %s\n" % (bidder.name, player.playerRole.name, bidStr))
         
-        # Check if the computer and human agreed on this bid
-        if player.isHuman:
-            if bidLevel != player.lastBid[0] or bidSuit != player.lastBid[1]:
-                computerBidStr = getBidStr(player.lastBid[0], player.lastBid[1])
-                print("Computer bid %s != Human bid %s" % (computerBidStr, bidStr))
-            # Overwrite the last bid with what the human bid
-            player.lastBid = (bidLevel, bidSuit)
-
         self.outstandingBidReq = False
         if bidLevel > 0 and self.hasOpener == False:
             self.hasOpener = True

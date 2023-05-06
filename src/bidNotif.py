@@ -7,6 +7,7 @@ the bidder) for processing.
 from infoLog import Log
 from enums import *
 from utils import *
+from bidUtils import *
 
 class BidNotif:
 
@@ -14,11 +15,41 @@ class BidNotif:
         self.bid = (bidLevel, bidSuit)
         self.minPoints = teamState.myMinPoints
         self.maxPoints = teamState.myMaxPoints
-        self.convention = Conv.NATURAL
+        self.convention = teamState.convention
         self.force = teamState.force
         self.suitState = teamState.suitState.copy()
         self.gameState = teamState.gameState
 
+    def updateWithBidnode(self, player, bidNode):
+        player.playerRole = getMyPlayerRole(player.table, player)
+        if player.playerRole == PlayerRole.OPENER:
+            self.minPoints = bidNode.openerMinPoints
+            self.maxPoints = bidNode.openerMaxPoints
+        elif player.playerRole == PlayerRole.RESPONDER:
+            self.minPoints = bidNode.responderMinPoints
+            self.maxPoints = bidNode.responderMaxPoints
+        elif player.playerRole == PlayerRole.NONE:
+            self.minPoints = bidNode.openerMinPoints
+            self.maxPoints = bidNode.openerMaxPoints
+        else:
+            print("updateWithBidnode: invalid player role")
+            Log.write("updateWithBidnode: invalid player role\n")
+        self.convention = bidNode.convention
+        self.force = bidNode.force
+        self.suitState = bidNode.suitState.copy()
+        self.gameState = GameState.UNKNOWN
+        teamMinPoints = bidNode.openerMinPoints + bidNode.responderMinPoints
+        if teamMinPoints >= 18:
+            self.gameState = GameState.PARTSCORE
+        if bidNode.force == Force.GAME:
+            self.gameState = GameState.GAME
+
+        
+    def show(self):
+        bidStr = getBidStr(self.bid[0], self.bid[1])
+        Log.write("bidNotif: show: bid={} conv={} force={} state={}\n".format(bidStr, self.convention.name, self.force.name, self.gameState.name))
+        print("notif suit state {}".format(self.suitState))
+        
     def processStaymanResponse(self, player, teamState):
         print("processStaymanResponse")
         if self.bid[1] == Suit.DIAMOND and self.bid[0] == 2:
@@ -39,45 +70,46 @@ class BidNotif:
     def processJacobyResponse(self, player):
         print("processJacobyResponse: no action taken")
     
-    def processBlackwoodResponse(self):
+    def processBlackwoodResponse(self, ts):
+        print("processing Blackwood response")
         if self.bid[0] == 5:
             if self.bid[1] == Suit.CLUB:
-                self.partnerNumAces = 4
+                ts.partnerNumAces = 4
             elif self.bid[1] == Suit.DIAMOND:
-                self.partnerNumAces = 1
+                ts.partnerNumAces = 1
             elif self.bid[1] == Suit.HEART:
-                self.partnerNumAces = 2
+                ts.partnerNumAces = 2
             elif self.bid[1] == Suit.SPADE:
-                self.partnerNumAces = 3
+                ts.partnerNumAces = 3
         elif self.bid[0] == 6:
             if self.bid[1] == Suit.CLUB:
-                self.partnerNumKings = 4
+                ts.partnerNumKings = 4
             elif self.bid[1] == Suit.DIAMOND:
-                self.partnerNumKings = 1
+                ts.partnerNumKings = 1
             elif self.bid[1] == Suit.HEART:
-                self.partnerNumKings = 2
+                ts.partnerNumKings = 2
             elif self.bid[1] == Suit.SPADE:
-                self.partnerNumKings = 3
+                ts.partnerNumKings = 3
 
-    def processGerberResponse(self):
+    def processGerberResponse(self, ts):
         if self.bid[0] == 4:
             if self.bid[1] == Suit.DIAMOND:
-                self.partnerNumAces = 4
+                ts.partnerNumAces = 4
             elif self.bid[1] == Suit.HEART:
-                self.partnerNumAces = 1
+                ts.partnerNumAces = 1
             elif self.bid[1] == Suit.SPADE:
-                self.partnerNumAces = 2
+                ts.partnerNumAces = 2
             elif self.bid[1] == Suit.NOTRUMP:
-                self.partnerNumAces = 3
+                ts.partnerNumAces = 3
         elif self.bid[0] == 5:
             if self.bid[1] == Suit.DIAMOND:
-                self.partnerNumKings = 4
+                ts.partnerNumKings = 4
             elif self.bid[1] == Suit.HEART:
-                self.partnerNumKings = 1
+                ts.partnerNumKings = 1
             elif self.bid[1] == Suit.SPADE:
-                self.partnerNumKings = 2
+                ts.partnerNumKings = 2
             elif self.bid[1] == Suit.NOTRUMP:
-                self.partnerNumKings = 3
+                ts.partnerNumKings = 3
 
     def processCuebidResponse(self):
         print("processCuebidResponse: no action taken")
@@ -85,27 +117,29 @@ class BidNotif:
         
     def notifHandler(self, player):
         teamState = player.teamState
+        bidSeq = teamState.bidSeq
+        numBids = len(bidSeq)
+        # Check if the first bid was a pass
+        if bidSeq[0][0] == 0:
+            # print("First bid was a pass")
+            numBids -= 1
+            
         bidSeqStr = ''        
         for bid in teamState.bidSeq:
             bidStr = getBidStr(bid[0], bid[1])
             bidSeqStr += bidStr + "-"
-
-        # We don't want to process a notification if a bid node exists
-        numTeamBids = len(teamState.bidSeq)
-        if numTeamBids <= 2:
-            Log.write("notifHandler: %s ignoring notif for bid seq %s\n" % (player.pos.name, bidSeqStr))
-            return
-        
         Log.write("notifHandler: %s processing notif for bid seq %s\n" % (player.pos.name, bidSeqStr))
+        
         # Merge this notification into a team state
         # Update fit suit
         for (suit, fitState) in self.suitState.items():
             if teamState.suitState[suit] == FitState.UNKNOWN:
                 teamState.suitState[suit] = fitState
-            if teamState.fitSuit == Suit.ALL and fitState == FitState.PLAY:
+            if teamState.fitSuit == Suit.ALL and teamState.suitState[suit] == FitState.SUPPORT:
                 teamState.fitSuit = suit
 
         # Candidate suit depends upon fit state
+        self.show()
         if self.bid[0] > 0:
             if self.suitState[self.bid[1]] == FitState.UNKNOWN and self.convention == Conv.NATURAL:
                 teamState.candidateSuit = self.bid[1]
@@ -124,26 +158,73 @@ class BidNotif:
         teamState.teamMinPoints = teamState.partnerMinPoints + myTotalPts
         teamState.teamMaxPoints = teamState.partnerMaxPoints + myTotalPts
         
-        Log.write("notifHandler: convention is %s\n" % self.convention.name)
         if self.convention == Conv.STAYMAN_RSP:
             self.processStaymanResponse(player, teamState)
         elif self.convention == Conv.JACOBY_XFER_RSP:
             self.processJacobyResponse(player)
         elif self.convention == Conv.BLACKWOOD_RSP:
-            self.processBlackwoodResponse()
+            self.processBlackwoodResponse(teamState)
         elif self.convention == Conv.GERBER_RSP:
-            self.processGerberResponse()
+            self.processGerberResponse(teamState)
         elif self.convention == Conv.CUE_BID:
             self.processCuebidResponse()
+        # The remaining conventions all need to be processed when this player bids next. Save the convention in the player's team state    
         elif self.convention == Conv.NATURAL:
-            pass
+            teamState.convention = self.convention
+        elif self.convention == Conv.STAYMAN_REQ:
+            teamState.convention = self.convention
+        elif self.convention == Conv.JACOBY_XFER_REQ:
+            teamState.convention = self.convention
+        elif self.convention == Conv.TWO_OVER_ONE:
+            teamState.convention = self.convention
+        elif self.convention == Conv.BLACKWOOD_REQ:
+            teamState.convention = self.convention
+        elif self.convention == Conv.GERBER_REQ:
+            teamState.convention = self.convention
         else:
             print("notifHandler: did not handle convention %s" % self.convention.name)
-        teamState.convention = self.convention
-        teamState.force = self.force
 
-        # Don't update the bid sequence here. It was done in the player's
-        # notification code
+        # Check how many cards are promised by opener
+        print("bidNotif: bid seq is {}".format(teamState.bidSeq))
+        openingBid = getOpeningBid(teamState.bidSeq)
+        if player.table.roundNum == 1 and numBids == 1:
+            bidSuit = self.bid[1]
+            numCardsInBidSuit = player.hand.getNumCardsInSuit(bidSuit)
+            if isMajor(bidSuit):
+                # Check if I have 3+ card support
+                if numCardsInBidSuit >= 3:
+                    teamState.suitState[bidSuit] = FitState.SUPPORT
+            elif bidSuit == Suit.DIAMOND:
+                # Check if I have 4+ card support
+                if numCardsInBidSuit >= 4:
+                    teamState.suitState[bidSuit] = FitState.SUPPORT
+            elif bidSuit == Suit.CLUB:
+                # Check if I have 5+ card support
+                if numCardsInBidSuit >= 5:
+                    teamState.suitState[bidSuit] = FitState.SUPPORT
+           
+        # Check if partner bid a new suit
+        teamState.force = self.force
+        if isBidNewSuit(teamState.bidSeq):
+            teamState.force = Force.ONE_ROUND
+            # This promises 4+ cards. Do I have 4+ cards in this suit?
+            newSuit = self.bid[1]
+            numCardsInBidSuit = player.hand.getNumCardsInSuit(newSuit)
+            if numCardsInBidSuit >= 4:
+                # We have support
+                teamState.suitState[newSuit] = FitState.SUPPORT
+
+        # Check if opener rebid their opening suit, promising 6+ cards
+        bidSuit = self.bid[1]
+        if openingBid[1] == bidSuit and player.table.roundNum == 2:
+            # Check if I have 2+ card support
+            numCardsInBidSuit = player.hand.getNumCardsInSuit(bidSuit)
+            if numCardsInBidSuit >= 2:
+                # We have support
+                teamState.suitState[bidSuit] = FitState.SUPPORT
+            
+        # Don't update the bid sequence here. It was already done in
+        # the player's notification handler
         if player.playerRole == PlayerRole.OPENER:
             # The opener copies the game state from the notification
             if self.gameState.value > teamState.gameState.value:
