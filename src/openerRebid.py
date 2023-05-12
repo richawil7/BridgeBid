@@ -332,7 +332,7 @@ class OpenerRebidRegistry:
             bidNotif = BidNotif(2, Suit.NOTRUMP, ts)
             return bidNotif
         
-        elif totalPts >= 19 and totalPts <= 21:
+        elif totalPts >= 19:
             ts.myMinPoints = 19
             ts.myMaxPoints = 21        
             if numCardsIHave >= 4:
@@ -447,120 +447,61 @@ class OpenerRebidRegistry:
     def openRebid_1Mi_1NT(self, table, player):
         Log.write("openRebid_1Mi_1NT by %s\n" % player.pos.name)
         ts = player.teamState        
-
+        ts.convention = Conv.NATURAL
+        
         # How many points do I have?
         openingSuit = player.teamState.candidateSuit
         (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
+        numCardsInSuit = player.hand.getNumCardsInSuit(openingSuit)
 
+        # In two over one, a 1 NT bid from responder is forcing for one round
+        # Find another bid, leaning towards showing a 4 card major
+        (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
+        if suitA != openingSuit and isMajor(suitA) and numCardsA >= 4:
+            ts.candidateSuit = suitA
+        elif suitB != openingSuit and isMajor(suitB) and numCardsB >= 4:
+            ts.candidateSuit = suitB
+        elif openingSuit == Suit.DIAMOND and numCardsInSuit >= 6:
+            ts.candidateSuit = Suit.DIAMOND
+        elif openingSuit == Suit.CLUB and numCardsInSuit >= 5:
+            ts.candidateSuit = Suit.CLUB
+        elif suitA != openingSuit and isMinor(suitA) and numCardsA >= 5:
+            ts.candidateSuit = suitA
+        elif suitB != openingSuit and isMinor(suitB) and numCardsB >= 5:
+            ts.candidateSuit = suitB
+        else:
+            ts.candidateSuit = Suit.NOTRUMP
+
+        # We have a suit to bid, now calculate the bid level
         if totalPts <= 15:
             ts.myMinPoints = 13
             ts.myMaxPoints = 15        
-            if player.hand.isHandBalanced():
-                ts.candidateSuit = Suit.ALL
-                bidNotif = BidNotif(0, Suit.ALL, ts)
-                return bidNotif
-
-            if openingSuit == Suit.DIAMOND:
-                numCardsInSuit = player.hand.getNumCardsInSuit(Suit.CLUB)
-                if numCardsInSuit >= 4:
-                    ts.candidateSuit = Suit.CLUB
-                    bidNotif = BidNotif(2, Suit.CLUB, ts)
-                    return bidNotif
-                numCardsInSuit = player.hand.getNumCardsInSuit(Suit.DIAMOND)
-                if numCardsInSuit >= 6:
-                    ts.candidateSuit = Suit.DIAMOND
-                    bidNotif = BidNotif(2, Suit.DIAMOND, ts)
-                    return bidNotif
-            elif openingSuit == Suit.CLUB:
-                numCardsInSuit = player.hand.getNumCardsInSuit(Suit.CLUB)
-                if numCardsInSuit >= 5:
-                    ts.candidateSuit = Suit.CLUB
-                    bidNotif = BidNotif(2, Suit.CLUB, ts)
-                    return bidNotif
-            ts.candidateSuit = Suit.ALL
-            bidNotif = BidNotif(0, Suit.ALL, ts)
-            return bidNotif
+            bidLevel = 2
             
         elif totalPts >= 16 and totalPts <= 18:
             ts.myMinPoints = 16
-            ts.myMaxPoints = 18        
-            if player.hand.isHandBalanced():
-                return (2, Suit.NOTRUMP)
-            (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
-            if suitA != openingSuit and isMajor(suitA) and numCardsA >= 4:
-                ts.candidateSuit = suitA
-                bidNotif = BidNotif(2, suitA, ts)
-                return bidNotif
-            if suitA != openingSuit and isMinor(suitA) and numCardsA >= 5:
-                ts.candidateSuit = suitA
-                bidNotif = BidNotif(2, suitA, ts)
-                return bidNotif
-            if suitB != openingSuit and isMajor(suitB) and numCardsB >= 4:
-                ts.candidateSuit = suitB
-                bidNotif = BidNotif(2, suitB, ts)
-                return bidNotif
-            if suitB != openingSuit and isMinor(suitB) and numCardsB >= 5:
-                ts.candidateSuit = suitB
-                bidNotif = BidNotif(2, suitB, ts)
-                return bidNotif
-            
-            if openingSuit == Suit.DIAMOND:
-                numCardsInSuit = player.hand.getNumCardsInSuit(Suit.DIAMOND)
-                if numCardsInSuit >= 6:
-                    ts.candidateSuit = Suit.DIAMOND
-                    bidNotif = BidNotif(3, Suit.DIAMOND, ts)
-                    return bidNotif
-            elif openingSuit == Suit.CLUB:
-                numCardsInSuit = player.hand.getNumCardsInSuit(Suit.CLUB)
-                if numCardsInSuit >= 5:
-                    ts.candidateSuit = Suit.CLUB
-                    bidNotif = BidNotif(3, Suit.CLUB, ts)
-                    return bidNotif
-            ts.candidateSuit = Suit.NOTRUMP
-            bidNotif = BidNotif(2, Suit.NOTRUMP, ts)
-            return bidNotif
+            ts.myMaxPoints = 18
+            bidLevel = 2
+            if openingSuit == Suit.DIAMOND and numCardsInSuit >= 6:
+                bidLevel = 3
+            elif openingSuit == Suit.CLUB and numCardsInSuit >= 5:
+                bidLevel = 3
         
         elif totalPts >= 19 and totalPts <= 21:
             ts.myMinPoints = 19
-            ts.myMaxPoints = 21        
+            ts.myMaxPoints = 21
             if player.hand.isHandBalanced():
                 ts.candidateSuit = Suit.NOTRUMP
-                bidNotif = BidNotif(3, Suit.NOTRUMP, ts)
-                return bidNotif
-            if openingSuit == Suit.DIAMOND:
-                numCardsInSuit = player.hand.getNumCardsInSuit(Suit.DIAMOND)
-                if numCardsInSuit >= 6:
-                    ts.candidateSuit = Suit.DIAMOND
-                    bidNotif = BidNotif(4, Suit.DIAMOND, ts)
-                    return bidNotif
-            elif openingSuit == Suit.CLUB:
-                numCardsInSuit = player.hand.getNumCardsInSuit(Suit.CLUB)
-                if numCardsInSuit >= 5:
-                    ts.candidateSuit = Suit.CLUB
-                    bidNotif = BidNotif(4, Suit.CLUB, ts)
-                    return bidNotif
-
-            (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
-            if suitA != openingSuit and isMajor(suitA) and numCardsA >= 4:
-                ts.candidateSuit = suitA
-                bidNotif = BidNotif(3, suitA, ts)
-                return bidNotif
-            if suitA != openingSuit and isMinor(suitA) and numCardsA >= 5:
-                ts.candidateSuit = suitA
-                bidNotif = BidNotif(3, suitA, ts)
-                return bidNotif
-            if suitB != openingSuit and isMajor(suitB) and numCardsB >= 4:
-                ts.candidateSuit = suitB
-                bidNotif = BidNotif(3, suitB, ts)
-                return bidNotif
-            if suitB != openingSuit and isMinor(suitB) and numCardsB >= 5:
-                ts.candidateSuit = suitB
-                bidNotif = BidNotif(3, suitB, ts)
-                return bidNotif
-            ts.candidateSuit = Suit.NOTRUMP
-            bidNotif = BidNotif(3, Suit.NOTRUMP, ts)
-            return bidNotif
+                bidLevel = 3
+            elif openingSuit == Suit.DIAMOND and numCardsInSuit >= 6:
+                bidLevel = 4
+            elif openingSuit == Suit.CLUB and numCardsInSuit >= 5:
+                bidLevel = 4
+            else:
+                bidLevel = 3
+        bidNotif = BidNotif(bidLevel, ts.candidateSuit, ts)
+        return bidNotif
         print("openRebid_1Mi_1NT: ERROR - should not reach here")
         
     @OpenerFunctions.register(command="openRebid_1Mi_nMi")
@@ -689,6 +630,7 @@ class OpenerRebidRegistry:
     def openRebid_1Ma_1NT(self, table, player):
         Log.write("openRebid_1Ma_1NT by %s\n" % player.pos.name)
         ts = player.teamState        
+        ts.convention = Conv.NATURAL
 
         # How many points do I have?
         openingSuit = player.teamState.candidateSuit
@@ -696,122 +638,42 @@ class OpenerRebidRegistry:
         totalPts = hcPts + distPts
         numCardsInSuit = player.hand.getNumCardsInSuit(openingSuit)
 
+        # In two over one, a 1NT response is forcing for one round
+        # Find a suit to bid
+        (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
+        
+        if numCardsInSuit >= 6:
+            ts.candidateSuit = openingSuit
+        elif openingSuit == Suit.HEART and player.hand.getNumCardsInSuit(Suit.SPADE >= 4):
+            ts.candidateSuit = Suit.SPADE
+        elif suitB != openingSuit and numCardsB >= 4:
+            ts.candidateSuit = suitB
+        else:
+            ts.candidateSuit = Suit.NOTRUMP
+            
+        # We have a suit to bid, now find the bid level
         if totalPts <= 15:
             ts.myMinPoints = 13
-            ts.myMaxPoints = 15        
-            if numCardsInSuit >= 6:
-                ts.candidateSuit = openingSuit
-                bidNotif = BidNotif(2, openingSuit, ts)
-                return bidNotif
-            numMinor = player.hand.getNumCardsInSuit(Suit.DIAMOND)
-            if numMinor >= 4:
-                ts.candidateSuit = Suit.DIAMOND
-                bidNotif = BidNotif(2, Suit.DIAMOND, ts)
-                return bidNotif
-            numMinor = player.hand.getNumCardsInSuit(Suit.CLUB)
-            if numMinor >= 3:
-                ts.candidateSuit = Suit.CLUB
-                bidNotif = BidNotif(2, Suit.CLUB, ts)
-                return bidNotif
-
-            (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
-            if suitA != openingSuit and isMajor(suitA) and numCardsA >= 4:
-                ts.candidateSuit = suitA
-                bidNotif = BidNotif(2, suitA, ts)
-                return bidNotif
-            if suitA != openingSuit and isMinor(suitA) and numCardsA >= 5:
-                ts.candidateSuit = suitA
-                bidNotif = BidNotif(2, suitA, ts)
-                return bidNotif
-            if suitB != openingSuit and isMajor(suitB) and numCardsB >= 4:
-                ts.candidateSuit = suitB
-                bidNotif = BidNotif(2, suitB, ts)
-                return bidNotif
-            if suitB != openingSuit and isMinor(suitB) and numCardsB >= 5:
-                ts.candidateSuit = suitB
-                bidNotif = BidNotif(2, suitB, ts)
-                return bidNotif
-            bidNotif = BidNotif(0, Suit.ALL, ts)
-            return bidNotif
+            ts.myMaxPoints = 15
+            bidLevel = 2
         
         elif totalPts >= 16 and totalPts <= 18:
             ts.myMinPoints = 16
-            ts.myMaxPoints = 18        
-            if numCardsInSuit >= 6:
-                ts.candidateSuit = openingSuit
-                bidNotif = BidNotif(3, openingSuit, ts)
-                return bidNotif
-            numMinor = player.hand.getNumCardsInSuit(Suit.DIAMOND)
-            if numMinor >= 4:
-                ts.candidateSuit = Suit.DIAMOND
-                bidNotif = BidNotif(3, Suit.DIAMOND, ts)
-                return bidNotif
-            numMinor = player.hand.getNumCardsInSuit(Suit.CLUB)
-            if numMinor >= 3:
-                ts.candidateSuit = Suit.CLUB
-                bidNotif = BidNotif(3, Suit.CLUB, ts)
-                return bidNotif
-
-            (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
-            if suitA != openingSuit and isMajor(suitA) and numCardsA >= 4:
-                ts.candidateSuit = suitA
-                bidNotif = BidNotif(3, suitA, ts)
-                return bidNotif
-            if suitA != openingSuit and isMinor(suitA) and numCardsA >= 5:
-                ts.candidateSuit = suitA
-                bidNotif = BidNotif(3, suitA, ts)
-                return bidNotif
-            if suitB != openingSuit and isMajor(suitB) and numCardsB >= 4:
-                ts.candidateSuit = suitB
-                bidNotif = BidNotif(3, suitB, ts)
-                return bidNotif
-            if suitB != openingSuit and isMinor(suitB) and numCardsB >= 5:
-                ts.candidateSuit = suitB
-                bidNotif = BidNotif(3, suitB, ts)
-                return bidNotif
-            ts.candidateSuit = Suit.NOTRUMP
-            bidNotif = BidNotif(2, Suit.NOTRUMP, ts)
-            return bidNotif
+            ts.myMaxPoints = 18
+            bidLevel = 3
+            if ts.candidateSuit == Suit.NOTRUMP:
+                bidLevel = 2
         
         elif totalPts >= 19 and totalPts <= 21:
             ts.myMinPoints = 19
-            ts.myMaxPoints = 21        
-            (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
-            if suitA != openingSuit and isMajor(suitA) and numCardsA >= 4:
-                ts.candidateSuit = suitA
-                bidNotif = BidNotif(3, suitA, ts)
-                return bidNotif
-            if suitA != openingSuit and isMinor(suitA) and numCardsA >= 5:
-                ts.candidateSuit = suitA
-                bidNotif = BidNotif(3, suitA, ts)
-                return bidNotif
-            if suitB != openingSuit and isMajor(suitB) and numCardsB >= 4:
-                ts.candidateSuit = suitB
-                bidNotif = BidNotif(3, suitB, ts)
-                return bidNotif
-            if suitB != openingSuit and isMinor(suitB) and numCardsB >= 5:
-                ts.candidateSuit = suitB
-                bidNotif = BidNotif(3, suitB, ts)
-                return bidNotif
-            if numCardsInSuit >= 6 and player.hand.hasStoppers():
-                ts.candidateSuit = Suit.NOTRUMP
-                bidNotif = BidNotif(3, Suit.NOTRUMP, ts)
-                return bidNotif
+            ts.myMaxPoints = 21
+            bidLevel = 3
             if hcPts >= 18 and hcPts <= 19 and player.hand.isHandBalanced():
                 ts.candidateSuit = Suit.NOTRUMP
-                bidNotif = BidNotif(3, Suit.NOTRUMP, ts)
-                return bidNotif
-            if numCardsInSuit >= 7:
-                ts.candidateSuit = openingSuit
-                bidNotif = BidNotif(4, openingSuit, ts)
-                return bidNotif
-            if numCardsInSuit >= 6:
-                ts.candidateSuit = openingSuit
-                bidNotif = BidNotif(3, openingSuit, ts)
-                return bidNotif
+            elif numCardsInSuit >= 7:
+                bidLevel = 4
 
-            ts.candidateSuit = Suit.NOTRUMP
-            bidNotif = BidNotif(3, Suit.NOTRUMP, ts)
+            bidNotif = BidNotif(bidLevel, ts.candidateSuit, ts)
             return bidNotif
         print("openRebid_1Ma_1NT: ERROR - should not reach here")
         
@@ -1550,6 +1412,7 @@ class OpenerRebidRegistry:
     @OpenerFunctions.register(command="openRebid_2weak_3")
     def openRebid_2weak_3(self, table, player):
         Log.write("openRebid_2weak_3 by %s\n" % player.pos.name)
+        ts = player.teamState        
         ts.candidateSuit = Suit.ALL
         bidNotif = BidNotif(0, Suit.ALL, ts)
         return bidNotif

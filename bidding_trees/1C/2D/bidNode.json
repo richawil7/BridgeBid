@@ -1,0 +1,25 @@
+{
+    "teamRole": "OFFENSE",
+    "fitSuit": "ALL",
+    "candidateSuit": "DIAMOND",
+    "convention": "NATURAL",
+	"suitStates": {
+		"CLUB": "NO_SUPPORT"},
+    "openerInfo": {
+	    "minPts": 13,
+	    "maxPts": 21,
+	    "evalMethod": "hcp-long" },
+    "responderInfo": {
+	    "minPts": 6,
+	    "maxPts": 12,
+	    "evalMethod": "hcp-short" },
+    "force": "ONE_ROUND",
+    "nextBidder": "OPENER",
+    "handler": "openRebid_1C_1D",
+	"interpretation": "Opener:\t has 13-21 points and 3+ clubs.\n\tDenies 5 card major\n\tDenies balanced hand\nResponder:\t has 6-12 points\n\tDenies support for opener's suit\n\tDenies 4 card major\n\tHas 4+ diamonds",
+	"hints": {
+		"hint0": "To show new major requires 4 cards, 5 for minor\nBid only valid in competition",
+		"hint1": "Small=13-15, Medium=16-18, Large=19-21\nLook for new suit or 6+ in opening suit",
+		"hint2": "13-15\t4+D: 2D\n\tDefault: 1NT16-18\t4+D: 3D\n\t6+O: 3O\n\t18: 2NT\n\tDefault: 1NT\n19-21\t4+D: 4D\n\t6+O: 4O\n\tDefault: 3NT"
+	}	
+}

@@ -49,6 +49,13 @@ class CardTable():
         self.players[TablePosition.EAST] = BridgePlayer(self, TablePosition.EAST)
         self.players[TablePosition.SOUTH] = BridgePlayer(self, TablePosition.SOUTH, self.humanPlayer)
         self.players[TablePosition.WEST] = BridgePlayer(self, TablePosition.WEST)
+    def reset(self):
+        del self.bidsList[:]
+        self.highestBid = (0, Suit.ALL)
+        self.roundNum = 0
+        self.hasOpener = False
+        self.outstandingBidReq = False
+        self.handDone = True
 
     def setGuiTable(self, guiTable):
         self.guiTable = guiTable
@@ -223,11 +230,17 @@ class CardTable():
 
         # Verify this bid is higher than the previous highest bid
         if bidLevel > 0:
+            invalidBid = False
             if bidLevel < self.highestBid[0]:
-                print("bidResponse: invalid bid of %s" % bidStr)
+                invalidBid = True
             elif bidLevel == self.highestBid[0] and bidSuit.value >= self.highestBid[1].value:
-                print("bidResponse: invalid bid of %s" % bidStr)
-            self.highestBid = bidNotif.bid
+                invalidBid = True
+            if invalidBid:
+                print("BidRsp: %s as %s had invalid bid %s" % (bidder.name, player.playerRole.name, bidStr))
+                bidStr = getBidStr(self.highestBid[0], self.highestBid[1])
+                print("BidRsp: highest bid is %s" % (bidStr))
+            else:            
+                self.highestBid = bidNotif.bid
             
         # Record the bid on both the table and bidder's bid list
         self.bidsList.append((bidLevel, bidSuit))
@@ -271,7 +284,8 @@ class CardTable():
 
             
     def processHandDone(self):
-        self.handDone = True
+        # Reset the table variables
+        self.reset()
         
         # Notify each player that the hand has completed
         for pos in TablePosition:

@@ -49,13 +49,15 @@ class OpenerRegistry:
     def calcOpenBid(self, table, player):
         Log.write("calcOpenBid: %s\n" % player.pos.name)
         hand = player.hand
+        ts = player.teamState
         (hcPts, lenPts) = hand.evalHand(DistMethod.HCP_LONG)
         totalPts = hcPts + lenPts
         # Find the longest suit
         (numCardsLong, longSuit) = hand.findLongestSuit()
         # Check if we should open weak with a long suit
         if totalPts < 14:
-            
+            ts.myMinPoints = 5
+            ts.myMaxPoints = 13            
             # Evaluate spades
             (spadeCat, numSpades, numSpadeHc) = hand.evalSuitCategory(Suit.SPADE)
             # Do we have 2 quick tricks?
@@ -113,26 +115,38 @@ class OpenerRegistry:
         # Check for balanced hand
         if hand.isHandBalanced():
             if hcPts >= 15 and hcPts <= 17:
+                ts.myMinPoints = 15
+                ts.myMaxPoints = 17            
                 player.playerRole = PlayerRole.OPENER
                 return self.enforceMinBid(table, player, 1, Suit.NOTRUMP)
             # Does hand have stoppers in all 4 suits
             if hand.hasStoppers():
                 if hcPts >= 18 and hcPts <= 19:
+                    ts.myMinPoints = 18
+                    ts.myMaxPoints = 19            
                     player.playerRole = PlayerRole.OPENER
                     return self.enforceMinBid(table, player, 1, longSuit)
                 if hcPts >= 20 and hcPts <= 21:
+                    ts.myMinPoints = 20
+                    ts.myMaxPoints = 21            
                     player.playerRole = PlayerRole.OPENER
                     return self.enforceMinBid(table, player, 2, Suit.NOTRUMP)
                 if hcPts >= 25 and hcPts <= 27:
+                    ts.myMinPoints = 25
+                    ts.myMaxPoints = 27            
                     player.playerRole = PlayerRole.OPENER
                     return self.enforceMinBid(table, player, 3, Suit.NOTRUMP)
                 if hcPts >= 28 and hcPts <= 29:
+                    ts.myMinPoints = 28
+                    ts.myMaxPoints = 29            
                     player.playerRole = PlayerRole.OPENER
                     return self.enforceMinBid(table, player, 4, Suit.NOTRUMP)
 
         # If you get here, the hand is unbalanced or is balanced with 22-24 points
         # Check for a big hand
         if totalPts >= 22:
+            ts.myMinPoints = 22
+            ts.myMaxPoints = 40            
             player.playerRole = PlayerRole.OPENER
             return self.enforceMinBid(table, player, 2, Suit.CLUB)
 

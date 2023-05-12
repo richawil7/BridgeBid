@@ -90,7 +90,7 @@ def nonNodeBidHandler(table, player):
         bidNotif = gerberReqHandler(player)
         return bidNotif
     elif player.teamState.convention != Conv.NATURAL:
-        print("nonNodeBidHandler: ERROR - convention %s not handled" % ts.convRsp.name)
+        print("nonNodeBidHandler: ERROR - convention %s not handled" % ts.convention.name)
 
     # Did I receive a shut up bid from partner and now should pass?
     if player.teamState.force == Force.PASS:
@@ -150,8 +150,8 @@ def captainBidHandler(table, player):
         (minLevel, minGameState) = getBidLevelAndState(ts.teamMinPoints, ts.fitSuit)
         (maxLevel, maxGameState) = getBidLevelAndState(ts.teamMaxPoints, ts.fitSuit)
 
-        print("capt cur: Min level=%d state=%s" % (minLevel, minGameState.name))
-        print("capt cur: Max level=%d state=%s" % (maxLevel, maxGameState.name))
+        #print("capt cur: Min level=%d state=%s" % (minLevel, minGameState.name))
+        #print("capt cur: Max level=%d state=%s" % (maxLevel, maxGameState.name))
 
         lastTeamBid = findLargestTeamBid(player)
         bidGameState = getGameStateOfBid(lastTeamBid)
@@ -163,8 +163,9 @@ def captainBidHandler(table, player):
             return bidNotif
     
     # Check if we should explore slam
-    if maxLevel >= 6 and ts.fitSuit != Suit.ALL:
-        if ts.partnerNumAces == 4:
+    if ts.fitSuit != Suit.ALL and maxLevel >= 6:
+        teamNumAces = ts.partnerNumAces + player.hand.getCountOfCard(Level.Ace_HIGH)
+        if teamNumAces == 4:
             # Explore large slam by asking for kings
             if ts.fitSuit == Suit.NOTRUMP:
                 Log.write("nonNodeBid: gerber req for Kings by %s\n" % player.pos.name)
@@ -200,31 +201,37 @@ def captainBidHandler(table, player):
     proposedBidLevel = proposedBid[0]
     proposedBidSuit = proposedBid[1]
     bidStr = getBidStr(proposedBidLevel, proposedBidSuit)
-    print("capt: proposes bid %s" % bidStr)
+    Log.write("capt: proposes bid %s\n" % bidStr)
     
     # Get the recommended bid levels for the team's point range
     (minLevel, minGameState) = getBidLevelAndState(ts.teamMinPoints, proposedBidSuit)
     (maxLevel, maxGameState) = getBidLevelAndState(ts.teamMaxPoints, proposedBidSuit)
 
-    print("capt proposed: Min level=%d state=%s" % (minLevel, minGameState.name))
-    print("capt proposed: Max level=%d state=%s" % (maxLevel, maxGameState.name))
+    Log.write("capt proposed: Min level=%d state=%s\n" % (minLevel, minGameState.name))
+    Log.write("capt proposed: Max level=%d state=%s\n" % (maxLevel, maxGameState.name))
 
     bidGameState = getGameStateOfBid(proposedBid)
     if bidGameState.value < minGameState.value:
-        # We want partner to bid again
-        # If we have a fit, suggest a new suit
-        if ts.fitSuit != Suit.ALL:
-            alternateBid = getAlternateBid(table, ts)
-            if alternateBid[1] != Suit.ALL:
-                # Replace the proposed bid with the alternate
-                proposedBidLevel = alternateBid[0]
-                proposedBidSuit = alternateBid[1]
-        force = Force.ONE_ROUND
+        # How much room do we still have
+        if proposedBidLevel + 1 < minLevel:
+            # We want partner to bid again
+            # If we have a fit, suggest a new suit
+            if ts.fitSuit != Suit.ALL:
+                alternateBid = getAlternateBid(table, ts)
+                if alternateBid[1] != Suit.ALL:
+                    # Replace the proposed bid with the alternate
+                    proposedBidLevel = alternateBid[0]
+                    proposedBidSuit = alternateBid[1]
+            force = Force.ONE_ROUND
+        else:
+            # Just bid the fit suit at the target level
+            proposedBidLevel = minLevel
+            force = Force.NONE
     elif bidGameState.value >= maxGameState.value:
         force = Force.PASS
     elif bidGameState.value == minGameState.value and maxGameState.value > minGameState.value:
         force = Force.NONE
-    print("capt: force=%s" % (force.name))
+    Log.write("capt: force=%s\n" % (force.name))
 
     # Now determine where the proposedBidLevel lies wrt the min and maxLevel
     # With a strong hand, we will want to jump a level
@@ -238,7 +245,7 @@ def captainBidHandler(table, player):
     elif proposedBidLevel > maxLevel:
         actualBidLevel = 0
 
-    print("capt: proposed level=%d actual level=%d force=%s" % (proposedBidLevel, actualBidLevel, force.name))
+    Log.write("capt: proposed level=%d actual level=%d force=%s\n" % (proposedBidLevel, actualBidLevel, force.name))
     
     # Build the notification for a natural bid
     ts.convention = Conv.NATURAL
@@ -278,7 +285,7 @@ def describerBidHandler(table, player):
 
     # If we get here, we have not reached the target game state.
     # We need to continue to describe our hand.
-    if table.roundNum < 3:
+    if ts.convention == Conv.NATURAL:
         (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
         totalPts = hcPts + distPts
         # Compare my actual points against the advertised point range
@@ -290,11 +297,15 @@ def describerBidHandler(table, player):
             # Split the range into 2 buckets
             numBuckets = 2
         if totalPts <= ts.myMinPoints + rangeSize/numBuckets:
-            proposedBid = (0, Suit.ALL)
+            # Can not pass if game state has not been reached
+            if bidGameState.value < ts.gameState.value:
+                proposedBid = getProposedBid(table, ts, player)
+            else:        
+                proposedBid = (0, Suit.ALL)
         else:
             proposedBid = getProposedBid(table, ts, player)
     else:
-        # After round 2, we want to show alternate suits
+        # We want to show alternate suits
         proposedBid = getAlternateBid(table, ts)
         
     bidNotif = BidNotif(proposedBid[0], proposedBid[1], ts)
@@ -335,7 +346,7 @@ def getProposedBid(table, ts, player):
     proposedBidLevel = getNextLowestBid(table, proposedBidSuit)
 
     bidStr = getBidStr(proposedBidLevel, proposedBidSuit)
-    print("desc: proposed bid is %s" % bidStr)
+    Log.write("desc: proposed bid is %s\n" % bidStr)
     return (proposedBidLevel, proposedBidSuit)
 
 # This function is used to generate a suit which has not previously been bid
@@ -356,9 +367,9 @@ def getAlternateBid(table, teamState):
             # What is lowest level I can bid the alternate suit?
             alternateBidLevel = getNextLowestBid(table, alternateBidSuit)
             bidStr = getBidStr(alternateBidLevel, alternateBidSuit)
-            print("getAlternateBid: returned %s" % bidStr)
+            #print("getAlternateBid: returned %s" % bidStr)
             return (alternateBidLevel, alternateBidSuit)
         
     bidStr = getBidStr(alternateBidLevel, alternateBidSuit)
-    print("desc: alternate bid is %s" % bidStr)
+    #print("desc: alternate bid is %s" % bidStr)
     return (alternateBidLevel, alternateBidSuit)

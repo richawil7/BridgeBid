@@ -4,7 +4,7 @@
     "candidateSuit": "ALL",
     "convention": "MAJOR_LIMIT",
 	"suitStates": {
-		"SPADE": "NO_SUPPORT"},
+		"SPADE": "SUPPORT"},
     "openerInfo": {
 	    "minPts": 13,
 	    "maxPts": 21,

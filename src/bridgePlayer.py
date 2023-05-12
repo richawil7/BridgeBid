@@ -97,8 +97,9 @@ class BridgePlayer(Player):
             # This is the bid the computer thinks the human should make
             Log.write("BidRsp: Computer thinks human should bid %s\n" % bidStr)
 
-        if bidNotif.bid[0] != 0 or self.teamState.bidSeq[-1][0] != 0:    
-            bidNotif.show()
+        # Debug
+        #if bidNotif.bid[0] != 0 or self.teamState.bidSeq[-1][0] != 0:    
+        #    bidNotif.show()
 
         
     def bidRound1(self, table):
@@ -127,10 +128,8 @@ class BridgePlayer(Player):
             bidNotif = table.openerRegistry.jump_table[self.bidNode.handler](table, self)
 
         # Update the bid notification using the bid node information
-        print("round1: cur bid seq = {}".format(self.teamState.bidSeq))
         newBidSeq = self.teamState.bidSeq.copy()
         newBidSeq.append(bidNotif.bid)
-        print("round1: next bid seq = {}".format(newBidSeq))
         nextBidNode = fetchBidTreeNode(newBidSeq)
         bidNotif.updateWithBidnode(self, nextBidNode)
         return bidNotif
@@ -279,6 +278,9 @@ class BridgePlayer(Player):
     This function is called by the card table at the end of a hand
     '''
     def processHandDone(self):
+        # Clear out the team state
+        self.teamState.__init__()
+        
         # Turn all the cards face up
         if self.pos == TablePosition.SOUTH:
             return

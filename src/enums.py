@@ -77,18 +77,20 @@ class Force(Enum):
 class Conv(Enum):
     NATURAL = 0
     OPENING = 1
-    STAYMAN_REQ = 2
-    STAYMAN_RSP = 3
-    JACOBY_XFER_REQ = 4
-    JACOBY_XFER_RSP = 5
-    JACOBY_2NT = 6
-    TWO_OVER_ONE = 7
-    SPLINTER = 8
-    CUE_BID = 9
-    BLACKWOOD_REQ = 10
-    BLACKWOOD_RSP = 11
-    GERBER_RSP = 12
-    GERBER_REQ = 13
+    WEAK_2 = 2
+    STAYMAN_REQ = 3
+    STAYMAN_RSP = 4
+    JACOBY_XFER_REQ = 5
+    JACOBY_XFER_RSP = 6
+    JACOBY_2NT = 7
+    MAJOR_LIMIT = 8
+    TWO_OVER_ONE = 9
+    SPLINTER = 10
+    CUE_BID = 11
+    BLACKWOOD_REQ = 12
+    BLACKWOOD_RSP = 13
+    GERBER_RSP = 14
+    GERBER_REQ = 15
 
 class GameState(Enum):
     UNKNOWN = 0

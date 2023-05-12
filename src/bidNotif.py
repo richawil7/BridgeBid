@@ -48,7 +48,7 @@ class BidNotif:
     def show(self):
         bidStr = getBidStr(self.bid[0], self.bid[1])
         Log.write("bidNotif: show: bid={} conv={} force={} state={}\n".format(bidStr, self.convention.name, self.force.name, self.gameState.name))
-        print("notif suit state {}".format(self.suitState))
+        # print("notif suit state {}".format(self.suitState))
         
     def processStaymanResponse(self, player, teamState):
         print("processStaymanResponse")
@@ -68,10 +68,27 @@ class BidNotif:
                 teamState.fitSuit = Suit.SPADE
         
     def processJacobyResponse(self, player):
-        print("processJacobyResponse: no action taken")
+        Log.write("processJacobyResponse: no action taken")
+     
+    def processMajorLimit(self, ts):
+        Log.write("processing Major Limit notification")
+        # Responder has support for bid major and 11-12 points
+        openingSuit = ts.candidateSuit
+        ts.suitState[openingSuit] = FitState.SUPPORT
+        ts.partnerMinPoints = 11
+        ts.partnerMaxPoints = 12
+    
+    def processJacoby2NT(self, ts):
+        Log.write("processing Jacoby 2NT notification")
+        # Responder has 4+ card support for bid major and 13+ points
+        openingSuit = ts.candidateSuit
+        ts.suitState[openingSuit] = FitState.SUPPORT
+        ts.partnerMinPoints = 13
+        ts.partnerMaxPoints = 27
+        ts.convention = self.convention
     
     def processBlackwoodResponse(self, ts):
-        print("processing Blackwood response")
+        Log.write("processing Blackwood response")
         if self.bid[0] == 5:
             if self.bid[1] == Suit.CLUB:
                 ts.partnerNumAces = 4
@@ -162,6 +179,10 @@ class BidNotif:
             self.processStaymanResponse(player, teamState)
         elif self.convention == Conv.JACOBY_XFER_RSP:
             self.processJacobyResponse(player)
+        elif self.convention == Conv.MAJOR_LIMIT:
+            self.processMajorLimit(teamState)
+        elif self.convention == Conv.JACOBY_2NT:
+            self.processJacoby2NT(teamState)
         elif self.convention == Conv.BLACKWOOD_RSP:
             self.processBlackwoodResponse(teamState)
         elif self.convention == Conv.GERBER_RSP:
@@ -185,7 +206,7 @@ class BidNotif:
             print("notifHandler: did not handle convention %s" % self.convention.name)
 
         # Check how many cards are promised by opener
-        print("bidNotif: bid seq is {}".format(teamState.bidSeq))
+        # print("bidNotif: bid seq is {}".format(teamState.bidSeq))
         openingBid = getOpeningBid(teamState.bidSeq)
         if player.table.roundNum == 1 and numBids == 1:
             bidSuit = self.bid[1]

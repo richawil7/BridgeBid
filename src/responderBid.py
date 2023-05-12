@@ -4,7 +4,7 @@ opening bid from the partner
 '''
 
 from infoLog import Log
-from enums import Suit, Level, DistMethod, Conv
+from enums import *
 from utils import *
 from card import Card
 from cardPile import CardPile
@@ -177,15 +177,11 @@ class ResponderRegistry:
             if numSpades >= 4 or numHearts >= 4:
                 hasMajor = True
 
+            (numDiamonds, numHighDiamonds) = player.hand.evalSuitStrength(Suit.DIAMOND)
             if totalPts >= 6 and totalPts <= 10:
                 ts.myMinPoints = 6
                 ts.myMaxPoints = 10
-                if suit == Suit.CLUB:
-                    (numDiamonds, numHighDiamonds) = player.hand.evalSuitStrength(Suit.DIAMOND)
-                    if numDiamonds >= 4:
-                        bidNotif = BidNotif(1, Suit.DIAMOND, player.teamState)
-                        return bidNotif
-                elif hasMajor:
+                if hasMajor:
                     if numSpades == 5 and numHearts == 5:
                         bidNotif = BidNotif(1, Suit.SPADE, player.teamState)
                         return bidNotif
@@ -198,8 +194,12 @@ class ResponderRegistry:
                     else:
                         bidNotif = BidNotif(1, Suit.HEART, player.teamState)
                         return bidNotif
+                elif suit == Suit.CLUB and numDiamonds >= 4:
+                        bidNotif = BidNotif(1, Suit.DIAMOND, player.teamState)
+                        return bidNotif
                 else:
                     bidNotif = BidNotif(1, Suit.NOTRUMP, player.teamState)
+                    bidNotif.force = Force.ONE_ROUND
                     return bidNotif
 
             if totalPts >= 11 and totalPts <= 12:
@@ -225,6 +225,7 @@ class ResponderRegistry:
                         return bidNotif
                 else:
                     bidNotif = BidNotif(1, Suit.NOTRUMP, player.teamState)
+                    bidNotif.force = Force.ONE_ROUND
                     return bidNotif
 
             if totalPts >= 13:
@@ -236,41 +237,31 @@ class ResponderRegistry:
                     bidNotif = BidNotif(2, Suit.CLUB, player.teamState)
                     ts.convention = Conv.NATURAL
                     return bidNotif
-
-            if totalPts >= 13 and totalPts <= 15:
-                ts.myMinPoints = 13
-                ts.myMaxPoints = 15
-                if player.hand.isHandBalanced():
-                    bidNotif = BidNotif(2, Suit.NOTRUMP, player.teamState)
+                elif hasMajor:
+                    ts.convention = Conv.TWO_OVER_ONE
+                    bidNotif = BidNotif(1, Suit.NOTRUMP, player.teamState)
+                    ts.convention = Conv.NATURAL
                     return bidNotif
-
-            if totalPts >= 16 and totalPts <= 18:
-                ts.myMinPoints = 16
-                ts.myMaxPoints = 18
-                if player.hand.isHandBalanced() and player.hand.hasStoppers():
-                    bidNotif = BidNotif(3, Suit.NOTRUMP, player.teamState)
-                    return bidNotif
-
-            if totalPts >= 13 and hasMajor:
-                ts.myMinPoints = 13
-                ts.myMaxPoints = 27
-                if numSpades == numHearts:
-                    bidNotif = BidNotif(1, Suit.HEART, player.teamState)
-                    return bidNotif
-                elif numSpades > numHearts:
-                    bidNotif = BidNotif(1, Suit.SPADE, player.teamState)
-                    return bidNotif
+                elif player.hand.isHandBalanced():
+                    if totalPts <= 15:
+                        ts.myMinPoints = 13
+                        ts.myMaxPoints = 15
+                        bidNotif = BidNotif(2, Suit.NOTRUMP, player.teamState)
+                        bidNotif.force = Force.ONE_ROUND
+                        return bidNotif
+                    elif totalPts >= 16 and totalPts <= 18:
+                        ts.myMinPoints = 16
+                        ts.myMaxPoints = 18
+                        if player.hand.hasStoppers():
+                            bidNotif = BidNotif(3, Suit.NOTRUMP, player.teamState)
+                            return bidNotif
                 else:
-                    bidNotif = BidNotif(1, Suit.HEART, player.teamState)
+                    # When playing 2 over 1, force one round by bidding 1NT
+                    bidNotif = BidNotif(1, Suit.NOTRUMP, player.teamState)
+                    bidNotif.force = Force.ONE_ROUND
                     return bidNotif
-            else:
-                (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
-                if suitA != suit:
-                    bidNotif = BidNotif(1, suitA, player.teamState)
-                    return bidNotif
-                else:
-                    bidNotif = BidNotif(1, suitB, player.teamState)
-                    return bidNotif
+        print("responderBid: open1MinorRsp: ERROR should not reach here")
+
                 
     @ResponderFunctions.register(command="rsp_1Ma")
     def open1MajorRsp(self, table, player):
@@ -363,6 +354,7 @@ class ResponderRegistry:
                         bidNotif = BidNotif(1, Suit.SPADE, player.teamState)
                         return bidNotif
                 bidNotif = BidNotif(1, Suit.NOTRUMP, player.teamState)
+                bidNotif.force = Force.ONE_ROUND
                 return bidNotif
 
             if totalPts >= 13:
@@ -683,9 +675,9 @@ class ResponderRegistry:
             ts.myMaxPoints = 20
             # Jacoby transfer
             if suitA == Suit.HEART:
-                bidNotif = BidNotif(2, Suit.DIAMOND, player.teamState)
+                bidNotif = BidNotif(3, Suit.DIAMOND, player.teamState)
             else:
-                bidNotif = BidNotif(2, Suit.HEART, player.teamState)
+                bidNotif = BidNotif(3, Suit.HEART, player.teamState)
             bidNotif.convention = Conv.JACOBY_XFER_REQ
             return bidNotif
 
@@ -695,7 +687,7 @@ class ResponderRegistry:
                 ts.myMinPoints = 6
                 ts.myMaxPoints = 20
                 # Stayman
-                bidNotif = BidNotif(2, Suit.CLUB, player.teamState)
+                bidNotif = BidNotif(3, Suit.CLUB, player.teamState)
                 bidNotif.convention = Conv.STAYMAN_REQ
                 return bidNotif
 
@@ -704,7 +696,7 @@ class ResponderRegistry:
             ts.myMinPoints = 0
             ts.myMaxPoints = 20
             # Jacoby transfer
-            bidNotif = BidNotif(2, Suit.SPADE, player.teamState)
+            bidNotif = BidNotif(3, Suit.SPADE, player.teamState)
             bidNotif.convention = Conv.JACOBY_XFER_REQ
             return bidNotif
 

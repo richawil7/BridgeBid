@@ -105,11 +105,12 @@ class ControlFrame(TableFrame):
         # Use the notification built by the computer
         bidNotif = player.lastNotif
         # Check if the computer and human agreed on this bid
-        if level != bidNotif.bid[0] or suit != bidNotif.bid[1]:
-            computerBidStr = getBidStr(bidNotif.bid[0], bidNotif.bid[1])
-            print("Computer bid %s != Human bid %s" % (computerBidStr, bidStr))
-            # Overwrite the last bid with what the human bid
-            bidNotif.bid = (level, suit)
+        if level != 0 or bidNotif.bid[0] != 0:
+            if level != bidNotif.bid[0] or suit != bidNotif.bid[1]:
+                computerBidStr = getBidStr(bidNotif.bid[0], bidNotif.bid[1])
+                print("Computer bid %s != Human bid %s" % (computerBidStr, bidStr))
+                # Overwrite the last bid with what the human bid
+                bidNotif.bid = (level, suit)
         self.app.table.bidResponse(TablePosition.SOUTH, bidNotif)
         
     '''
