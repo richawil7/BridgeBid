@@ -9,6 +9,7 @@ from enums import *
 from utils import *
 from bidUtils import *
 
+
 class BidNotif:
 
     def __init__(self, bidLevel, bidSuit, teamState):
@@ -20,8 +21,57 @@ class BidNotif:
         self.suitState = teamState.suitState.copy()
         self.gameState = teamState.gameState
 
+    # This function creates a bid based on a proposal.
+    # The actual bid returned, in the form of a BidNotif, may be different
+    # from the proposed bid. A proposed bid will be changed if it is not
+    # above the current highest bid at the table.
+    def __init__(self, player, bidLevel, bidSuit, convention=Conv.NATURAL, force=Force.NONE):
+        # Start by initializing the notification with info in the player's team state
+        self.bid = (bidLevel, bidSuit)
+        self.minPoints = player.teamState.myMinPoints
+        self.maxPoints = player.teamState.myMaxPoints
+        self.suitState = player.teamState.suitState.copy()
+        self.gameState = player.teamState.gameState
+        self.convention = player.teamState.convention
+        self.force = player.teamState.force
+
+        # Clear the convention and force from the team state
+        player.teamState.convention = Conv.NATURAL
+        player.teamState.force = Force.NONE
+        
+        # Take the convention and force parameters from the input
+        if convention != Conv.NATURAL:
+            self.convention = convention
+        if force != Force.NONE:
+            self.force = force
+        
+        # If the proposed bid is to PASS, no further verification is required
+        if bidLevel == 0:
+            return
+
+        # Otherwise, we need to verify this is a legal bid
+        # Find the highest bid made at the table so far
+        (maxLevel, maxSuit) = findLargestTableBid(player.table)
+        maxBidStr = getBidStr(maxLevel, maxSuit)
+        proposedBidStr = getBidStr(bidLevel, bidSuit)
+        if maxLevel > bidLevel:
+            # Competitors already bid higher than my bid. Return pass
+            Log.write("createBid: my bid of %s was squashed by %s\n" % (proposedBidStr, maxBidStr))
+            self.bid = (0, Suit.ALL)
+            self.convention = Conv.NATURAL
+            self.force = Force.NONE
+            return
+        elif maxLevel == bidLevel:
+            if maxSuit.value <= bidSuit.value:
+                Log.write("createBid: my bid of %s was squashed by %s\n" % (proposedBidStr, maxBidStr))
+                player.role = PlayerRole.NONE
+                self.bid = (0, Suit.ALL)
+                self.convention = Conv.NATURAL
+                self.force = Force.NONE
+                return
+
+
     def updateWithBidnode(self, player, bidNode):
-        player.playerRole = getMyPlayerRole(player.table, player)
         if player.playerRole == PlayerRole.OPENER:
             self.minPoints = bidNode.openerMinPoints
             self.maxPoints = bidNode.openerMaxPoints
@@ -88,7 +138,7 @@ class BidNotif:
         ts.convention = self.convention
     
     def processBlackwoodResponse(self, ts):
-        Log.write("processing Blackwood response")
+        Log.write("processing Blackwood response\n")
         if self.bid[0] == 5:
             if self.bid[1] == Suit.CLUB:
                 ts.partnerNumAces = 4
@@ -129,8 +179,16 @@ class BidNotif:
                 ts.partnerNumKings = 3
 
     def processCuebidResponse(self):
-        print("processCuebidResponse: no action taken")
+        Log.write("processCuebidResponse: no action taken")
 
+    def processSplinterResponse(self, ts):
+        Log.write("processing Splinter notification\n")
+        # Responder has 4+ card support for bid major and 13+ points
+        openingSuit = ts.candidateSuit
+        ts.suitState[openingSuit] = FitState.SUPPORT
+        ts.partnerMinPoints = 13
+        ts.partnerMaxPoints = 27
+        ts.convention = Conv.NATURAL
         
     def notifHandler(self, player):
         teamState = player.teamState
@@ -189,6 +247,8 @@ class BidNotif:
             self.processGerberResponse(teamState)
         elif self.convention == Conv.CUE_BID:
             self.processCuebidResponse()
+        elif self.convention == Conv.SPLINTER:
+            self.processSplinterResponse(teamState)
         # The remaining conventions all need to be processed when this player bids next. Save the convention in the player's team state    
         elif self.convention == Conv.NATURAL:
             teamState.convention = self.convention

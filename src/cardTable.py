@@ -223,6 +223,8 @@ class CardTable():
         player = self.players[bidder]
         if bidder == TablePosition.NORTH or bidder == TablePosition.SOUTH:
             Log.write("BidRsp: %s as %s bids %s\n" % (bidder.name, player.playerRole.name, bidStr))
+        else:
+            Log.write("BidRsp: %s bids %s\n" % (bidder.name, bidStr))
         
         self.outstandingBidReq = False
         if bidLevel > 0 and self.hasOpener == False:

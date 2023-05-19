@@ -35,7 +35,7 @@ def blackwoodReqHandler(player):
 
     ts.convention = Conv.BLACKWOOD_RSP
     ts.force = Force.ONE_ROUND
-    bidNotif = BidNotif(bidLevel, bidSuit, ts)
+    bidNotif = BidNotif(player, bidLevel, bidSuit)
     ts.convention = Conv.NATURAL
     ts.force = Force.NONE
     return bidNotif
@@ -72,7 +72,7 @@ def gerberReqHandler(player):
 
     ts.convention = Conv.GERBER_RSP
     ts.force = Force.ONE_ROUND
-    bidNotif = BidNotif(bidLevel, bidSuit, ts)
+    bidNotif = BidNotif(player, bidLevel, bidSuit)
     ts.convention = Conv.NATURAL
     ts.force = Force.NONE
     return bidNotif
@@ -96,7 +96,7 @@ def nonNodeBidHandler(table, player):
     if player.teamState.force == Force.PASS:
         ts.convention = Conv.NATURAL
         ts.force = Force.NONE
-        bidNotif = BidNotif(0, Suit.ALL, ts)
+        bidNotif = BidNotif(player, 0, Suit.ALL)
         return bidNotif
 
     # What is our team's highest bid so far
@@ -104,22 +104,23 @@ def nonNodeBidHandler(table, player):
     bidStr = getBidStr(teamBid[0], teamBid[1])
     
     bidNotif = None
-    # Have we achieved our target game state? If so, we can pass.
-    if ts.gameState == GameState.LARGE_SLAM and teamBid[0] == 7:
-        bidNotif = BidNotif(0, Suit.ALL, ts)
-    elif ts.gameState == GameState.SMALL_SLAM and teamBid[0] == 6:
-        bidNotif = BidNotif(0, Suit.ALL, ts)
-    elif ts.gameState == GameState.GAME:
-        if teamBid[1] == Suit.NOTRUMP and teamBid[0] >= 3:
-            bidNotif = BidNotif(0, Suit.ALL, ts)
-        elif isMinor(teamBid[1]) and teamBid[0] >= 5:
-            bidNotif = BidNotif(0, Suit.ALL, ts)
-        elif isMajor(teamBid[1]) and teamBid[0] >= 4:
-            bidNotif = BidNotif(0, Suit.ALL, ts)
-    elif ts.gameState == GameState.PARTSCORE and teamBid[0] >= 1:
-            bidNotif = BidNotif(0, Suit.ALL, ts)
-    if bidNotif != None:
-        return bidNotif
+    # Have we achieved our target game state? If so, we can pass if not forced to bid
+    if ts.force != Force.ONE_ROUND:
+        if ts.gameState == GameState.LARGE_SLAM and teamBid[0] == 7:
+            bidNotif = BidNotif(player, 0, Suit.ALL)
+        elif ts.gameState == GameState.SMALL_SLAM and teamBid[0] == 6:
+            bidNotif = BidNotif(player, 0, Suit.ALL)
+        elif ts.gameState == GameState.GAME:
+            if teamBid[1] == Suit.NOTRUMP and teamBid[0] >= 3:
+                bidNotif = BidNotif(player, 0, Suit.ALL)
+            elif isMinor(teamBid[1]) and teamBid[0] >= 5:
+                bidNotif = BidNotif(player, 0, Suit.ALL)
+            elif isMajor(teamBid[1]) and teamBid[0] >= 4:
+                bidNotif = BidNotif(player, 0, Suit.ALL)
+        elif ts.gameState == GameState.PARTSCORE and teamBid[0] >= 1:
+                bidNotif = BidNotif(player, 0, Suit.ALL)
+        if bidNotif != None:
+            return bidNotif
     
     # Am I the Captain of the team?
     if amITheCaptain(player):
@@ -141,25 +142,22 @@ def captainBidHandler(table, player):
     describerBid = ts.bidSeq[-1]
     if describerBid[0] == 0:
         # Describer passed. So we will also pass.
-        bidNotif = BidNotif(0, Suit.ALL, ts)
+        bidNotif = BidNotif(player, 0, Suit.ALL)
         return bidNotif
 
     # Check if team has reached the target game state
-    if ts.fitSuit != Suit.ALL:    
+    if ts.fitSuit != Suit.ALL:
         # Get the recommended bid levels for the team's point range
         (minLevel, minGameState) = getBidLevelAndState(ts.teamMinPoints, ts.fitSuit)
         (maxLevel, maxGameState) = getBidLevelAndState(ts.teamMaxPoints, ts.fitSuit)
 
-        #print("capt cur: Min level=%d state=%s" % (minLevel, minGameState.name))
-        #print("capt cur: Max level=%d state=%s" % (maxLevel, maxGameState.name))
+        Log.write("capt cur: Min level=%d state=%s\n" % (minLevel, minGameState.name))
+        Log.write("capt cur: Max level=%d state=%s\n" % (maxLevel, maxGameState.name))
 
         lastTeamBid = findLargestTeamBid(player)
         bidGameState = getGameStateOfBid(lastTeamBid)
-        if bidGameState.value >= maxGameState.value:
-            bidNotif = BidNotif(0, Suit.ALL, ts)
-            return bidNotif
-        if bidGameState.value >= minGameState.value:
-            bidNotif = BidNotif(0, Suit.ALL, ts)
+        if bidGameState.value >= maxGameState.value and ts.force == Force.NONE:
+            bidNotif = BidNotif(player, 0, Suit.ALL)
             return bidNotif
     
     # Check if we should explore slam
@@ -169,31 +167,19 @@ def captainBidHandler(table, player):
             # Explore large slam by asking for kings
             if ts.fitSuit == Suit.NOTRUMP:
                 Log.write("nonNodeBid: gerber req for Kings by %s\n" % player.pos.name)
-                ts.convention = Conv.GERBER_REQ
-                ts.force = Force.ONE_ROUND
-                bidNotif = BidNotif(5, Suit.CLUB, ts)
+                bidNotif = BidNotif(player, 5, Suit.CLUB, Conv.GERBER_REQ, Force.ONE_ROUND)
             else:
                 Log.write("nonNodeBid: blackwood req for Kings by %s\n" % player.pos.name)
-                ts.convention = Conv.BLACKWOOD_REQ
-                ts.force = Force.ONE_ROUND
-                bidNotif = BidNotif(6, Suit.NOTRUMP, ts)
-            ts.convention = Conv.NATURAL
-            ts.force = Force.NONE
+                bidNotif = BidNotif(player, 6, Suit.NOTRUMP, Conv.BLACKWOOD_REQ, Force.ONE_ROUND)
             return bidNotif
         elif ts.partnerNumAces == -1:
             # Ask partner for number of aces
             if ts.fitSuit == Suit.NOTRUMP:
                 Log.write("nonNodeBid: gerber req for Aces by %s\n" % player.pos.name)
-                ts.convention = Conv.GERBER_REQ
-                ts.force = Force.ONE_ROUND
-                bidNotif = BidNotif(4, Suit.CLUB, ts)
+                bidNotif = BidNotif(player, 4, Suit.CLUB, Conv.GERBER_REQ, Force.ONE_ROUND)
             else:
                 Log.write("nonNodeBid: blackwood req for Aces by %s\n" % player.pos.name)
-                ts.convention = Conv.BLACKWOOD_REQ
-                ts.force = Force.ONE_ROUND
-                bidNotif = BidNotif(4, Suit.NOTRUMP, ts)
-            ts.convention = Conv.NATURAL
-            ts.force = Force.NONE
+                bidNotif = BidNotif(player, 4, Suit.NOTRUMP, Conv.BLACKWOOD_REQ, Force.ONE_ROUND)
             return bidNotif
     
     # If we get here, the bid is natural. Get a proposed bid
@@ -251,66 +237,46 @@ def captainBidHandler(table, player):
     ts.convention = Conv.NATURAL
     ts.force = force
     ts.suitState[proposedBidSuit] = FitState.CANDIDATE
-    bidNotif = BidNotif(actualBidLevel, proposedBidSuit, ts)
+    bidNotif = BidNotif(player, actualBidLevel, proposedBidSuit)
     return bidNotif
-
 
 def describerBidHandler(table, player):
     Log.write("describerBidHandler by %s\n" % player.pos.name)
     ts = player.teamState
-
-    # Check the game state of the team
-    if ts.gameState == GameState.UNKNOWN:
-        # This team likely has passed in the first round
-        bidNotif = BidNotif(0, Suit.ALL, ts)
-        return bidNotif
-
-    if ts.force == Force.ONE_ROUND:
-        # If we don't have a fit yet, get a proposed bid
-        if ts.fitSuit == Suit.ALL:
-            proposedBid = getProposedBid(table, ts, player)
-        else:
-            # Show an alternate suit
-            proposedBid = getAlternateBid(table, ts)
-        bidNotif = BidNotif(proposedBid[0], proposedBid[1], ts)
-        return bidNotif
-    
-    # Have we reached the target game state?
     lastTeamBid = findLargestTeamBid(player)
     bidGameState = getGameStateOfBid(lastTeamBid)
-    if bidGameState.value >= ts.gameState.value:
-        # We are done. Just pass.
-        bidNotif = BidNotif(0, Suit.ALL, ts)
-        return bidNotif
 
-    # If we get here, we have not reached the target game state.
-    # We need to continue to describe our hand.
-    if ts.convention == Conv.NATURAL:
-        (hcPts, distPts) = player.hand.evalHand(DistMethod.HCP_SHORT)
-        totalPts = hcPts + distPts
-        # Compare my actual points against the advertised point range
-        rangeSize = ts.myMaxPoints - ts.myMinPoints
-        if rangeSize > 5:
-            # Split the range into 3 buckets
-            numBuckets = 3
-        else:
-            # Split the range into 2 buckets
-            numBuckets = 2
-        if totalPts <= ts.myMinPoints + rangeSize/numBuckets:
-            # Can not pass if game state has not been reached
-            if bidGameState.value < ts.gameState.value:
-                proposedBid = getProposedBid(table, ts, player)
-            else:        
-                proposedBid = (0, Suit.ALL)
-        else:
-            proposedBid = getProposedBid(table, ts, player)
+    # Get the target bid level for the fit suit
+    if ts.fitSuit == Suit.ALL:
+        targetLevel = 1
     else:
-        # We want to show alternate suits
-        proposedBid = getAlternateBid(table, ts)
+        targetLevel = getGameStateMinLevel(ts.fitSuit, ts.gameState)
         
-    bidNotif = BidNotif(proposedBid[0], proposedBid[1], ts)
-    return bidNotif    
+    # Check the conditions under which the describer should pass
+    if ts.force == Force.PASS:
+        bidNotif = BidNotif(player, 0, Suit.ALL)
+        return bidNotif
+    if ts.force == Force.NONE:
+        if ts.fitSuit == lastTeamBid[1]:
+            if bidGameState >= ts.gameState and lastTeamBid[0] >= targetLevel:
+                bidNotif = BidNotif(player, 0, Suit.ALL)
+                return bidNotif
+        
+    # Propose a bid
+    proposedBid = getProposedBid(table, ts, player)
+    if proposedBid[0] == 0 and ts.force != Force.ONE_ROUND:
+        bidNotif = BidNotif(player, 0, Suit.ALL)
+        return bidNotif
+    if proposedBid[0] > targetLevel:
+        bidNotif = BidNotif(player, 0, Suit.ALL)
+        return bidNotif    
+    
+    if ts.force == Force.ONE_ROUND and ts.fitSuit != Suit.ALL and lastTeamBid[0] + 1 < targetLevel:
+        # We have room to show an alternative bid
+        proposedBid = getAlternateBid(table, ts)
 
+    bidNotif = BidNotif(player, proposedBid[0], proposedBid[1])
+    return bidNotif    
 
 # This function proposes a bid. It uses the fit suit if it exists.
 # If there is no fit yet, it finds another suit.

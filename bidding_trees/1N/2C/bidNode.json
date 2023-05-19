@@ -14,7 +14,7 @@
     "force": "ONE_ROUND",
     "nextBidder": "OPENER",
     "handler": "openRebid_1NT_2C",
-	"interpretation": "Opener:\tHas 15-17 points and a balanced hand\n\tMay have a 5 card suit\nResponder:\tHas 8+ points and a 4 card major\n\tHas 8-9 points and a 5 card major",
+	"interpretation": "Opener:\n\tHas 15-17 points and a balanced hand\n\tMay have a 5 card suit\nResponder:\n\tHas 8+ points and a 4 card major\n\tHas 8-9 points and a 5 card major",
 	"hints": {
 		"hint0": "Stayman",
 		"hint1": "Bid best major",

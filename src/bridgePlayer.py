@@ -90,7 +90,6 @@ class BridgePlayer(Player):
         (bidLevel, bidSuit) = (bidNotif.bid[0], bidNotif.bid[1])
         bidStr = getBidStr(bidLevel, bidSuit)
         if not isHuman:
-            Log.write("BidRsp: %s bids %s\n" % (self.pos.name, bidStr))
             # Only submit the bid if the computer is this player
             self.table.bidResponse(self.pos, bidNotif)
         else:
@@ -149,7 +148,8 @@ class BridgePlayer(Player):
             self.playerRole = getMyPlayerRole(table, self)
 
         if self.playerRole == PlayerRole.NONE:
-            bidNotif = BidNotif(0, Suit.ALL, self.teamState)
+            Log.write("bidRound2: player {} passes because role is NONE\n".format(self.pos))
+            bidNotif = BidNotif(self, 0, Suit.ALL)
             return bidNotif
 
         # FIX ME - debugging
@@ -205,7 +205,7 @@ class BridgePlayer(Player):
     
     def bidRound3(self, table):
         if self.playerRole == PlayerRole.UNKNOWN:
-            bidNotif = BidNotif(0, Suit.ALL, self.teamState)
+            bidNotif = BidNotif(self, 0, Suit.ALL)
             return bidNotif
         
         # FIX ME - debugging
@@ -231,38 +231,28 @@ class BridgePlayer(Player):
     def bidNotification(self, table, bidder, bidNotif):
         (bidLevel, bidSuit) = (bidNotif.bid[0], bidNotif.bid[1])
         bidStr = getBidStr(bidLevel, bidSuit)
-        # Log.write("bidNotif: bidder={} bid={} me={}\n".format(bidder.name, bidStr, self.pos.name))
+        Log.write("bidNotif: bidder={} bid={} me={}\n".format(bidder.name, bidStr, self.pos.name))
 
         # Need to figure out who the bidder is?
         myPartner = whosMyPartner(self.pos)
         if bidder == myPartner:
-            # Log.write("bidNotification: {} is my partner\n".format(bidder.name))
+            Log.write("bidNotification: {} is my partner\n".format(bidder.name))
             # Partner made this bid. Update the team state bid sequence
             self.teamState.bidSeq.append(bidNotif.bid)
             bidSeq = self.teamState.bidSeq
 
+            numBids = len(bidSeq)
+            if numBids == 2:
+                # check if the first bid was a pass
+                if bidSeq[0][0] == 0:
+                    # check if the second bid was a pass
+                    if bidSeq[1][0] != 0:
+                        # This player bid first and passed, but is now a responder
+                        self.playerRole = PlayerRole.RESPONDER
+            
             # Call common notification handling code
             bidNotif.notifHandler(self)
 
-            # FIX ME - dead code
-            '''
-            # Can we update our team's state from a bid node?
-            # We only have bid node for 2 levels of bids
-            numBids = len(bidSeq)
-            # check if the first bid was a pass
-            if bidSeq[0][0] == 0:
-                numBids -= 1
-            if len(bidSeq) <= 2: 
-                # Fetch the bid node from the bidding tree for this bid sequence
-                self.bidNode = fetchBidTreeNode(bidSeq)
-                
-                # Merge the bid tree node info into the team state
-                self.teamState.mergeTreeNode(self, self.bidNode, self.playerRole)
-            else:
-                # Log.write("bridgePlayer: bidNotif: No bid node available\n")
-                # Team state is updated by the notification
-                bidNotif.notifHandler(self)
-            '''    
         else:
             # If opponents did not pass, then our team has competition
             if bidNotif.bid[0] > 0:

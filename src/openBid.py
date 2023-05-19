@@ -20,30 +20,6 @@ class OpenerRegistry:
         # Bind methods to instance
         self.jump_table = OpenerRegistry.OpenerFunctions.get_bound_jump_table(self)
 
-    def enforceMinBid(self, table, player, bidLevel, bidSuit):
-        # print("enforceMinBid: self is {}".format(self))
-        myBidStr = getBidStr(bidLevel, bidSuit)
-
-        # Find the highest bid made at the table so far
-        (maxLevel, maxSuit) = findLargestTableBid(table)
-        maxBidStr = getBidStr(maxLevel, maxSuit)
-
-        if maxLevel > bidLevel:
-            # Competitors already bid higher than my bid. Return pass
-            Log.write("enforceMinBid: my bid of %s was squashed by %s\n" % (myBidStr, maxBidStr))
-            bidNotif = BidNotif(0, Suit.ALL, player.teamState)
-            return bidNotif
-        elif maxLevel == bidLevel:
-            if maxSuit.value <= bidSuit.value:
-                Log.write("enforceMinBid: my bid of %s was squashed by %s\n" % (myBidStr, maxBidStr))
-                bidNotif = BidNotif(0, Suit.ALL, player.teamState)
-                return bidNotif
-
-        bidNotif = BidNotif(bidLevel, bidSuit, player.teamState)
-        bidNotif.convention = Conv.OPENING
-        return bidNotif
-        
-
     # Define functions
     @OpenerFunctions.register(command="open")    
     def calcOpenBid(self, table, player):
@@ -91,26 +67,27 @@ class OpenerRegistry:
                     (category, numCardsIHave, highCardCount) = hand.evalSuitCategory(longSuit)
                     if highCardCount >=2:
                         if numCardsB >= 4:
-                            bidNotif = BidNotif(0, Suit.ALL, player.teamState)
+                            bidNotif = BidNotif(player, 0, Suit.ALL)
                             return bidNotif
 
                         # Weak bid
                         if longSuit != Suit.CLUB:
                             bidLevel = numCardsLong - 4
                             player.playerRole = PlayerRole.OPENER
-                            return self.enforceMinBid(table, player, bidLevel, longSuit)
+                            return BidNotif(player, bidLevel, longSuit, Conv.OPENING)
                     else:
-                        bidNotif = BidNotif(0, Suit.ALL, player.teamState)
+                        bidNotif = BidNotif(player, 0, Suit.ALL)
                         return bidNotif
                 else:
                     # Check for rule of 20
                     if hcPts + numCardsA + numCardsB >= 20:
                         player.playerRole = PlayerRole.OPENER
-                        return self.enforceMinBid(table, player, 1, suitA)
+                        bidNotif = BidNotif(player, 1, suitA, Conv.OPENING)
                     else:
-                        bidNotif = BidNotif(0, Suit.ALL, player.teamState)
-                        return bidNotif
-                        return (0, Suit.ALL)
+                        bidNotif = BidNotif(player, 0, Suit.ALL, Conv.OPENING)
+                    return bidNotif
+            bidNotif = BidNotif(player, 0, Suit.ALL)
+            return bidNotif
 
         # Check for balanced hand
         if hand.isHandBalanced():
@@ -118,29 +95,29 @@ class OpenerRegistry:
                 ts.myMinPoints = 15
                 ts.myMaxPoints = 17            
                 player.playerRole = PlayerRole.OPENER
-                return self.enforceMinBid(table, player, 1, Suit.NOTRUMP)
+                return BidNotif(player, 1, Suit.NOTRUMP, Conv.OPENING)
             # Does hand have stoppers in all 4 suits
             if hand.hasStoppers():
                 if hcPts >= 18 and hcPts <= 19:
                     ts.myMinPoints = 18
                     ts.myMaxPoints = 19            
                     player.playerRole = PlayerRole.OPENER
-                    return self.enforceMinBid(table, player, 1, longSuit)
+                    return BidNotif(player, 1, longSuit, Conv.OPENING)
                 if hcPts >= 20 and hcPts <= 21:
                     ts.myMinPoints = 20
                     ts.myMaxPoints = 21            
                     player.playerRole = PlayerRole.OPENER
-                    return self.enforceMinBid(table, player, 2, Suit.NOTRUMP)
+                    return BidNotif(player, 2, Suit.NOTRUMP, Conv.OPENING)
                 if hcPts >= 25 and hcPts <= 27:
                     ts.myMinPoints = 25
                     ts.myMaxPoints = 27            
                     player.playerRole = PlayerRole.OPENER
-                    return self.enforceMinBid(table, player, 3, Suit.NOTRUMP)
+                    return BidNotif(player, 3, Suit.NOTRUMP, Conv.OPENING)
                 if hcPts >= 28 and hcPts <= 29:
                     ts.myMinPoints = 28
                     ts.myMaxPoints = 29            
                     player.playerRole = PlayerRole.OPENER
-                    return self.enforceMinBid(table, player, 4, Suit.NOTRUMP)
+                    return BidNotif(player, 4, Suit.NOTRUMP, Conv.OPENING)
 
         # If you get here, the hand is unbalanced or is balanced with 22-24 points
         # Check for a big hand
@@ -148,17 +125,17 @@ class OpenerRegistry:
             ts.myMinPoints = 22
             ts.myMaxPoints = 40            
             player.playerRole = PlayerRole.OPENER
-            return self.enforceMinBid(table, player, 2, Suit.CLUB)
+            return BidNotif(player, 2, Suit.CLUB, Conv.OPENING)
 
         # Check for a long suit
         if numCardsLong >= 5:
             player.playerRole = PlayerRole.OPENER
-            return self.enforceMinBid(table, player, 1, longSuit)
+            return BidNotif(player, 1, longSuit, Conv.OPENING)
 
         # Bid the longer minor
         longSuit = findLongerMinor(hand)
         player.playerRole = PlayerRole.OPENER
-        return self.enforceMinBid(table, player, 1, longSuit)
+        return BidNotif(player, 1, longSuit, Conv.OPENING)
 
         print("bid: calcOpenBid: ERROR - did not find bid")        
         print("calcOpenBid: hcPts=%d lenPts=%d suit=%s suitLen=%d" % (hcPts, lenPts, longSuit.name, numCardsLong))

@@ -13,7 +13,7 @@
 	    "minPts": 6,
 	    "maxPts": 12,
 	    "evalMethod": "hcp-short" },
-    "force": "NONE",
+    "force": "ONE_ROUND",
     "nextBidder": "OPENER",
     "handler": "openRebid_1Mi_1NT",
 	"interpretation": "Opener:\t has 13-21 points and 3+ clubs.\n\tDenies 5 card major\n\tDenies balanced hand\nResponder:\tHas 6-9 points\n\tDenies support for clubs\n\tDenies a 4 card major\n\tDenies 4+ diamonds",

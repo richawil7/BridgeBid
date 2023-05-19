@@ -125,7 +125,7 @@ class ControlFrame(TableFrame):
         bidNode = self.getBidNode()
         hintText = bidNode.interpret
         self.hintBox.replace('1.0', '30.0', hintText.expandtabs(2))
-        
+
     def showHint1(self):
         bidNode = self.getBidNode()
         hintText = bidNode.bidHints[0]
@@ -203,6 +203,9 @@ class ControlFrame(TableFrame):
     def nextHand(self):
         self.bidRowIdx = 0
         self.bidColIdx = 0
+        # Clear the hint text box
+        self.hintBox.delete('1.0', '30.0')
+        
         # remove bid labels from the frame
         for label in self.bidShowFrame.grid_slaves():
             label.grid_forget()
