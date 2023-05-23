@@ -231,10 +231,6 @@ class ResponderRegistry:
         if numBidSuit >= 3:
             # Can support opener's suit
             singleSuit = player.hand.hasSingletonOrVoid(suit)
-            if numBidSuit >= 5 and singleSuit != Suit.ALL:
-                bidNotif = BidNotif(player, 4, suit)
-                return bidNotif
-
             if hcPts < 6:
                 ts.myMinPoints = 0
                 ts.myMaxPoints = 5
@@ -273,14 +269,18 @@ class ResponderRegistry:
                         return bidNotif
                 else:
                     # 2 over 1
-                    if suitA.value < suit.value:
+                    if suitA.value > suit.value:
                         bidNotif = BidNotif(player, 2, suitA, Conv.TWO_OVER_ONE, Force.ONE_ROUND)
                         return bidNotif
-                    if suitB.value < suit.value:
+                    if suitB.value > suit.value:
                         bidNotif = BidNotif(player, 2, suitB, Conv.TWO_OVER_ONE, Force.ONE_ROUND)
                         return bidNotif
-                    bidNotif = BidNotif(player, 2, Suit.CLUB, Conv.TWO_OVER_ONE, Force.ONE_ROUND)
+                    if suit != Suit.CLUB:
+                        bidNotif = BidNotif(player, 2, Suit.CLUB, Conv.TWO_OVER_ONE, Force.ONE_ROUND)
+                        return bidNotif
+                    bidNotif = BidNotif(player, 4, suit)
                     return bidNotif
+                    
         else:
             # Do not have support for opener's major
             if hcPts < 6:

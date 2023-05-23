@@ -28,64 +28,110 @@ class OpenerRegistry:
         ts = player.teamState
         (hcPts, lenPts) = hand.evalHand(DistMethod.HCP_LONG)
         totalPts = hcPts + lenPts
-        # Find the longest suit
+        
+        # Let's look for a suit to bid
+        proposedSuit = Suit.ALL
         (numCardsLong, longSuit) = hand.findLongestSuit()
+        (clubCat, numClubs, numClubHc) = hand.evalSuitCategory(Suit.CLUB)
+        (diamondCat, numDiamonds, numDiamondHc) = hand.evalSuitCategory(Suit.DIAMOND)
+        (heartCat, numHearts, numHeartHc) = hand.evalSuitCategory(Suit.HEART)
+        (spadeCat, numSpades, numSpadeHc) = hand.evalSuitCategory(Suit.SPADE)
+        if numHearts >= 5 or numSpades >= 5:
+            if numHearts == numSpades:
+                proposedSuit = Suit.SPADE
+            else:
+                proposedSuit = Suit.HEART
+        elif numDiamonds >= 4:
+            proposedSuit = Suit.DIAMOND
+        elif numClubs >= 3:
+            proposedSuit = Suit.CLUB
+        elif numDiamonds >= numClubs:
+            proposedSuit = Suit.DIAMOND
+        else:
+            proposedSuit = Suit.CLUB 
+       
+        # Now look at my hand's total points    
+        # Do I have exactly 13 points
+        if totalPts == 13:
+            ts.myMinPoints = 13
+            ts.myMaxPoints = 21
+            # Do I have a good 5+ card major
+            if numHearts >= 5 or numSpades >= 5:
+                if numHearts >= numSpades:
+                    bidNotif = BidNotif(player, 1, Suit.HEART)
+                    return bidNotif
+                else:
+                    bidNotif = BidNotif(player, 1, Suit.SPADE)
+                    return bidNotif
+            
+            # Do I have good hearts?
+            if numHearts >= 4 and numHeartHc >= 2:
+                if heartCat == SuitCategory.AKQ or \
+                   heartCat == SuitCategory.AKx or \
+                   heartCat == SuitCategory.AxQ or \
+                   heartCat == SuitCategory.xKQ or \
+                   heartCat == SuitCategory.Axx:
+                    bidNotif = BidNotif(player, 1, Suit.HEART)
+                    return bidNotif
+
+            # Do I have good spades?
+            if numHearts >= 4 and numSpadeHc >= 2:
+                if spadeCat == SuitCategory.AKQ or \
+                   spadeCat == SuitCategory.AKx or \
+                   spadeCat == SuitCategory.AxQ or \
+                   spadeCat == SuitCategory.xKQ or \
+                   spadeCat == SuitCategory.Axx:
+                    bidNotif = BidNotif(player, 1, Suit.HEART)
+                    return bidNotif
+
+            # Do I have 2 quick tricks in clubs?
+            if numClubs >= 3:
+                if clubCat == SuitCategory.AKQ or \
+                   clubCat == SuitCategory.AKx or \
+                   clubCat == SuitCategory.AxQ or \
+                   clubCat == SuitCategory.xKQ:
+                    bidNotif = BidNotif(player, 1, Suit.CLUB)
+                    return bidNotif
+
+            # Do I have 2 quick tricks in diamonds?
+            if numDiamonds >= 4:
+                if diamondCat == SuitCategory.AKQ or \
+                   diamondCat == SuitCategory.AKx or \
+                   diamondCat == SuitCategory.AxQ or \
+                   diamondCat == SuitCategory.xKQ:
+                    bidNotif = BidNotif(player, 1, Suit.DIAMOND)
+                    return bidNotif
+                
         # Check if we should open weak with a long suit
         if totalPts < 14:
             ts.myMinPoints = 5
             ts.myMaxPoints = 13            
-            # Evaluate spades
-            (spadeCat, numSpades, numSpadeHc) = hand.evalSuitCategory(Suit.SPADE)
-            # Do we have 2 quick tricks?
-            if spadeCat == SuitCategory.AKQ or \
-               spadeCat == SuitCategory.AKx or \
-               (spadeCat == SuitCategory.AxQ and numSpades > 2) or \
-               (spadeCat == SuitCategory.xKQ and numSpades > 2):
-                quick2Spades = True
-            else:
-                quick2Spades = False
-            goodSpades = numSpades >= 4 and quick2Spades
-
-            # Evaluate hearts
-            (heartCat, numHearts, numHeartHc) = hand.evalSuitCategory(Suit.HEART)
-            # Do we have 2 quick tricks?
-            if heartCat == SuitCategory.AKQ or \
-               heartCat == SuitCategory.AKx or \
-               (heartCat == SuitCategory.AxQ and numHearts > 2) or \
-               (heartCat == SuitCategory.xKQ and numHearts > 2):
-                quick2Hearts = True
-            else:
-                quick2Hearts = False
-            goodHearts = numHearts >= 4 and quick2Hearts
-
-            goodMajor = goodSpades or goodHearts
-            if totalPts != 13 and (not goodMajor):
-                # Get the two longest suits
-                (suitA, numCardsA, suitB, numCardsB) = hand.numCardsInTwoLongestSuits()
-                # Check for weak bid
-                if numCardsLong >= 6:
-                    (category, numCardsIHave, highCardCount) = hand.evalSuitCategory(longSuit)
-                    if highCardCount >=2:
-                        if numCardsB >= 4:
-                            bidNotif = BidNotif(player, 0, Suit.ALL)
-                            return bidNotif
-
-                        # Weak bid
-                        if longSuit != Suit.CLUB:
-                            bidLevel = numCardsLong - 4
-                            player.playerRole = PlayerRole.OPENER
-                            return BidNotif(player, bidLevel, longSuit, Conv.OPENING)
-                    else:
+            # Get the two longest suits
+            (suitA, numCardsA, suitB, numCardsB) = hand.numCardsInTwoLongestSuits()
+            # Check for weak bid
+            if numCardsLong >= 6:
+                (category, numCardsIHave, highCardCount) = hand.evalSuitCategory(longSuit)
+                if highCardCount >=2:
+                    if numCardsB >= 4:
                         bidNotif = BidNotif(player, 0, Suit.ALL)
                         return bidNotif
-                else:
-                    # Check for rule of 20
-                    if hcPts + numCardsA + numCardsB >= 20:
+
+                    # Weak bid
+                    if longSuit != Suit.CLUB:
+                        bidLevel = numCardsLong - 4
                         player.playerRole = PlayerRole.OPENER
-                        bidNotif = BidNotif(player, 1, suitA, Conv.OPENING)
-                    else:
-                        bidNotif = BidNotif(player, 0, Suit.ALL, Conv.OPENING)
+                        return BidNotif(player, bidLevel, longSuit, Conv.OPENING)
+                else:
+                    bidNotif = BidNotif(player, 0, Suit.ALL)
                     return bidNotif
+            else:
+                # Check for rule of 20
+                if hcPts + numCardsA + numCardsB >= 20:
+                    player.playerRole = PlayerRole.OPENER
+                    bidNotif = BidNotif(player, 1, proposedSuit, Conv.OPENING)
+                else:
+                    bidNotif = BidNotif(player, 0, Suit.ALL, Conv.OPENING)
+                return bidNotif
             bidNotif = BidNotif(player, 0, Suit.ALL)
             return bidNotif
 

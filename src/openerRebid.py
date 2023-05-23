@@ -452,19 +452,20 @@ class OpenerRebidRegistry:
         numCardsInSuit = player.hand.getNumCardsInSuit(openingSuit)
 
         # In two over one, a 1 NT bid from responder is forcing for one round
-        # Find another bid, leaning towards showing a 4 card major
+        # Find another bid
         (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
-        if suitA != openingSuit and isMajor(suitA) and numCardsA >= 4:
-            ts.candidateSuit = suitA
-        elif suitB != openingSuit and isMajor(suitB) and numCardsB >= 4:
-            ts.candidateSuit = suitB
-        elif openingSuit == Suit.DIAMOND and numCardsInSuit >= 6:
+        numClubs = player.hand.getNumCardsInSuit(Suit.CLUB)
+        if openingSuit == Suit.DIAMOND and numCardsInSuit >= 6:
             ts.candidateSuit = Suit.DIAMOND
+        elif openingSuit == Suit.DIAMOND and numClubs >= 4:
+            ts.candidateSuit = Suit.CLUB
         elif openingSuit == Suit.CLUB and numCardsInSuit >= 5:
             ts.candidateSuit = Suit.CLUB
-        elif suitA != openingSuit and isMinor(suitA) and numCardsA >= 5:
+        elif player.hand.isHandBalanced():
+            ts.candidateSuit = Suit.NOTRUMP
+        elif isMajor(suitA) and numCardsA >= 4:
             ts.candidateSuit = suitA
-        elif suitB != openingSuit and isMinor(suitB) and numCardsB >= 5:
+        elif isMajor(suitB) and numCardsB >= 4:
             ts.candidateSuit = suitB
         else:
             ts.candidateSuit = Suit.NOTRUMP
@@ -472,17 +473,22 @@ class OpenerRebidRegistry:
         # We have a suit to bid, now calculate the bid level
         if totalPts <= 15:
             ts.myMinPoints = 13
-            ts.myMaxPoints = 15        
-            bidLevel = 2
+            ts.myMaxPoints = 15
+            if ts.candidateSuit == Suit.NOTRUMP:
+                bidLevel = 0
+            else:
+                bidLevel = 2
             
         elif totalPts >= 16 and totalPts <= 18:
             ts.myMinPoints = 16
             ts.myMaxPoints = 18
-            bidLevel = 2
-            if openingSuit == Suit.DIAMOND and numCardsInSuit >= 6:
+            if player.hand.isHandBalanced():
+                ts.candidateSuit = Suit.NOTRUMP
+                bidLevel = 2
+            elif openingSuit == ts.candidateSuit:
                 bidLevel = 3
-            elif openingSuit == Suit.CLUB and numCardsInSuit >= 5:
-                bidLevel = 3
+            else:
+                bidLevel = 2
         
         elif totalPts >= 19 and totalPts <= 21:
             ts.myMinPoints = 19
@@ -490,9 +496,7 @@ class OpenerRebidRegistry:
             if player.hand.isHandBalanced():
                 ts.candidateSuit = Suit.NOTRUMP
                 bidLevel = 3
-            elif openingSuit == Suit.DIAMOND and numCardsInSuit >= 6:
-                bidLevel = 4
-            elif openingSuit == Suit.CLUB and numCardsInSuit >= 5:
+            elif openingSuit == ts.candidateSuit:
                 bidLevel = 4
             else:
                 bidLevel = 3

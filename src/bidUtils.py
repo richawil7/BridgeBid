@@ -52,14 +52,12 @@ def getNextLowestBid(table, suit):
 # Given a suit and a game state value, return the bid level
 # required to achieve that game state
 def getGameStateMinLevel(suit, gameState):
-    if suit == Suit.ALL:
-        print("getGameStateMinLevel: invalid suit")
+    if gameState == GameState.UNKNOWN:
         return 1
-    
-    if gameState == GameState.PARTSCORE:
+    elif gameState == GameState.PARTSCORE:
         return 1
     elif gameState == GameState.GAME:
-        if suit == Suit.NOTRUMP:
+        if suit == Suit.NOTRUMP or suit == Suit.ALL:
             return 3
         else:
             if isMajor(suit):

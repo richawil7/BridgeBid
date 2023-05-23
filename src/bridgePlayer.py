@@ -181,10 +181,8 @@ class BridgePlayer(Player):
                 numBids += 1
                 if numBids < 3:
                     # Update the bid notification using the bid node information
-                    print("round2: cur bid seq = {}".format(self.teamState.bidSeq))
                     newBidSeq = self.teamState.bidSeq.copy()
                     newBidSeq.append(bidNotif.bid)
-                    print("round2: next bid seq = {}".format(newBidSeq))
                     nextBidNode = fetchBidTreeNode(newBidSeq)
                     bidNotif.updateWithBidnode(self, nextBidNode)
             else:

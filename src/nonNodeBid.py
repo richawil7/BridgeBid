@@ -209,6 +209,8 @@ def captainBidHandler(table, player):
                     proposedBidLevel = alternateBid[0]
                     proposedBidSuit = alternateBid[1]
             force = Force.ONE_ROUND
+        elif proposedBidLevel < minLevel and ts.fitSuit == Suit.ALL and proposedBidSuit != ts.candidateSuit:
+            force = Force.ONE_ROUND
         else:
             # Just bid the fit suit at the target level
             proposedBidLevel = minLevel
@@ -220,10 +222,13 @@ def captainBidHandler(table, player):
     Log.write("capt: force=%s\n" % (force.name))
 
     # Now determine where the proposedBidLevel lies wrt the min and maxLevel
-    # With a strong hand, we will want to jump a level
+    # With a strong hand, we will want to jump a level if we know our fit suit
     if proposedBidLevel < minLevel:
         if ts.gameState == GameState.GAME:
-            actualBidLevel = minLevel
+            if ts.fitSuit == Suit.ALL and ts.candidateSuit != proposedBidSuit:
+                actualBidLevel = proposedBidLevel
+            else:
+                actualBidLevel = minLevel
         else:
             actualBidLevel = proposedBidLevel
     elif proposedBidLevel >= minLevel and proposedBidLevel <= maxLevel:
@@ -247,10 +252,7 @@ def describerBidHandler(table, player):
     bidGameState = getGameStateOfBid(lastTeamBid)
 
     # Get the target bid level for the fit suit
-    if ts.fitSuit == Suit.ALL:
-        targetLevel = 1
-    else:
-        targetLevel = getGameStateMinLevel(ts.fitSuit, ts.gameState)
+    targetLevel = getGameStateMinLevel(ts.fitSuit, ts.gameState)
         
     # Check the conditions under which the describer should pass
     if ts.force == Force.PASS:
@@ -337,5 +339,5 @@ def getAlternateBid(table, teamState):
             return (alternateBidLevel, alternateBidSuit)
         
     bidStr = getBidStr(alternateBidLevel, alternateBidSuit)
-    #print("desc: alternate bid is %s" % bidStr)
+    Log.write("desc: alternate bid is %s" % bidStr)
     return (alternateBidLevel, alternateBidSuit)
