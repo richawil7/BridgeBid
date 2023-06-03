@@ -260,7 +260,7 @@ def describerBidHandler(table, player):
         return bidNotif
     if ts.force == Force.NONE:
         if ts.fitSuit == lastTeamBid[1]:
-            if bidGameState >= ts.gameState and lastTeamBid[0] >= targetLevel:
+            if bidGameState.value >= ts.gameState.value and lastTeamBid[0] >= targetLevel:
                 bidNotif = BidNotif(player, 0, Suit.ALL)
                 return bidNotif
         

@@ -101,7 +101,6 @@ class BidNotif:
         # print("notif suit state {}".format(self.suitState))
         
     def processStaymanResponse(self, player, teamState):
-        print("processStaymanResponse")
         if self.bid[1] == Suit.DIAMOND and self.bid[0] == 2:
             # No fit in major
             teamState.suitState[Suit.HEART] = FitState.NO_SUPPORT
@@ -123,7 +122,7 @@ class BidNotif:
     def processMajorLimit(self, ts):
         Log.write("processing Major Limit notification")
         # Responder has support for bid major and 11-12 points
-        openingSuit = ts.candidateSuit
+        openingSuit = getOpeningBid(ts.bidSeq)[1]
         ts.suitState[openingSuit] = FitState.SUPPORT
         ts.partnerMinPoints = 11
         ts.partnerMaxPoints = 12
@@ -131,7 +130,7 @@ class BidNotif:
     def processJacoby2NT(self, ts):
         Log.write("processing Jacoby 2NT notification")
         # Responder has 4+ card support for bid major and 13+ points
-        openingSuit = ts.candidateSuit
+        openingSuit = getOpeningBid(ts.bidSeq)[1]
         ts.suitState[openingSuit] = FitState.SUPPORT
         ts.partnerMinPoints = 13
         ts.partnerMaxPoints = 27
@@ -184,7 +183,7 @@ class BidNotif:
     def processSplinterResponse(self, ts):
         Log.write("processing Splinter notification\n")
         # Responder has 4+ card support for bid major and 13+ points
-        openingSuit = ts.candidateSuit
+        openingSuit = getOpeningBid(ts.bidSeq)[1]
         ts.suitState[openingSuit] = FitState.SUPPORT
         ts.partnerMinPoints = 13
         ts.partnerMaxPoints = 27

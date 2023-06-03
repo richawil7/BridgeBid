@@ -13,7 +13,7 @@
 	    "evalMethod": "hcp-only" },
     "force": "ONE_ROUND",
     "nextBidder": "OPENER",
-    "handler": "openRebid_2N_3C",
+    "handler": "openRebid_2NT_3C",
 	"interpretation": "Opener:\tHas 20-21 points and a balanced hand\n\tMay have a 5 card suit\nResponder:\tHas 5+ points and a 4 card major",
 	"hints": {
 		"hint0": "Stayman",
