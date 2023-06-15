@@ -67,6 +67,7 @@ class FitState(Enum):
     CANDIDATE = 1
     NO_SUPPORT = 2
     SUPPORT = 3
+    PLAY = 4
     
 class Force(Enum):
     NONE = 0

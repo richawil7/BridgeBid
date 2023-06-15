@@ -18,7 +18,7 @@
     "handler": "openRebid_3_4",
 	"interpretation": "Opener\tHas 5-11 points\n\tHas 7 cards in bid suit\nResponder\tHas support for opening suit\n\tThis is a sacrifice",
 	"hints": {
-		"hint1": "Used when opponents have a stronger hand",
+		"hint0": "Used when opponents have a stronger hand",
 		"hint1": "A sacrifice",
 		"hint2": "Pass"
 	}	

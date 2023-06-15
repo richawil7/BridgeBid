@@ -75,7 +75,6 @@ class BridgePlayer(Player):
     def computerBidRequest(self, table, hasOpener, competition, roundNum, bidsList, isHuman, hand):
         if self.pos == TablePosition.NORTH or self.pos == TablePosition.SOUTH:
             Log.write("BidReq: pos={} hasOpener={} compet={} roundNum={}\n".format(self.pos.name, hasOpener, competition, roundNum))
-
         if roundNum == 1:
             bidNotif = self.bidRound1(table)
 
@@ -87,8 +86,7 @@ class BridgePlayer(Player):
         
         # Store this bid
         self.lastNotif = bidNotif
-        (bidLevel, bidSuit) = (bidNotif.bid[0], bidNotif.bid[1])
-        bidStr = getBidStr(bidLevel, bidSuit)
+        bidStr = getBidStr(bidNotif.bid[0], bidNotif.bid[1])
         if not isHuman:
             # Only submit the bid if the computer is this player
             self.table.bidResponse(self.pos, bidNotif)

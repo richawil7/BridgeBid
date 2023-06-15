@@ -33,6 +33,14 @@ def findLargestBid(bidsList):
     bidStr = getBidStr(maxLevel, maxSuit)
     return (maxLevel, maxSuit)
 
+# Find the number of times a suit was bid by my team
+def getNumBidsSuit(player, suit):
+    bidsList = player.teamState.bidSeq
+    bidCount = 0
+    for bid in bidsList:
+        if bid[1] == suit:
+            bidCount += 1
+    return bidCount
 
 # Given a proposed suit, find the lowest allowed level at which the suit
 # can be bid

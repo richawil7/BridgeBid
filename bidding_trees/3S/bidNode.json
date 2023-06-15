@@ -18,6 +18,6 @@
 	"hints": {
 		"hint0": "1 card for support",
 		"hint1": "Need 6+ cards to show new suit",
-		"hint2": "<No support\Stoppers: 3NT\nSupport\t0-13\t1 card: Pass\n\t\t\2+ card: 4O\n\t8-13: 4O\n\t14+\tSupport: 2NT #Forcing"
+		"hint2": "No support\tStoppers: 3NT\nSupport\t0-13\t1 card: Pass\n\t\t2+ card: 4O\n\t8-13: 4O\n\t14+\tSupport: 2NT #Forcing"
 	}
 }

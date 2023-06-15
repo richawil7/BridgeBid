@@ -188,6 +188,23 @@ class BidNotif:
         ts.partnerMinPoints = 13
         ts.partnerMaxPoints = 27
         ts.convention = Conv.NATURAL
+
+    def processWeakResponse(self, player, teamState):
+        bidSuit = self.bid[1]
+        if self.bid[0] == 2:
+            # Promising 6 cards in bid suit
+            if player.hand.getNumCardsInSuit(bidSuit) >= 2:
+                teamState.suitState[bidSuit] = FitState.SUPPORT
+                teamState.fitSuit = bidSuit
+        elif self.bid[0] == 3:
+            # Promising 7 cards in bid suit
+            if player.hand.getNumCardsInSuit(bidSuit) >= 1:
+                teamState.suitState[bidSuit] = FitState.SUPPORT
+                teamState.fitSuit = bidSuit
+        elif self.bid[0] == 4:
+            # Promising 8 cards in bid suit
+            teamState.suitState[bidSuit] = FitState.SUPPORT
+            teamState.fitSuit = bidSuit
         
     def notifHandler(self, player):
         teamState = player.teamState
@@ -248,6 +265,8 @@ class BidNotif:
             self.processCuebidResponse()
         elif self.convention == Conv.SPLINTER:
             self.processSplinterResponse(teamState)
+        elif self.convention == Conv.WEAK_2:
+            self.processWeakResponse(player, teamState)
         # The remaining conventions all need to be processed when this player bids next. Save the convention in the player's team state    
         elif self.convention == Conv.NATURAL:
             teamState.convention = self.convention
@@ -302,6 +321,24 @@ class BidNotif:
             if numCardsInBidSuit >= 2:
                 # We have support
                 teamState.suitState[bidSuit] = FitState.SUPPORT
+
+        # Check if this suit was bid twice, once by each player,
+        # indicating support for the notification suit
+        numBidsThisSuit = getNumBidsSuit(player, bidSuit)
+        if numBidsThisSuit >= 2 and self.bid[0] != 0:
+            numBids = len(player.teamState.bidSeq)
+            # Walk the bid list and get the index of when this
+            # suit was bid for the first time
+            firstBidIndex = 0
+            for bid in player.teamState.bidSeq:
+                firstBidIndex += 1
+                if bid[1] == bidSuit:
+                    # Found it
+                    deltaIndex = numBids - firstBidIndex
+                    if deltaIndex % 2 == 1:
+                        # Both partners bid this suit
+                        player.teamState.suitState[bidSuit] = FitState.SUPPORT
+                        player.teamState.fitSuit = bidSuit
             
         # Don't update the bid sequence here. It was already done in
         # the player's notification handler

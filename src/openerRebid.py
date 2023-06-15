@@ -12,7 +12,6 @@ from methodRegistry import MethodRegistry
 from bidUtils import *
 from bidNotif import BidNotif
 
-
 class OpenerRebidRegistry:
     # Create a registry of functions used by the potential opener
     class OpenerFunctions(MethodRegistry):
@@ -95,7 +94,7 @@ class OpenerRebidRegistry:
 
         # Do I have a second suit
         secondSuit = Suit.ALL
-        if isMinor(suitB) and numCardsB >= 5 and suitB.level > openingSuit.level:
+        if isMinor(suitB) and numCardsB >= 5 and suitB.value > openingSuit.value:
             secondSuit = suitB
         elif isMajor(suitB) and numCardsB >= 4:
             secondSuit = suitB
@@ -132,7 +131,7 @@ class OpenerRebidRegistry:
             ts.myMaxPoints = 21
             if isMinor(suitB) and numCardsB >= 5 or isMajor(suitB) and numCardsB >= 4:
                 # Bid a jump shift of second suit
-                if suitB.level > openingSuit.level:
+                if suitB.value > openingSuit.value:
                     ts.candidateSuit = secondSuit
                     bidNotif = BidNotif(player, 2, secondSuit)
                     return bidNotif                
@@ -909,7 +908,7 @@ class OpenerRebidRegistry:
             # Rebid opening minor
             proposedSuit = openingSuit            
         else:
-            prposedSuit = Suit.NOTRUMP
+            proposedSuit = Suit.NOTRUMP
         ts.candidateSuit = proposedSuit
         
         # Find the proposed level
@@ -943,6 +942,9 @@ class OpenerRebidRegistry:
             else:
                 # Jump to show large hand
                 proposedLevel = 4
+        elif totalPts >= 22:
+            print("openRebid_2_over_1: ERROR - opened at 1 level with more than 21 points")
+            proposedLevel = 2
 
         bidNotif = BidNotif(player, proposedLevel, proposedSuit)
         return bidNotif
@@ -1214,6 +1216,7 @@ class OpenerRebidRegistry:
         ts = player.teamState        
 
         # What suit did my partner bid? Partner promises 5 cards.
+        partnerLevel = ts.bidSeq[-1][0]
         partnerSuit = ts.bidSeq[-1][1]
         numCardsPartnersSuit = player.hand.getNumCardsInSuit(partnerSuit)
         if numCardsPartnersSuit >= 3:
@@ -1231,11 +1234,11 @@ class OpenerRebidRegistry:
         (suitA, numCardsA, suitB, numCardsB) = player.hand.numCardsInTwoLongestSuits()
         if isMajor(suitA):
             ts.candidateSuit = suitA
-            if suitA.level < partnerSuit.level:
-                bidNotif = BidNotif(player, partnerSuit.level, suitA)
+            if suitA.value < partnerSuit.value:
+                bidNotif = BidNotif(player, partnerLevel, suitA)
                 return bidNotif
             else:
-                bidNotif = BidNotif(player, partnerSuit.level + 1, suitA)
+                bidNotif = BidNotif(player, partnerLevel + 1, suitA)
                 return bidNotif
         # My best suit is a minor. Bid them up the line
         if numCardsA == numCardsB:
@@ -1535,7 +1538,8 @@ class OpenerRebidRegistry:
         Log.write("openRebid_3_4 by %s\n" % player.pos.name)
         ts = player.teamState
         ts.force = Force.PASS
-        return (0, Suit.ALL)
+        bidNotif = BidNotif(player, 0, Suit.ALL)
+        return bidNotif
         
     @OpenerFunctions.register(command="openRebid_3NT_nNT")
     def openRebid_3NT_nNT(self, table, player):

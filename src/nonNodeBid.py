@@ -291,8 +291,9 @@ def getProposedBid(table, ts, player):
         openingBid = getOpeningBid(ts.bidSeq)
         openingSuit = openingBid[1]
         numCardsOpeningSuit = player.hand.getNumCardsInSuit(openingSuit)
-        if numCardsOpeningSuit >= 6 and table.roundNum == 2:
-            # We can rebid the opening suit
+        bidCount = getNumBidsSuit(player, openingSuit)
+        if numCardsOpeningSuit >= 6 and bidCount == 1:
+            # We can rebid the opening suit 1 time
             proposedBidSuit = openingSuit
         else:            
             # Find a suit that still has a chance of a fit

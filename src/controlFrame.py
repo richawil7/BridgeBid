@@ -210,4 +210,6 @@ class ControlFrame(TableFrame):
         for label in self.bidShowFrame.grid_slaves():
             label.grid_forget()
             
-        
+        # Reset the bid selection
+        self.bidLevel.set(BidLevels[0])
+        self.bidSuit.set(BidSuits[0])
